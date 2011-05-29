@@ -15,7 +15,7 @@ ammo.js works, see a demo at
 
   http://syntensity.com/static/bullet.html
 
-The main challenge at this point is to make a convenient API.
+But see later down about usage.
 
 
 Instructions
@@ -39,11 +39,20 @@ Instructions
 Usage
 -----
 
-As mentioned above, using ammo.js is not as convenient as it should
-be. You can see the translations of mangled names to the originals
-in libbullet.names, and call those functions that way. You do need
-to do C/C++-style memory management, passing around integers that
-represent pointers, etc. This should be improved upon (the
-emscripten namespacer tool is a very small step forward in that
-regard).
+The most straightforward thing is if you want to write your code
+in C++, and run that on the web.
+
+If so, then compile your code into LLVM, link it with bullet,
+and compile that to JavaScript using emscripten. (The easiest way
+to link it is to add your .bc file to the llvm-link command in
+build.py.)
+
+If, on the other hand, you want to write code in JavaScript,
+then work remains to be done. You get demangled names in
+libbullet.names and libbullet.names.js, but using them is still
+quite annoying. This should be improved upon. See
+
+  examples/
+
+for some WIP examples.
 

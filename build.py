@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 DEBUG = 0
-DEMANGLE = 1
 LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
 EMSCRIPTEN_SETTINGS ={
   'SKIP_STACK_IN_SMALL': 1, # use 0 for debugging, debugging output can be big
@@ -96,10 +95,13 @@ try:
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
-  if DEMANGLE:
-    stage('Generate demangled names')
+  stage('Generate demangled names')
 
-    Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'third_party', 'demangler.py'), 'libbullet.js'], stdout=open('libbullet.names', 'w')).communicate()
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'third_party', 'demangler.py'), 'libbullet.js'], stdout=open('libbullet.names', 'w')).communicate()
+
+  stage('Namespace generation')
+
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'namespacer.py'), 'libbullet.js', 'libbullet.names'], stdout=open('libbullet.names.js', 'w')).communicate()
 
 finally:
   os.chdir(this_dir);
