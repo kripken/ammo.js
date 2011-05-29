@@ -7,6 +7,8 @@ AMMO might stand for "Avoided Making My Own js physics engine by compiling bulle
 
 ammo.js is zlib licensed, just like Bullet.
 
+Discussion takes place on IRC at #emscripten on Mozilla's server (irc.mozilla.org)
+
 
 Status
 ------
