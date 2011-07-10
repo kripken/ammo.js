@@ -89,13 +89,11 @@ try:
   stage('Generate bindings')
 
   HEADERS = walk_headers(['..', '../src'], 'src/btBulletDynamicsCommon.h')
-  # ok : 3
-  # bad: 4 (97 total)
   #HEADERS = HEADERS[:int(sys.argv[1])]
   #HEADERS = ['/home/alon/Dev/ammo.js/bullet/build/binding.allz.h']
-  print HEADERS
+  #print HEADERS
   Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
-        ['--', "lambda line: line.replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '')"],
+        ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '')"], # Work around some parsing issues
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   1/0.
