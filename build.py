@@ -25,7 +25,7 @@ EMSCRIPTEN_SETTINGS ={
 
 #========================================================
 
-import os, sys
+import os, sys, re
 from subprocess import Popen, PIPE, STDOUT
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
@@ -36,7 +36,10 @@ except:
   print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
   sys.exit(1)
 
-exec(open(os.path.join(EMSCRIPTEN_ROOT, 'tools', 'shared.py'), 'r').read())
+sys.path.append(EMSCRIPTEN_ROOT)
+import tools.shared as shared
+
+# Utilities
 
 stage_counter = 0
 def stage(text):
@@ -49,12 +52,53 @@ def stage(text):
   print '=' * len(text)
   print
 
+def walk_headers(basedirs, filename):
+  #print "walk:", basedirs, filename
+  '''Given a directory and a header file, include all the included files recursively'''
+  fullname = None
+  for basedir in basedirs:
+    if os.path.exists(os.path.join(basedir, filename)):
+      fullname = os.path.join(basedir, filename)
+      break
+  assert fullname, 'Cannot find: ' + str([basedirs, filename])
+
+  basedirs.append(os.path.dirname(fullname))
+  basedirs = list(set(basedirs))
+
+  headers = [fullname]
+  include_cmd = re.compile('^#include "(?P<includee>[^"]*)"$')
+  for line in open(fullname, 'r'):
+    m = include_cmd.match(line)
+    if not m: continue
+    headers = headers + walk_headers(basedirs, m.group('includee'))
+  # Remove duplicates, maintaining order
+  ret = []
+  for i in range(len(headers)):
+    if headers[i] not in ret: ret.append(headers[i])
+  return ret
+
+# Main
+
 try:
   this_dir = os.getcwd()
   os.chdir('bullet')
   if not os.path.exists('build'):
     os.makedirs('build')
   os.chdir('build')
+
+  stage('Generate bindings')
+
+  HEADERS = walk_headers(['..', '../src'], 'src/btBulletDynamicsCommon.h')
+  # ok : 3
+  # bad: 4 (97 total)
+  #HEADERS = HEADERS[:int(sys.argv[1])]
+  #HEADERS = ['/home/alon/Dev/ammo.js/bullet/build/binding.allz.h']
+  print HEADERS
+  Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
+        ['--', "lambda line: line.replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '')"],
+        stdout=open('o', 'w'), stderr=STDOUT).communicate()
+
+  1/0.
 
   stage('Build Bullet')
 
