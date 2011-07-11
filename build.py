@@ -88,15 +88,20 @@ try:
 
   stage('Generate bindings')
 
+  print 'Collecting...'
+
   HEADERS = walk_headers(['..', '../src'], 'src/btBulletDynamicsCommon.h')
   #HEADERS = HEADERS[:int(sys.argv[1])]
   #HEADERS = ['/home/alon/Dev/ammo.js/bullet/build/binding.allz.h']
   #print HEADERS
+
+  print 'Processing...'
+
   Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
-        ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '')"], # Work around some parsing issues
+        ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '')"], # Work around some parsing issues
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
-  1/0.
+  1/0. # g++ -I../src -include btBulletDynamicsCommon.h binding.c &> o ; head o
 
   stage('Build Bullet')
 
