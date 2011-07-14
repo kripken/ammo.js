@@ -98,7 +98,7 @@ try:
   print 'Processing...'
 
   Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
-        ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '').replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*').replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*').replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2 *')"], # Work around some parsing issues
+        ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '').replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*').replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*').replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2 *').replace('const btVehicleTuning', 'const btRaycastVehicle::btVehicleTuning')", "btOptimizedBvh,btVector3::get128,,btVector3::set128,btQuadWord::get128,btMultiSapBroadphase,btActivatingCollisionAlgorithm,btContactConstraint,btPolyhedralConvexAabbCachingShape,btQuantizedBvh"], # Work around some parsing issues
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   1/0. # g++ -I../src -include btBulletDynamicsCommon.h binding.c &> o ; head o
