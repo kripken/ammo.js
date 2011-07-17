@@ -25,7 +25,7 @@ EMSCRIPTEN_SETTINGS ={
 
 #========================================================
 
-import os, sys, re
+import os, sys, re, json
 from subprocess import Popen, PIPE, STDOUT
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
@@ -99,15 +99,12 @@ try:
 
   Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
         ['--', "lambda line: re.sub(r'struct ([\\w\\d]+)\\n{', r'class \\1\\n{ public: ', line).replace('SIMD_FORCE_INLINE', '').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '').replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*').replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*').replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2 *').replace('const btVehicleTuning', 'const btRaycastVehicle::btVehicleTuning')", "btOptimizedBvh,btVector3::get128,,btVector3::set128,btQuadWord::get128,btMultiSapBroadphase,btActivatingCollisionAlgorithm,btContactConstraint,btPolyhedralConvexAabbCachingShape,btQuantizedBvh,btTypedConstraint::solveConstraintObsolete,btConstraintSolver::prepareSolve,CProfileIterator"], # Work around some parsing issues
-
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
-
-  1/0. # g++ -I../src -include btBulletDynamicsCommon.h binding.c &> o ; head o
 
   stage('Build Bullet')
 
   env = os.environ.copy()
-  env['EMMAKEN_COMPILER'] = CLANG
+  env['EMMAKEN_COMPILER'] = shared.CLANG
   if DEBUG:
     env['CFLAGS'] = '-g'
   env['CC'] = env['CXX'] = env['RANLIB'] = env['AR'] = os.path.join(EMSCRIPTEN_ROOT, 'tools', 'emmaken.py')
@@ -115,11 +112,15 @@ try:
     Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
   Popen(['make'], env=env).communicate()
 
+  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', '-c', 'binding.c', '-emit-llvm', '-o', 'binding.bc']).communicate()
+
   stage('Link')
 
-  Popen([LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
-                    os.path.join('src', '.libs', 'libBulletDynamics.a'),
-                    os.path.join('src', '.libs', 'libLinearMath.a'), '-o', 'libbullet.bc']).communicate()
+  Popen([shared.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
+                           os.path.join('src', '.libs', 'libBulletDynamics.a'),
+                           os.path.join('src', '.libs', 'libLinearMath.a'),
+                           'binding.bc',
+                           '-o', 'libbullet.bc']).communicate()
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
 
@@ -127,29 +128,27 @@ try:
     stage('LLVM optimizations')
 
     shutil.move('libbullet.bc', '')
-    output = Popen([LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
+    output = Popen([shared.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
 
   stage('LLVM binary => LL assembly')
 
-  Popen([LLVM_DIS] + LLVM_DIS_OPTS + ['libbullet.bc', '-o=libbullet.ll']).communicate()
+  Popen([shared.LLVM_DIS] + shared.LLVM_DIS_OPTS + ['libbullet.bc', '-o=libbullet.ll']).communicate()
 
   assert os.path.exists('libbullet.ll'), 'Failed to create assembly code'
 
   stage('Emscripten: LL assembly => JavaScript')
 
-  settings = EMSCRIPTEN_SETTINGS
+  settings = ['-s %s=%s' % (k, json.dumps(v)) for k, v in EMSCRIPTEN_SETTINGS.items()]
 
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py'), 'libbullet.ll', str(EMSCRIPTEN_SETTINGS).replace("'", '"')], stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py'), 'libbullet.ll'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
-  stage('Generate demangled names')
-
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'third_party', 'demangler.py'), 'libbullet.js'], stdout=open('libbullet.names', 'w')).communicate()
-
-  stage('Namespace generation')
-
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'namespacer.py'), 'libbullet.js', 'libbullet.names'], stdout=open('libbullet.names.js', 'w')).communicate()
+  if 0:
+    stage('Generate demangled names')
+    Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'third_party', 'demangler.py'), 'libbullet.js'], stdout=open('libbullet.names', 'w')).communicate()
+    stage('Namespace generation')
+    Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'namespacer.py'), 'libbullet.js', 'libbullet.names'], stdout=open('libbullet.names.js', 'w')).communicate()
 
 finally:
   os.chdir(this_dir);

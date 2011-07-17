@@ -1,36 +1,59 @@
 // WIP - does not work yet
+// Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
-load('../bullet/build/libbullet.js');
-load('../bullet/build/libbullet.names.js');
+load('bullet/build/libbullet.js');
+load('bullet/build/binding.js');
 
-var Bullet = Module._ = ModuleNames;
-
-// Adapted from HelloWorld.cpp in Bullet
-
-var collisionConfiguration = Bullet.btDefaultCollisionConfiguration.__new__();
-var dispatcher = new Bullet.btCollisionDispatcher.__new__(collisionConfiguration);
-var overlappingPairCache = Bullet.btDbvtBroadphase.__new__();
-var solver = Bullet.btSequentialImpulseConstraintSolver.__new__();
-var dynamicsWorld = Bullet.btDiscreteDynamicsWorld.__new__(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-Bullet.btDiscreteDynamicsWorld.setGravity(dynamicsWorld, Bullet.btVector3.__new__1(0, -10, 0)); // vector leak?
-
-var groundShape = Bullet.btBoxShape.__new__(Bullet.btVector3.__new__1(50, 50, 50));
-var collisionShapes = [groundShape];
-
-var groundTransform = Bullet.btTransform.__new__();
-Bullet.btTransform.setIdentity(groundTransform);
-Bullet.btTransform.setOrigin(groundTransform, Bullet.btVector3.__new__1(0, -56, 0));
-
-var localInertia = Bullet.btVector3.__new__1(0, 0, 0);
-Bullet.btBoxShape.calculateLocalInertia(groundShape, 0, localInertia);
-
-var myMotionState = Bullet.btDefaultMotionState.__new__(groundTransform); // this fails XXX why isn't btDefaultMotionState compiled into the .ll?
-var rbInfo = Bullet.btRigidBody.btRigidBodyConstructionInfo.__new__(mass, myMotionState, groundShape, localInertia);
-var body = Bullet.btRigidBody.__new__(rbInfo);
-
-Bullet.btDiscreteDynamicsWorld.addRigidBody(dynamicsWorld, body);
+function main() {
+  var collisionConfiguration = new btDefaultCollisionConfiguration();
 
 /*
+  ///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
+  btCollisionDispatcher* dispatcher = new  btCollisionDispatcher(collisionConfiguration);
+
+  ///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
+  btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+
+  ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
+  btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+  btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
+
+  dynamicsWorld->setGravity(btVector3(0,-10,0));
+
+  ///create a few basic rigid bodies
+  btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
+
+  //keep track of the shapes, we release memory at exit.
+  //make sure to re-use collision shapes among rigid bodies whenever possible!
+  btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+  collisionShapes.push_back(groundShape);
+
+  btTransform groundTransform;
+  groundTransform.setIdentity();
+  groundTransform.setOrigin(btVector3(0,-56,0));
+
+  {
+    btScalar mass(0.);
+
+    //rigidbody is dynamic if and only if mass is non zero, otherwise static
+    bool isDynamic = (mass != 0.f);
+
+    btVector3 localInertia(0,0,0);
+    if (isDynamic)
+      groundShape->calculateLocalInertia(mass,localInertia);
+
+    //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+    btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+    btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,groundShape,localInertia);
+    btRigidBody* body = new btRigidBody(rbInfo);
+
+    //add the body to the dynamics world
+    dynamicsWorld->addRigidBody(body);
+  }
+
+
   {
     //create a dynamic rigidbody
 
@@ -84,5 +107,49 @@ Bullet.btDiscreteDynamicsWorld.addRigidBody(dynamicsWorld, body);
       }
     }
   }
+
+
+  //cleanup in the reverse order of creation/initialization
+
+  //remove the rigidbodies from the dynamics world and delete them
+  for (i=dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
+  {
+    btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+    btRigidBody* body = btRigidBody::upcast(obj);
+    if (body && body->getMotionState())
+    {
+      delete body->getMotionState();
+    }
+    dynamicsWorld->removeCollisionObject( obj );
+    delete obj;
+  }
+
+  //delete collision shapes
+  for (int j=0;j<collisionShapes.size();j++)
+  {
+    btCollisionShape* shape = collisionShapes[j];
+    collisionShapes[j] = 0;
+    delete shape;
+  }
+
+  //delete dynamics world
+  delete dynamicsWorld;
+
+  //delete solver
+  delete solver;
+
+  //delete broadphase
+  delete overlappingPairCache;
+
+  //delete dispatcher
+  delete dispatcher;
+
+  delete collisionConfiguration;
+
+  //next line is optional: it will be cleared by the destructor when the array goes out of scope
+  collisionShapes.clear();
 */
+}
+
+main();
 
