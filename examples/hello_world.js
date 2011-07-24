@@ -6,13 +6,10 @@ load('bullet/build/binding.js');
 
 function main() {
   var collisionConfiguration = new btDefaultCollisionConfiguration();
+  var dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
+  var overlappingPairCache = new btDbvtBroadphase();
 /*
-  ///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-  btCollisionDispatcher* dispatcher = new  btCollisionDispatcher(collisionConfiguration);
-
-  ///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
-  btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
 
   ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
   btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
