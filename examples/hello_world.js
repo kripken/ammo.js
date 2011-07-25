@@ -7,16 +7,12 @@ load('bullet/build/binding.js');
 function main() {
   var collisionConfiguration = new btDefaultCollisionConfiguration();
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
   var overlappingPairCache = new btDbvtBroadphase();
+  var solver = new btSequentialImpulseConstraintSolver();
+  var dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+  dynamicsWorld.setGravity(new btVector3(0,-10,0)); // XXX leak
+
 /*
-
-  ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-  btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-  btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
-
-  dynamicsWorld->setGravity(btVector3(0,-10,0));
 
   ///create a few basic rigid bodies
   btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));

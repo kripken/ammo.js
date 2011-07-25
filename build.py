@@ -2,12 +2,12 @@
 
 DEBUG = 0
 LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
-EMSCRIPTEN_SETTINGS ={
+EMSCRIPTEN_SETTINGS = {
   'SKIP_STACK_IN_SMALL': 1, # use 0 for debugging, debugging output can be big
   'OPTIMIZE': 1,
   'RELOOP': 0, # Very important for performance, but very slow to compile
   'USE_TYPED_ARRAYS': 0, # TODO: Test if this helps or hurts
-  'SAFE_HEAP': 0,
+  'SAFE_HEAP': 1,
   'ASSERTIONS': 0,
   'INIT_STACK': 0,
 
@@ -38,6 +38,15 @@ except:
 
 sys.path.append(EMSCRIPTEN_ROOT)
 import tools.shared as shared
+
+# Prep
+
+if EMSCRIPTEN_SETTINGS['SAFE_HEAP']:
+  # Ignore bitfield warnings
+  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 3
+  EMSCRIPTEN_SETTINGS['SAFE_HEAP_LINES'] = ['btVoronoiSimplexSolver.h:40', 'btVoronoiSimplexSolver.h:41',
+                                            'btVoronoiSimplexSolver.h:42', 'btVoronoiSimplexSolver.h:43']
+  DEBUG = 1
 
 # Utilities
 
