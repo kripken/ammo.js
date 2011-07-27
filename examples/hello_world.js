@@ -5,6 +5,15 @@ load('bullet/build/libbullet.js');
 load('bullet/build/binding.js');
 
 function main() {
+
+  var vec = new btVector3(4, 5, 6);
+  print(vec.ptr);
+  print(HEAP[vec.x()]);
+  print(HEAP[vec.y()]);
+  print(HEAP[vec.z()]);
+
+  return;
+
   var collisionConfiguration = new btDefaultCollisionConfiguration();
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);
   var overlappingPairCache = new btDbvtBroadphase();
@@ -12,10 +21,8 @@ function main() {
   var dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
   dynamicsWorld.setGravity(new btVector3(0,-10,0)); // XXX leak
 
+  var groundShape = new btBoxShape(new btVector3(50,50,50));
 /*
-
-  ///create a few basic rigid bodies
-  btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
 
   //keep track of the shapes, we release memory at exit.
   //make sure to re-use collision shapes among rigid bodies whenever possible!
