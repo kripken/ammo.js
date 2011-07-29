@@ -2,17 +2,13 @@
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 load('bullet/build/libbullet.js');
-load('bullet/build/binding.js');
+load('bullet/build/bindings.js');
+load('manual/bindings.js');
 
 function main() {
 
   var vec = new btVector3(4, 5, 6);
-  print(vec.ptr);
-  print(HEAP[vec.x()]);
-  print(HEAP[vec.y()]);
-  print(HEAP[vec.z()]);
-
-  return;
+  print('vec:' + [vec.x(), vec.y(), vec.z()]);
 
   var collisionConfiguration = new btDefaultCollisionConfiguration();
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);

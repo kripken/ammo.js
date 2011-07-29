@@ -104,11 +104,11 @@ try:
 
   print 'Processing...'
 
-  Popen([shared.BINDINGS_GENERATOR, 'binding'] + HEADERS +
+  Popen([shared.BINDINGS_GENERATOR, 'bindings'] + HEADERS +
         ['--', "lambda line: re.sub(r'struct ([\\w\\d :]+)\\n{', r'class \\1\\n{ public: ', re.sub(r'#if 0[^#]*(#else)?[^#]*#endif', '', line.replace('#ifdef USE_SIMD', '#if 0').replace('#ifdef BT_USE_SSE', '#if 0').replace('defined (__SPU__) && defined (__CELLOS_LV2__)', '0').replace('\t', ' ').replace('\\n', 'NEWLINE')).replace('NEWLINE', '\\n')).replace('SIMD_FORCE_INLINE', '').replace('DBVT_IPOLICY', 'ICollide& policy').replace('class btSimdScalar', 'struct class_btSimdScalar').replace('DBVT_PREFIX', '').replace('btDiscreteCollisionDetectorInterface::Result', 'btDiscreteCollisionDetectorInterface__Result').replace('IWriter*', 'btDbvt::IWriter*').replace('IClone*', 'btDbvt::IClone*').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '').replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*').replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*').replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2 *').replace('const btVehicleTuning', 'const btRaycastVehicle::btVehicleTuning').replace('unsigned int signs[3]', 'unsigned int *signs').replace('#if 0\\n \\n  void  collideTT( const btDbvtNode* root0,\\n  const btDbvtNode* root1,\\n  const btTransform& xform,\\n  ICollide& policy);\\n \\n  void  collideTT( const btDbvtNode* root0,\\n  const btTransform& xform0,\\n  const btDbvtNode* root1,\\n  const btTransform& xform1,\\n  ICollide& policy);\\n#endif', '').replace('sStkNPS', 'btDbvt::sStkNPS').replace('virtual void solveConstraintObsolete', '// solveConstraintObsolete').replace('/* numBodies */', 'numBodies').replace('/* numManifolds */', 'numManifolds')", "btOptimizedBvh,btVector3::get128,btVector4::get128,btVector3::set128,btQuadWord::get128,btMultiSapBroadphase,btActivatingCollisionAlgorithm,btContactConstraint,btPolyhedralConvexAabbCachingShape,btQuantizedBvh,btConstraintSolver::prepareSolve,CProfileIterator,btSimpleBroadphase"], # Work around some parsing issues
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
-  1/0.
+  #1/0.
 
   stage('Build Bullet')
 
@@ -121,14 +121,14 @@ try:
     Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
   Popen(['make'], env=env).communicate()
 
-  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', '-c', 'binding.c', '-emit-llvm', '-o', 'binding.bc']).communicate()
+  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', '-c', 'bindings.c', '-emit-llvm', '-o', 'bindings.bc']).communicate()
 
   stage('Link')
 
   Popen([shared.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
                            os.path.join('src', '.libs', 'libBulletDynamics.a'),
                            os.path.join('src', '.libs', 'libLinearMath.a'),
-                           'binding.bc',
+                           'bindings.bc',
                            '-o', 'libbullet.bc']).communicate()
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
