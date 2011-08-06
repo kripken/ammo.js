@@ -7,8 +7,10 @@ load('manual/bindings.js');
 
 function main() {
 
+  // not part of HelloWorld.cpp
   var vec = new btVector3(4, 5, 6);
   print('vec:' + [vec.x(), vec.y(), vec.z()]);
+  // not part of HelloWorld.cpp
 
   var collisionConfiguration = new btDefaultCollisionConfiguration();
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -18,37 +20,29 @@ function main() {
   dynamicsWorld.setGravity(new btVector3(0,-10,0)); // XXX leak
 
   var groundShape = new btBoxShape(new btVector3(50,50,50));
-/*
 
-  //keep track of the shapes, we release memory at exit.
-  //make sure to re-use collision shapes among rigid bodies whenever possible!
-  btAlignedObjectArray<btCollisionShape*> collisionShapes;
+  var collisionShapes = [];
+  collisionShapes.push(groundShape);
 
-  collisionShapes.push_back(groundShape);
-
-  btTransform groundTransform;
+  var groundTransform = new btTransform();
   groundTransform.setIdentity();
-  groundTransform.setOrigin(btVector3(0,-56,0));
+  groundTransform.setOrigin(new btVector3(0, -56, 0));
 
-  {
-    btScalar mass(0.);
+  (function() {
+    var mass = 0;
+    var isDynamic = mass !== 0;
+    var localInertia = new btVector3(0,0,0);
 
-    //rigidbody is dynamic if and only if mass is non zero, otherwise static
-    bool isDynamic = (mass != 0.f);
-
-    btVector3 localInertia(0,0,0);
     if (isDynamic)
-      groundShape->calculateLocalInertia(mass,localInertia);
+      groundShape.calculateLocalInertia(mass, localInertia);
 
-    //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-    btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-    btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,groundShape,localInertia);
-    btRigidBody* body = new btRigidBody(rbInfo);
+    var myMotionState = new btDefaultMotionState(groundTransform);
+    var rbInfo = new btRigidBodyConstructionInfo(mass, myMotionState, groundShape, localInertia);
+    var body = new btRigidBody(rbInfo);
 
-    //add the body to the dynamics world
-    dynamicsWorld->addRigidBody(body);
-  }
-
+    dynamicsWorld.addRigidBody(body);
+  })();
+/*
 
   {
     //create a dynamic rigidbody

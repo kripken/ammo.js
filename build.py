@@ -61,31 +61,6 @@ def stage(text):
   print '=' * len(text)
   print
 
-def walk_headers(basedirs, filename):
-  #print "walk:", basedirs, filename
-  '''Given a directory and a header file, include all the included files recursively'''
-  fullname = None
-  for basedir in basedirs:
-    if os.path.exists(os.path.join(basedir, filename)):
-      fullname = os.path.join(basedir, filename)
-      break
-  assert fullname, 'Cannot find: ' + str([basedirs, filename])
-
-  basedirs.append(os.path.dirname(fullname))
-  basedirs = list(set(basedirs))
-
-  headers = [fullname]
-  include_cmd = re.compile('^#include "(?P<includee>[^"]*)"$')
-  for line in open(fullname, 'r'):
-    m = include_cmd.match(line)
-    if not m: continue
-    headers = headers + walk_headers(basedirs, m.group('includee'))
-  # Remove duplicates, maintaining order
-  ret = []
-  for i in range(len(headers)):
-    if headers[i] not in ret: ret.append(headers[i])
-  return ret
-
 # Main
 
 try:
@@ -97,15 +72,36 @@ try:
 
   stage('Generate bindings')
 
-  print 'Collecting...'
+  print 'Preprocessing...'
 
-  HEADERS = walk_headers(['..', '../src'], 'src/btBulletDynamicsCommon.h')
-  #print HEADERS
+  Popen(['cpp', '-x', 'c++', '-I../src', '../src/btBulletDynamicsCommon.h'], stdout=open('headers.pre.h', 'w')).communicate()
+
+  print 'Cleaning...'
+
+  header_data = open('headers.pre.h', 'r').read()
+  header_data = header_data.replace(' = btVector3(btScalar(0), btScalar(0), btScalar(0))', '') \
+                           .replace('const btVehicleTuning& tuning', 'const btRaycastVehicle::btVehicleTuning& tuning') \
+                           .replace('( void )', '') \
+                           .replace('(void)', '') \
+                           .replace('btTraversalMode', 'btQuantizedBvh::btTraversalMode') \
+                           .replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*') \
+                           .replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*') \
+                           .replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2*') \
+                           .replace('IWriter*', 'btDbvt::IWriter*') \
+                           .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
+  header_data = re.sub(r'struct ([\w\d :]+)\n{', r'class \1\n{ public: ', header_data)
+
+  h = open('headers.clean.h', 'w')
+  h.write(header_data)
+  h.close()
 
   print 'Processing...'
 
-  Popen([shared.BINDINGS_GENERATOR, 'bindings'] + HEADERS +
-        ['--', "lambda line: re.sub(r'struct ([\\w\\d :]+)\\n{', r'class \\1\\n{ public: ', re.sub(r'#if 0[^#]*(#else)?[^#]*#endif', '', line.replace('#ifdef USE_SIMD', '#if 0').replace('#ifdef BT_USE_SSE', '#if 0').replace('defined (__SPU__) && defined (__CELLOS_LV2__)', '0').replace('\t', ' ').replace('\\n', 'NEWLINE')).replace('NEWLINE', '\\n')).replace('SIMD_FORCE_INLINE', '').replace('DBVT_IPOLICY', 'ICollide& policy').replace('class btSimdScalar', 'struct class_btSimdScalar').replace('DBVT_PREFIX', '').replace('btDiscreteCollisionDetectorInterface::Result', 'btDiscreteCollisionDetectorInterface__Result').replace('IWriter*', 'btDbvt::IWriter*').replace('IClone*', 'btDbvt::IClone*').replace('ATTRIBUTE_ALIGNED16(class)', 'class').replace('ATTRIBUTE_ALIGNED16( class)', 'class').replace(' = btVector3(0,0,0)', '').replace('=btVector3(0,0,0)', '').replace('=btVector3(1,1,1)', '').replace('BT_DECLARE_ALIGNED_ALLOCATOR();', '').replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*').replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*').replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2 *').replace('const btVehicleTuning', 'const btRaycastVehicle::btVehicleTuning').replace('unsigned int signs[3]', 'unsigned int *signs').replace('#if 0\\n \\n  void  collideTT( const btDbvtNode* root0,\\n  const btDbvtNode* root1,\\n  const btTransform& xform,\\n  ICollide& policy);\\n \\n  void  collideTT( const btDbvtNode* root0,\\n  const btTransform& xform0,\\n  const btDbvtNode* root1,\\n  const btTransform& xform1,\\n  ICollide& policy);\\n#endif', '').replace('sStkNPS', 'btDbvt::sStkNPS').replace('virtual void solveConstraintObsolete', '// solveConstraintObsolete').replace('/* numBodies */', 'numBodies').replace('/* numManifolds */', 'numManifolds')", "btOptimizedBvh,btVector3::get128,btVector4::get128,btVector3::set128,btQuadWord::get128,btMultiSapBroadphase,btActivatingCollisionAlgorithm,btContactConstraint,btPolyhedralConvexAabbCachingShape,btQuantizedBvh,btConstraintSolver::prepareSolve,CProfileIterator,btSimpleBroadphase"], # Work around some parsing issues
+  Popen([shared.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
+         # Ignore some things that CppHeaderParser has problems with TODO: replace float& params and return values with float in bindings
+         'btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
+         'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
+         'btDbvt'],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   #1/0.
@@ -119,9 +115,13 @@ try:
   env['CC'] = env['CXX'] = env['RANLIB'] = env['AR'] = os.path.join(EMSCRIPTEN_ROOT, 'tools', 'emmaken.py')
   if not os.path.exists('config.h'):
     Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
-  Popen(['make'], env=env).communicate()
+  Popen(['make', '-j', '2'], env=env).communicate()
 
-  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', '-c', 'bindings.c', '-emit-llvm', '-o', 'bindings.bc']).communicate()
+  stage('Build bindings')
+
+  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
+
+  assert(os.path.exists('bindings.bc'))
 
   stage('Link')
 

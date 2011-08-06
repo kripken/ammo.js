@@ -10,3 +10,5 @@ print '==========='
 
 assert 'vec:4,5,6' in output
 
+print 'ok.'
+
