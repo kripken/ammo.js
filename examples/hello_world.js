@@ -21,8 +21,7 @@ function main() {
 
   var groundShape = new btBoxShape(new btVector3(50,50,50));
 
-  var collisionShapes = [];
-  collisionShapes.push(groundShape);
+  var bodies = [];
 
   var groundTransform = new btTransform();
   groundTransform.setIdentity();
@@ -41,11 +40,11 @@ function main() {
     var body = new btRigidBody(rbInfo);
 
     dynamicsWorld.addRigidBody(body);
+    bodies.push(body);
   })();
 
   (function() {
     var colShape = new btSphereShape(1);
-    collisionShapes.push(colShape);
 
     var startTransform = new btTransform();
     startTransform.setIdentity();
@@ -64,32 +63,22 @@ function main() {
     var body = new btRigidBody(rbInfo);
 
     dynamicsWorld.addRigidBody(body);
+    bodies.push(body);
   })();
 
-/*
-
-/// Do some simulation
-
-
-
-  for (i=0;i<135;i++) // XXX Emscripten
-  {
-    dynamicsWorld->stepSimulation(1.f/60.f,10);
+  for (var i = 0; i < 135; i++) {
+    dynamicsWorld.stepSimulation(1/60, 10);
     
-    //print positions of all objects
-    for (int j=dynamicsWorld->getNumCollisionObjects()-1; j>=0 ;j--)
-    {
-      btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
-      btRigidBody* body = btRigidBody::upcast(obj);
-      if (body && body->getMotionState())
-      {
-        btTransform trans;
-        body->getMotionState()->getWorldTransform(trans);
-        printf("world pos = %.2f,%.2f,%.2f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ())); // XXX Emscripten
+    bodies.forEach(function(body) {
+      if (body.getMotionState()) {
+        var trans = new btTransform();
+        body.getMotionState().getWorldTransform(trans); // will fail since we return pointers so far, not objects!
+        print("world pos = " + [trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ()]);
       }
-    }
+    });
   }
 
+/*
 
   //cleanup in the reverse order of creation/initialization
 
