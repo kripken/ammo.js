@@ -1,15 +1,20 @@
 import os, sys, re, json
 from subprocess import Popen, PIPE, STDOUT
 
+# By default use builds/ammo.js. Or the commandline argument can override that.
+build = os.path.join('builds', 'ammo.js')
+if len(sys.argv) > 1:
+  build = sys.argv[1]
+print 'Using build:', build
+
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
+
+def run(filename):
+  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'load("' + build + '")', filename], stdout=PIPE).communicate()[0]
 
 print '1. hello world'
 
-output = Popen(SPIDERMONKEY_ENGINE + ['examples/hello_world.js'], stdout=PIPE, stderr=STDOUT).communicate()[0]
-print '==========='
-print output
-print '==========='
-
+output = run(os.path.join('examples', 'hello_world.js'))
 assert 'vec:4,5,6' in output
 assert '''world pos = 0.00,-56.00,0.00
 world pos = 2.00,10.00,0.00
@@ -286,8 +291,7 @@ world pos = 2.00,-5.00,0.00''' in output
 
 print '2. stress'
 
-output = Popen(SPIDERMONKEY_ENGINE + ['examples/stress.js'], stdout=PIPE, stderr=STDOUT).communicate()[0]
-
+output = run(os.path.join('examples', 'stress.js'))
 assert output.endswith('''
 0 : 0.00,-56.00,0.00
 1 : -4.93,-5.00,2.64
@@ -298,5 +302,6 @@ assert output.endswith('''
 6 : -7.40,-5.00,1.15
 ''')
 
-print '\nok.'
+print
+print 'ok.'
 

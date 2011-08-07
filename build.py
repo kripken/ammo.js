@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-FAST = 0 # Change this to 1 to generate an optimized build. Very slow to create.
+FAST = 1 # Change this to 1 to generate an optimized build. Very slow to create.
 
 DEBUG = 0
 LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
@@ -21,6 +21,8 @@ EMSCRIPTEN_SETTINGS = {
 
   'CHECK_SIGNS': 0,
   'CORRECT_SIGNS': 0,
+
+  #CORRECT_ROUNDINGS?
 
   'QUANTUM_SIZE': 1 if FAST else 4,
 }

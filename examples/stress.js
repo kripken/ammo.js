@@ -1,7 +1,5 @@
 // Stress test
 
-load('builds/ammo.js');
-
 function main() {
 
   var collisionConfiguration = new btDefaultCollisionConfiguration();
