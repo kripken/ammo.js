@@ -109,7 +109,7 @@ try:
          # Ignore some things that CppHeaderParser has problems with TODO: replace float& params and return values with float in bindings
          'btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt,btMultiSapBroadphase,std'],
+         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer'],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   #1/0.
