@@ -106,10 +106,11 @@ try:
   print 'Processing...'
 
   Popen([shared.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
-         # Ignore some things that CppHeaderParser has problems with TODO: replace float& params and return values with float in bindings
-         'btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
+         # Ignore some things that CppHeaderParser has problems
+         '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer'],
+         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer",'
+         '''  "type_processor": "lambda t: t.replace('float&', 'float').replace('btScalar&', 'btScalar')" }'''], # Make our bindings use float and not float&
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   #1/0.

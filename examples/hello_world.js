@@ -3,7 +3,6 @@
 
 load('bullet/build/libbullet.js');
 load('bullet/build/bindings.js');
-load('manual/bindings.js');
 
 function main() {
 
