@@ -73,7 +73,7 @@ function main() {
       if (body.getMotionState()) {
         var trans = new btTransform();
         body.getMotionState().getWorldTransform(trans);
-        print("world pos = " + [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()]);
+        print("world pos = " + [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
       }
     });
   }
