@@ -1,14 +1,16 @@
 #!/usr/bin/python
 
+FAST = 0 # Change this to 1 to generate an optimized build. Very slow to create.
+
 DEBUG = 0
 LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
 EMSCRIPTEN_SETTINGS = {
   'SKIP_STACK_IN_SMALL': 1, # use 0 for debugging, debugging output can be big
   'OPTIMIZE': 1,
-  'RELOOP': 0, # Very important for performance, but very slow to compile
+  'RELOOP': FAST,
   'USE_TYPED_ARRAYS': 0, # TODO: Test if this helps or hurts
-  'SAFE_HEAP': 1,
-  'ASSERTIONS': 0,
+  'SAFE_HEAP': not FAST,
+  'ASSERTIONS': not FAST,
   'INIT_STACK': 0,
 
   'AUTO_OPTIMIZE': 0,
@@ -20,7 +22,7 @@ EMSCRIPTEN_SETTINGS = {
   'CHECK_SIGNS': 0,
   'CORRECT_SIGNS': 0,
 
-  'QUANTUM_SIZE': 4, # It is possible to use 1, but requires manual correction FIXME
+  'QUANTUM_SIZE': 1 if FAST else 4,
 }
 
 #========================================================

@@ -3,6 +3,8 @@ from subprocess import Popen, PIPE, STDOUT
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
+print '1. hello world'
+
 output = Popen(SPIDERMONKEY_ENGINE + ['examples/hello_world.js'], stdout=PIPE, stderr=STDOUT).communicate()[0]
 print '==========='
 print output
@@ -280,5 +282,21 @@ world pos = 2.00,-5.00,0.00
 world pos = 0.00,-56.00,0.00
 world pos = 2.00,-5.00,0.00''' in output
 
-print 'ok.'
+# Stress - tests QUANTUM == 1 stuff
+
+print '2. stress'
+
+output = Popen(SPIDERMONKEY_ENGINE + ['examples/stress.js'], stdout=PIPE, stderr=STDOUT).communicate()[0]
+
+assert output.endswith('''
+0 : 0.00,-56.00,0.00
+1 : -4.93,-5.00,2.64
+2 : 3.45,-5.00,-0.27
+3 : 7.20,-5.00,-1.43
+4 : 12.08,-5.00,-3.28
+5 : 22.82,-5.00,-6.41
+6 : -7.40,-5.00,1.15
+''')
+
+print '\nok.'
 
