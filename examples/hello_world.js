@@ -12,14 +12,14 @@ function main() {
   print('vec:' + [vec.x(), vec.y(), vec.z()]);
   // not part of HelloWorld.cpp
 
-  var collisionConfiguration = new btDefaultCollisionConfiguration();
+  var collisionConfiguration = new btDefaultCollisionConfiguration(); // every single |new| currently leaks...
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);
   var overlappingPairCache = new btDbvtBroadphase();
   var solver = new btSequentialImpulseConstraintSolver();
   var dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-  dynamicsWorld.setGravity(new btVector3(0,-10,0)); // XXX leak
+  dynamicsWorld.setGravity(new btVector3(0, -10, 0));
 
-  var groundShape = new btBoxShape(new btVector3(50,50,50));
+  var groundShape = new btBoxShape(new btVector3(50, 50, 50));
 
   var bodies = [];
 
@@ -66,12 +66,13 @@ function main() {
     bodies.push(body);
   })();
 
+  var trans = new btTransform(); // taking this out of the loop below us reduces the leaking
+
   for (var i = 0; i < 135; i++) {
     dynamicsWorld.stepSimulation(1/60, 10);
     
     bodies.forEach(function(body) {
       if (body.getMotionState()) {
-        var trans = new btTransform();
         body.getMotionState().getWorldTransform(trans);
         print("world pos = " + [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
       }
