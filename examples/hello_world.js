@@ -31,7 +31,7 @@ function main() {
   (function() {
     var mass = 0;
     var isDynamic = mass !== 0;
-    var localInertia = new btVector3(0,0,0);
+    var localInertia = new btVector3(0, 0, 0);
 
     if (isDynamic)
       groundShape.calculateLocalInertia(mass, localInertia);
@@ -42,39 +42,31 @@ function main() {
 
     dynamicsWorld.addRigidBody(body);
   })();
-/*
 
-  {
-    //create a dynamic rigidbody
+  (function() {
+    var colShape = new btSphereShape(1);
+    collisionShapes.push(colShape);
 
-    //btCollisionShape* colShape = new btBoxShape(btVector3(1,1,1));
-    btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-    collisionShapes.push_back(colShape);
-
-    /// Create Dynamic Objects
-    btTransform startTransform;
+    var startTransform = new btTransform();
     startTransform.setIdentity();
 
-    btScalar  mass(1.f);
+    var mass = 1;
+    var isDynamic = (mass != 0);
 
-    //rigidbody is dynamic if and only if mass is non zero, otherwise static
-    bool isDynamic = (mass != 0.f);
-
-    btVector3 localInertia(0,0,0);
+    var localInertia = new btVector3(0, 0, 0);
     if (isDynamic)
-      colShape->calculateLocalInertia(mass,localInertia);
+      colShape.calculateLocalInertia(mass,localInertia);
 
-      startTransform.setOrigin(btVector3(2,10,0));
-    
-      //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-      btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-      btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
-      btRigidBody* body = new btRigidBody(rbInfo);
+    startTransform.setOrigin(new btVector3(2, 10, 0));
+  
+    var myMotionState = new btDefaultMotionState(startTransform);
+    var rbInfo = new btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
+    var body = new btRigidBody(rbInfo);
 
-      dynamicsWorld->addRigidBody(body);
-  }
+    dynamicsWorld.addRigidBody(body);
+  })();
 
-
+/*
 
 /// Do some simulation
 
