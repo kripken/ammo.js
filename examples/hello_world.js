@@ -1,7 +1,6 @@
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
-load('bullet/build/libbullet.js');
-load('bullet/build/bindings.js');
+load('builds/ammo.js');
 
 function main() {
 

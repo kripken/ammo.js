@@ -149,7 +149,7 @@ try:
   if LLVM_OPT_OPTS:
     stage('LLVM optimizations')
 
-    shutil.move('libbullet.bc', '')
+    shutil.move('libbullet.bc', 'libbullet.bc.pre')
     output = Popen([shared.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
 
   stage('LLVM binary => LL assembly')
@@ -166,12 +166,13 @@ try:
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
-  if 0:
-    stage('Generate demangled names')
-    Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'third_party', 'demangler.py'), 'libbullet.js'], stdout=open('libbullet.names', 'w')).communicate()
-    stage('Namespace generation')
-    Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'namespacer.py'), 'libbullet.js', 'libbullet.names'], stdout=open('libbullet.names.js', 'w')).communicate()
-
 finally:
   os.chdir(this_dir);
+
+stage('Bundle')
+
+bundle = open(os.path.join('builds', 'ammo.js'), 'w')
+bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
+bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
+bundle.close()
 

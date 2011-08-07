@@ -21,7 +21,12 @@ ammo.js works, see a demo at
 Instructions
 ------------
 
-Stable ammo.js files will be available soon. Meanwhile, you can build it yourself, as follows:
+builds/ contains prebuilt versions of ammo.js:
+
+  ammo.slow.js: A very slow debug version. This includes many runtime checks and safety measures.
+  ammo.fast.js: Coming soon.
+
+You can also build ammo.js yourself, as follows:
 
  * Get Emscripten
 
@@ -35,7 +40,7 @@ Stable ammo.js files will be available soon. Meanwhile, you can build it yoursel
 
       ./build.py
 
-   which should generate bullet/build/libbullet.js. Note that this
+   which should generate builds/ammo.js. Note that this
    is by default an unoptimized build which will run very slowly.
    See build.py for optimizations.
 

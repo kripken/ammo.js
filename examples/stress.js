@@ -1,7 +1,6 @@
 // Stress test
 
-load('bullet/build/libbullet.js');
-load('bullet/build/bindings.js');
+load('builds/ammo.js');
 
 function main() {
 
