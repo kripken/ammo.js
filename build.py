@@ -87,9 +87,17 @@ try:
                            .replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*') \
                            .replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*') \
                            .replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2*') \
+                           .replace('btVehicleRaycasterResult&', 'btVehicleRaycaster::btVehicleRaycasterResult&') \
+                           .replace('btRigidBodyConstructionInfo&', 'btRigidBody::btRigidBodyConstructionInfo&') \
+                           .replace('RayResultCallback&', 'btCollisionWorld::RayResultCallback&') \
+                           .replace('ContactResultCallback&', 'btCollisionWorld::ContactResultCallback&') \
+                           .replace('ConvexResultCallback&', 'btCollisionWorld::ConvexResultCallback&') \
+                           .replace('LocalShapeInfo*', 'btCollisionWorld::LocalShapeInfo*') \
                            .replace('IWriter*', 'btDbvt::IWriter*') \
+                           .replace('=btVector3(0,0,0)', '=btVector3') \
+                           .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo^') \
                            .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
-  header_data = re.sub(r'struct ([\w\d :]+)\n{', r'class \1\n{ public: ', header_data)
+  header_data = re.sub(r'struct ([\w\d :\n]+){', r'class \1 { public: ', header_data)
 
   h = open('headers.clean.h', 'w')
   h.write(header_data)
@@ -101,7 +109,7 @@ try:
          # Ignore some things that CppHeaderParser has problems with TODO: replace float& params and return values with float in bindings
          'btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt'],
+         'btDbvt,btMultiSapBroadphase,std'],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   #1/0.
@@ -120,6 +128,8 @@ try:
   stage('Build bindings')
 
   print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
+
+  #1/0.
 
   assert(os.path.exists('bindings.bc'))
 
