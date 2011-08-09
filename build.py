@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-FAST = 1 # Change this to 1 to generate an optimized build. Very slow to create.
+FAST = 0 # Change this to 1 to generate an optimized build. Very slow to create.
+
 
 DEBUG = 0
 LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
@@ -114,7 +115,8 @@ try:
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
          'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer",'
-         '''  "type_processor": "lambda t: t.replace('float&', 'float').replace('btScalar&', 'btScalar')" }'''], # Make our bindings use float and not float&
+         ''' "type_processor": "lambda t: t.replace('float&', 'float').replace('btScalar&', 'btScalar')",''' # Make our bindings use float and not float&
+         ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
   #1/0.
@@ -173,8 +175,10 @@ finally:
 
 stage('Bundle')
 
-bundle = open(os.path.join('builds', 'ammo.js'), 'w')
+bundle = open(os.path.join('builds', 'ammo.new.js'), 'w')
 bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
 bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
 bundle.close()
+
+# Recommended: Also do closure compiler: java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
 
