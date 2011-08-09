@@ -85,3 +85,12 @@ be basically identical. There are however some differences:
   * Each call to |new X()| will leak. We have not integrated C++
     memory management with the JavaScript GC yet.
 
+
+Reporting Issues
+================
+
+If you find a bug in ammo.js and file an issue, please test your code
+with the slow unoptimized build in builds/ammo.slow.js too, and mention
+in the issue how that works (the optimized build applies a few speculative
+speedups that can, in theory, break things; the slow build is safer).
+
