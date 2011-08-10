@@ -12,10 +12,14 @@ exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 def run(filename):
   return Popen(SPIDERMONKEY_ENGINE + ['-e', 'load("' + build + '")', filename], stdout=PIPE).communicate()[0]
 
+print '0. basics'
+
+output = run(os.path.join('examples', 'basics.js'))
+assert 'vec:4,5,6' in output
+
 print '1. hello world'
 
 output = run(os.path.join('examples', 'hello_world.js'))
-assert 'vec:4,5,6' in output
 assert '''world pos = 0.00,-56.00,0.00
 world pos = 2.00,10.00,0.00
 world pos = 0.00,-56.00,0.00

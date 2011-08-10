@@ -1,12 +1,6 @@
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 function main() {
-
-  // not part of HelloWorld.cpp
-  var vec = new btVector3(4, 5, 6);
-  print('vec:' + [vec.x(), vec.y(), vec.z()]);
-  // not part of HelloWorld.cpp
-
   var collisionConfiguration = new btDefaultCollisionConfiguration(); // every single |new| currently leaks...
   var dispatcher = new btCollisionDispatcher(collisionConfiguration);
   var overlappingPairCache = new btDbvtBroadphase();
