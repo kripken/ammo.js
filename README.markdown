@@ -85,6 +85,11 @@ be basically identical. There are however some differences:
   * Each call to |new X()| will leak. We have not integrated C++
     memory management with the JavaScript GC yet.
 
+  * Functions that return an entire object, like |btQuaternion someFunc()|,
+    will return a reference to a static object held inside the binding
+    function. That means that you cannot call the binding function multiple
+    times and still use the values - you must copy them.
+
 
 Reporting Issues
 ================

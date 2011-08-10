@@ -15,7 +15,13 @@ def run(filename):
 print '0. basics'
 
 output = run(os.path.join('examples', 'basics.js'))
-assert 'vec:4,5,6' in output
+assert '''
+vec:4,5,6
+quat:14,25,36,77
+trans:true,true
+tvec:4,5,6
+tquat:0.16,0.28,0.40,0.86
+''' in output, output
 
 print '1. hello world'
 
@@ -289,7 +295,7 @@ world pos = 2.00,-5.00,0.00
 world pos = 0.00,-56.00,0.00
 world pos = 2.00,-5.00,0.00
 world pos = 0.00,-56.00,0.00
-world pos = 2.00,-5.00,0.00''' in output
+world pos = 2.00,-5.00,0.00''' in output, output
 
 # Stress - tests QUANTUM == 1 stuff
 
@@ -304,7 +310,7 @@ assert output.endswith('''
 4 : 12.08,-5.00,-3.28
 5 : 22.82,-5.00,-6.41
 6 : -7.40,-5.00,1.15
-''')
+'''), output
 
 print
 print 'ok.'

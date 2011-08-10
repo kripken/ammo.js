@@ -101,6 +101,8 @@ try:
                            .replace('IWriter*', 'btDbvt::IWriter*') \
                            .replace('=btVector3(0,0,0)', '=btVector3') \
                            .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo^') \
+                           .replace('btScalar', 'float') \
+                           .replace('typedef float float;', '') \
                            .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
   header_data = re.sub(r'struct ([\w\d :\n]+){', r'class \1 { public: ', header_data)
 
@@ -115,7 +117,7 @@ try:
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
          'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer",'
-         ''' "type_processor": "lambda t: t.replace('float&', 'float').replace('btScalar&', 'btScalar')",''' # Make our bindings use float and not float&
+         ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
          ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
 
