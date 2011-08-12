@@ -1,6 +1,10 @@
 ammo.js
 =======
 
+
+**Demo: http://syntensity.com/static/ammo.html**
+
+
 ammo.js is a direct port of the Bullet physics engine to JavaScript, using Emscripten. The source code is translated directly to JavaScript, without human rewriting, so functionality should be identical to the original Bullet.
 
 'ammo' stands for "Avoided Making My Own js physics engine by compiling bullet from C++" ;)
@@ -8,14 +12,6 @@ ammo.js is a direct port of the Bullet physics engine to JavaScript, using Emscr
 ammo.js is zlib licensed, just like Bullet.
 
 Discussion takes place on IRC at #emscripten on Mozilla's server (irc.mozilla.org)
-
-
-Status
-------
-
-ammo.js works, see an online demo at
-
-  http://syntensity.com/static/bullet.html
 
 
 Instructions
