@@ -19,8 +19,8 @@ Instructions
 
 builds/ contains prebuilt versions of ammo.js:
 
-  ammo.js: Optimized and minified build. This is probably what you want.
-  ammo.slow.js: A very slow debug version. This includes many runtime checks and safety measures.
+ * ammo.js: Optimized and minified build. This is probably what you want.
+ * ammo.slow.js: A very slow debug version. This includes many runtime checks and safety measures.
 
 You can also build ammo.js yourself, as follows:
 
