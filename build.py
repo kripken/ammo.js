@@ -30,7 +30,7 @@ EMSCRIPTEN_SETTINGS = {
 
 #========================================================
 
-import os, sys, re, json
+import os, sys, re, json, shutil
 from subprocess import Popen, PIPE, STDOUT
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())

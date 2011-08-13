@@ -52,6 +52,8 @@ function main() {
 
   var trans = new btTransform(); // taking this out of the loop below us reduces the leaking
 
+  var startTime = Date.now();
+
   for (var i = 0; i < 450; i++) {
     dynamicsWorld.stepSimulation(1/60, 10);
     
@@ -62,6 +64,8 @@ function main() {
       }
     });
   }
+
+  print('total time: ' + ((Date.now()-startTime)/1000).toFixed(3));
 }
 
 main();

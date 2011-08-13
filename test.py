@@ -302,7 +302,7 @@ world pos = 2.00,-5.00,0.00''' in output, output
 print '2. stress'
 
 output = run(os.path.join('examples', 'stress.js'))
-assert output.endswith('''
+assert '''
 0 : 0.00,-56.00,0.00
 1 : -4.93,-5.00,2.64
 2 : 3.45,-5.00,-0.27
@@ -310,7 +310,8 @@ assert output.endswith('''
 4 : 12.08,-5.00,-3.28
 5 : 22.82,-5.00,-6.41
 6 : -7.40,-5.00,1.15
-'''), output
+total time:''' in output, output
+print '   stress benchmark: ' + output.split('\n')[-2]
 
 print
 print 'ok.'
