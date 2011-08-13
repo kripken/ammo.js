@@ -1,37 +1,62 @@
 #!/usr/bin/python
 
-FAST = 0 # Change this to 1 to generate an optimized build. Very slow to create.
+import os, sys, re, json, shutil
+from subprocess import Popen, PIPE, STDOUT
 
+# Settings
 
-DEBUG = 0
-LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline', '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg', '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch', '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading', '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes', '-deadtypeelim', '-globaldce', '-constmerge']
+build_type = sys.argv[1] if len(sys.argv) >= 2 else 'safe'
+
+print
+print '--------------------------------------------------'
+print 'Building ammo.js, build type:', build_type
+print '--------------------------------------------------'
+print
+
 EMSCRIPTEN_SETTINGS = {
-  'SKIP_STACK_IN_SMALL': 1, # use 0 for debugging, debugging output can be big
-  'OPTIMIZE': 1,
-  'RELOOP': FAST,
-  'USE_TYPED_ARRAYS': 0, # TODO: Test if this helps or hurts
-  'SAFE_HEAP': not FAST,
-  'ASSERTIONS': not FAST,
+  'SKIP_STACK_IN_SMALL': 1,
   'INIT_STACK': 0,
-
   'AUTO_OPTIMIZE': 0,
-
   'CHECK_OVERFLOWS': 0,
   'CHECK_SIGNED_OVERFLOWS': 0,
   'CORRECT_OVERFLOWS': 0,
-
   'CHECK_SIGNS': 0,
   'CORRECT_SIGNS': 0,
-
-  #CORRECT_ROUNDINGS?
-
-  'QUANTUM_SIZE': 1 if FAST else 4,
+  'OPTIMIZE': 1,
 }
 
-#========================================================
+if build_type == 'safe':
+  EMSCRIPTEN_SETTINGS['RELOOP'] = 0
+  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0
+  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 1
+  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 1
+  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
+  LLVM_OPT_OPTS = []
+elif build_type == 'fast':
+  EMSCRIPTEN_SETTINGS['RELOOP'] = 1
+  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0 # is slower
+  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
+  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
+  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 1
+  LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline',
+                     #  '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg',
+                     #  '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch',
+                     #  '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading',
+                     #  '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes',
+                     #  '-deadtypeelim', '-globaldce', '-constmerge'] # These generate a big and slow build for some reason
+elif build_type == 'ta2':
+  EMSCRIPTEN_SETTINGS['RELOOP'] = 1
+  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 2
+  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
+  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
+  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
+  LLVM_OPT_OPTS = ['-O3']
+else:
+  raise Exception('Unknown build type: ' + build_type)
 
-import os, sys, re, json, shutil
-from subprocess import Popen, PIPE, STDOUT
+DEBUG = 0
+
+# Startup
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 

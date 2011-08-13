@@ -34,13 +34,14 @@ You can also build ammo.js yourself, as follows:
 
  * Run the build script,
 
-      ./build.py
+      python build.py
 
    which should generate builds/ammo.new.js. Note that this
-   is by default an unoptimized build which will run very slowly.
-   See build.py for optimizations.
+   is by default an unoptimized safe build which will run very slowly.
+   You can run build.py with argument |fast| to generate an optimized
+   build.
 
- * Run the test,
+ * Run the automatic tests,
 
       python test.py
 
