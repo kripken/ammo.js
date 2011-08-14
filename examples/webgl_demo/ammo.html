@@ -97,12 +97,13 @@
 
         var boxes = [];
 
+        var pos = [0,0,0];
+        var quat = new CubicVR.Quaternion;
+
         function simulatePhysics(dt) {
           dynamicsWorld.stepSimulation(dt, 2);
 
           // Read bullet data into JS objects
-          var pos = [0,0,0];
-          var quat = new CubicVR.Quaternion;
           for (var i = 0; i < NUM; i++) {
             readBulletObject(i+1, pos, quat);
             var renderObject = boxes[i];
