@@ -30,8 +30,9 @@ function main() {
 
   var sphereShape = new btSphereShape(1);
   var boxShape = new btBoxShape(new btVector3(1, 1, 1));
+  var coneShape = new btConeShape(1, 1); // XXX TODO: add cylindershape too
 
-  [sphereShape, boxShape, boxShape, boxShape, sphereShape, boxShape].forEach(function(shape, i) {
+  [sphereShape, boxShape, coneShape, boxShape, sphereShape, coneShape].forEach(function(shape, i) {
     print('creating dynamic shape ' + i);
 
     var startTransform = new btTransform();
@@ -55,6 +56,7 @@ function main() {
   var startTime = Date.now();
 
   for (var i = 0; i < 450; i++) {
+    //print('statictop: ' + Qa); // TODO: Add check that we do not allocate memory
     dynamicsWorld.stepSimulation(1/60, 10);
     
     bodies.forEach(function(body, i) {

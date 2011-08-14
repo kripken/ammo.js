@@ -23,7 +23,9 @@ EMSCRIPTEN_SETTINGS = {
   'CHECK_SIGNS': 0,
   'CORRECT_SIGNS': 0,
   'OPTIMIZE': 1,
+  'DISABLE_EXCEPTIONS': 1,
 }
+EMSCRIPTEN_ARGS = [] # TODO: Consider adding '--dlmalloc'
 
 if build_type == 'safe':
   EMSCRIPTEN_SETTINGS['RELOOP'] = 0
@@ -45,7 +47,8 @@ elif build_type == 'fast':
                      #  '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes',
                      #  '-deadtypeelim', '-globaldce', '-constmerge'] # These generate a big and slow build for some reason
 elif build_type == 'ta2':
-  EMSCRIPTEN_SETTINGS['RELOOP'] = 1
+  print 'WARNING: This build type is experimental!'
+  EMSCRIPTEN_SETTINGS['RELOOP'] = 0 # For debugging
   EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 2
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
@@ -75,7 +78,9 @@ if EMSCRIPTEN_SETTINGS['SAFE_HEAP']:
   # Ignore bitfield warnings
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 3
   EMSCRIPTEN_SETTINGS['SAFE_HEAP_LINES'] = ['btVoronoiSimplexSolver.h:40', 'btVoronoiSimplexSolver.h:41',
-                                            'btVoronoiSimplexSolver.h:42', 'btVoronoiSimplexSolver.h:43']
+                                            'btVoronoiSimplexSolver.h:42', 'btVoronoiSimplexSolver.h:43',
+                                            'btMinMax.h:43', 'btMinMax.h:52'] # btVector3 does operations on uninitialized |w| coordinate
+
   DEBUG = 1
 
 # Utilities
@@ -193,7 +198,7 @@ try:
 
   settings = ['-s %s=%s' % (k, json.dumps(v)) for k, v in EMSCRIPTEN_SETTINGS.items()]
 
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py'), 'libbullet.ll'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py')] + EMSCRIPTEN_ARGS + ['libbullet.ll'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
