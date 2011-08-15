@@ -10,5 +10,9 @@ print('trans:' + [!!trans.getOrigin(), !!trans.getRotation()]);
 print('tvec:' + [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()]);
 print('tquat:' + [trans.getRotation().x().toFixed(2), trans.getRotation().y().toFixed(2), trans.getRotation().z().toFixed(2), trans.getRotation().w().toFixed(2)]);
 
+var cl = new ClosestRayResultCallback(vec, vec); // Make sure it is not an abstract base class (regression check)
+var found = false;
+for (var x in cl) { found = true; } // closure compiler can rename .ptr
+if (!found) print('zz no wrapped pointer!');
 print('ClosestRayResultCallback: ' + typeof ClosestRayResultCallback); // make sure it was exposed
 
