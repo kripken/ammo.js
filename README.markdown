@@ -103,6 +103,15 @@ be basically identical. There are however some differences:
     back into other bindings functions. In other words, you should normally
     never have to see a raw pointer.
 
+  * All the bindings functions that return pointers/references/objects
+    will return wrapped pointers. The only potentially confusing case is
+    when they are returning a null pointer. In that case, you will get
+    NULL (a global singleton with a wrapped pointer of 0) instead of null
+    (the JavaScript builtin object) or 0. The reason is that by always
+    returning a wrapper, you can always take the output and pass it back
+    to another binding function, without that function needing to check
+    the type of the argument.
+
 
 Reporting Issues
 ================

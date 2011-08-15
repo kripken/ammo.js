@@ -21,6 +21,7 @@ quat:14,25,36,77
 trans:true,true
 tvec:4,5,6
 tquat:0.16,0.28,0.40,0.86
+ClosestRayResultCallback: function
 ''' in output, output
 
 print '1. hello world'

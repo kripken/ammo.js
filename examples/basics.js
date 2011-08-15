@@ -10,3 +10,5 @@ print('trans:' + [!!trans.getOrigin(), !!trans.getRotation()]);
 print('tvec:' + [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()]);
 print('tquat:' + [trans.getRotation().x().toFixed(2), trans.getRotation().y().toFixed(2), trans.getRotation().z().toFixed(2), trans.getRotation().w().toFixed(2)]);
 
+print('ClosestRayResultCallback: ' + typeof ClosestRayResultCallback); // make sure it was exposed
+
