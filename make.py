@@ -133,7 +133,9 @@ try:
                            .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo^') \
                            .replace('btScalar', 'float') \
                            .replace('typedef float float;', '') \
+                           .replace('Handle*', 'btAxisSweep3Internal<BP_FP_INT_TYPE>::Handle*') \
                            .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
+                           #.replace('BP_FP_INT_TYPE', 'int') \
   header_data = re.sub(r'struct ([\w\d :\n]+){', r'class \1 { public: ', header_data)
 
   h = open('headers.clean.h', 'w')
@@ -144,7 +146,7 @@ try:
 
   Popen([shared.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
          # Ignore some things that CppHeaderParser has problems
-         '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btAxisSweep3Internal,btHashKey,btHashKeyPtr,'
+         '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
          'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer",'
          ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
@@ -153,22 +155,23 @@ try:
 
   #1/0.
 
-  stage('Build Bullet')
-
   env = os.environ.copy()
   env['EMMAKEN_COMPILER'] = shared.CLANG
   if DEBUG:
     env['CFLAGS'] = '-g'
   env['CC'] = env['CXX'] = env['RANLIB'] = env['AR'] = os.path.join(EMSCRIPTEN_ROOT, 'tools', 'emmaken.py')
-  if not os.path.exists('config.h'):
-    Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
-  Popen(['make', '-j', '2'], env=env).communicate()
 
   stage('Build bindings')
 
   print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
 
   #1/0.
+
+  stage('Build Bullet')
+
+  if not os.path.exists('config.h'):
+    Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
+  Popen(['make', '-j', '2'], env=env).communicate()
 
   assert(os.path.exists('bindings.bc'))
 
