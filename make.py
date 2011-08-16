@@ -214,6 +214,9 @@ stage('Bundle')
 bundle = open(os.path.join('builds', 'ammo.new.js'), 'w')
 bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
 bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
+bundle.write('''
+this['Ammo'] = this; // With or without a closure, the proper usage is Ammo.*
+''')
 bundle.close()
 
 # Recommended: Also do closure compiler:

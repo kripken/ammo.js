@@ -1,61 +1,61 @@
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 function main() {
-  var collisionConfiguration = new btDefaultCollisionConfiguration(); // every single |new| currently leaks...
-  var dispatcher = new btCollisionDispatcher(collisionConfiguration);
-  var overlappingPairCache = new btDbvtBroadphase();
-  var solver = new btSequentialImpulseConstraintSolver();
-  var dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-  dynamicsWorld.setGravity(new btVector3(0, -10, 0));
+  var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration(); // every single |new| currently leaks...
+  var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+  var overlappingPairCache = new Ammo.btDbvtBroadphase();
+  var solver = new Ammo.btSequentialImpulseConstraintSolver();
+  var dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+  dynamicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
 
-  var groundShape = new btBoxShape(new btVector3(50, 50, 50));
+  var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
 
   var bodies = [];
 
-  var groundTransform = new btTransform();
+  var groundTransform = new Ammo.btTransform();
   groundTransform.setIdentity();
-  groundTransform.setOrigin(new btVector3(0, -56, 0));
+  groundTransform.setOrigin(new Ammo.btVector3(0, -56, 0));
 
   (function() {
     var mass = 0;
     var isDynamic = mass !== 0;
-    var localInertia = new btVector3(0, 0, 0);
+    var localInertia = new Ammo.btVector3(0, 0, 0);
 
     if (isDynamic)
       groundShape.calculateLocalInertia(mass, localInertia);
 
-    var myMotionState = new btDefaultMotionState(groundTransform);
-    var rbInfo = new btRigidBodyConstructionInfo(mass, myMotionState, groundShape, localInertia);
-    var body = new btRigidBody(rbInfo);
+    var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, groundShape, localInertia);
+    var body = new Ammo.btRigidBody(rbInfo);
 
     dynamicsWorld.addRigidBody(body);
     bodies.push(body);
   })();
 
   (function() {
-    var colShape = new btSphereShape(1);
+    var colShape = new Ammo.btSphereShape(1);
 
-    var startTransform = new btTransform();
+    var startTransform = new Ammo.btTransform();
     startTransform.setIdentity();
 
     var mass = 1;
     var isDynamic = (mass != 0);
 
-    var localInertia = new btVector3(0, 0, 0);
+    var localInertia = new Ammo.btVector3(0, 0, 0);
     if (isDynamic)
       colShape.calculateLocalInertia(mass,localInertia);
 
-    startTransform.setOrigin(new btVector3(2, 10, 0));
+    startTransform.setOrigin(new Ammo.btVector3(2, 10, 0));
   
-    var myMotionState = new btDefaultMotionState(startTransform);
-    var rbInfo = new btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-    var body = new btRigidBody(rbInfo);
+    var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
+    var body = new Ammo.btRigidBody(rbInfo);
 
     dynamicsWorld.addRigidBody(body);
     bodies.push(body);
   })();
 
-  var trans = new btTransform(); // taking this out of the loop below us reduces the leaking
+  var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
   for (var i = 0; i < 135; i++) {
     dynamicsWorld.stepSimulation(1/60, 10);

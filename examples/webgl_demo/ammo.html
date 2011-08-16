@@ -69,15 +69,15 @@
 
         resetPositions();
 
-        var trans = new Ammo.btTransform(); // taking this out of readBulletObject reduces the leaking
+        var transform = new Ammo.btTransform(); // taking this out of readBulletObject reduces the leaking
         function readBulletObject(i, pos, quat) {
           var body = bodies[i];
-          body.getMotionState().getWorldTransform(trans);
-          var origin = trans.getOrigin();
+          body.getMotionState().getWorldTransform(transform);
+          var origin = transform.getOrigin();
           pos[0] = origin.x();
           pos[1] = origin.y();
           pos[2] = origin.z();
-          var rotation = trans.getRotation();
+          var rotation = transform.getRotation();
           quat.x = rotation.x();
           quat.y = rotation.y();
           quat.z = rotation.z();
@@ -97,36 +97,39 @@
 
         var boxes = [];
 
-        var pos = [0,0,0];
-        var quat = new CubicVR.Quaternion;
+        var position = [0,0,0];
+        var quaternion = new CubicVR.Quaternion;
 
         function simulatePhysics(dt) {
           dynamicsWorld.stepSimulation(dt, 2);
 
           // Read bullet data into JS objects
           for (var i = 0; i < NUM; i++) {
-            readBulletObject(i+1, pos, quat);
+            readBulletObject(i+1, position, quaternion);
             var renderObject = boxes[i];
-            renderObject.position[0] = pos[0];
-            renderObject.position[1] = pos[1];
-            renderObject.position[2] = pos[2];
-            renderObject.rotation = quat.toEuler();
+            renderObject.position[0] = position[0];
+            renderObject.position[1] = position[1];
+            renderObject.position[2] = position[2];
+            renderObject.rotation = quaternion.toEuler();
           }
         }
 
-        var dts = 0, num = 0, lastHUD = Date.now();
+        var fpsInfo = {
+          dts: 0,
+          num: 0,
+          lastHUD: Date.now()
+        };
 
         function showFPS(dt) {
           var now = Date.now();
-          dts += dt;
-          num++;
-          if (now - lastHUD > 333) {
-            document.getElementById('out').innerHTML = '<b>FPS: ' + Math.ceil(1/(dts/num)) + '</b>';
-            lastHUD = now;
-            dts = 0;
-            num = 0;
+          fpsInfo.dts += dt;
+          fpsInfo.num++;
+          if (now - fpsInfo.lastHUD > 333) {
+            document.getElementById('out').innerHTML = '<b>FPS: ' + Math.ceil(1/(fpsInfo.dts/fpsInfo.num)) + '</b>';
+            fpsInfo.lastHUD = now;
+            fpsInfo.dts = 0;
+            fpsInfo.num = 0;
           }
-          t = now;
         }
 
         function startUp() {
@@ -134,7 +137,7 @@
           canvas.width = screen.width*0.70;
           canvas.height = screen.height*0.55;
 
-          gl = CubicVR.GLCore.init(canvas, "CubicVR_Core.vs", "CubicVR_Core.fs");
+          var gl = CubicVR.GLCore.init(canvas, "CubicVR_Core.vs", "CubicVR_Core.fs");
 
           if (!gl) {
             alert("Sorry, no WebGL support :(");

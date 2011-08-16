@@ -1,7 +1,7 @@
 
 // This is ammo.js, a port of Bullet to JavaScript. zlib licensed.
-var Ammo = (function() {
-  var Module = this;
+//var Ammo = (function() {
+//  var Module = this;
 
 function b(a){throw a;}var l=void 0,m=null;function da(){return function(a){return a}}function ga(){return function(){}}function ha(a){return function(){return a}}this.Module||(this.Module={});if(!Module.arguments)try{Module.arguments=scriptArgs}catch(aaa){try{Module.arguments=arguments}catch(baa){Module.arguments=[]}}
 var oa={Z:function(a,c){c=c||1;return isNumber(a)&&isNumber(c)?Math.ceil(a/c)*c:"Math.ceil(("+a+")/"+c+")*"+c},s:function(a){return a in oa.H||a in oa.G},P:function(a){return pointingLevels(a)>0},R:function(a){return isPointerType(a)?!1:RegExp(/^\[\d+\ x\ (.*)\]/g).test(a)?!0:!oa.s(a)&&a[0]=="%"},H:{i1:0,i8:0,i16:0,i32:0,i64:0},G:{"float":0,"double":0},da:function(a,c){return(a|0|c|0)+(Math.round(a/4294967296)|Math.round(c/4294967296))*4294967296},Y:function(a,c){return((a|0)&(c|0))+(Math.round(a/
@@ -2284,7 +2284,7 @@ Z$.prototype.setTraversalMode=function(a){t[this.a+36]=a};Z$.prototype.buildInte
 Z$.prototype.calculateSerializeBufferSize=function(){return VJ(this.a)};Z$.prototype.getQuantizedNodeArray=function(){return this.a+31};Z$.prototype.reportAabbOverlappingNodex=function(a,c,d){QJ(this.a,a.a,c.a,d.a)};Z$.prototype.reportRayOverlappingNodex=function(a,c,d){aG(this.a,a.a,c.a,d.a)};Z$.prototype.deSerializeInPlace=function(a,c,d){a=Hla(a,c,d);(c=Wma[a])?a=c:(c=Object.create(Z$.prototype),c.a=a,a=Wma[a]=c);return a};Z$.prototype.quantizeWithClamp=function(a,c,d){RJ(this.a,a,c.a,d)};
 Z$.prototype.deSerializeDouble=function(a){Ila(this.a,a.a)};Z$.prototype.calculateSerializeBufferSizeNew=function(){return Jla(this.a)};function Z$(){this.a=Kla()}var Wma={};this.btQuantizedBvh=Z$;Z$.prototype.deSerializeFloat=function(a){Lla(this.a,a.a)};Z$.prototype.getSubtreeInfoArray=function(){return this.a+37};Z$.prototype.unQuantize=function(a){return J8(Mla(this.a,a))};Z$.prototype.reportBoxCastOverlappingNodex=function(a,c,d,e,f){cG(this.a,a.a,c.a,d.a,e.a,f.a)};
 $$.prototype.testLimitValue=function(a,c){return IN(this.a,a,c)};$$.prototype.needApplyForce=function(a){return QN(this.a,a)};function $$(a){this.a=a===l?Nla():Ola(a.a)}var Xma={};function q9(a){var c=Xma[a];if(c)return c;c=Object.create($$.prototype);c.a=a;return Xma[a]=c}this.btTranslationalLimitMotor=$$;$$.prototype.solveLinearAxis=function(a,c,d,e,f,g,h,i,j){return JN(this.a,a,c,d.a,e.a,f.a,g.a,h,i.a,j.a)};$$.prototype.isLimited=function(a){return ON(this.a,a)};
+var Ammo = this;
 
-
-  return this;
-}).call({});
+//  return this;
+//}).call({});

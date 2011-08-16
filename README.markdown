@@ -66,21 +66,33 @@ demo code in
 
   examples/webgl_demo/ammo.html
 
-The WebGL demo by default uses builds/ammo.js, which is a wrapped build.
-Wrapped builds enclose all of ammo.js in a closure (using wrap.py). This keeps
-the global namespace free and avoids name collisions with the rest of your
-code (but it has a minor speed penalty). In a wrapped build, accessing ammo.js
-elements is through Ammo.*, for example, Ammo.btVector3, etc.
-
-Note that most of the example code in examples/ does not assume a wrapped
-build, for simplicity.
-
 
 API Differences
 ===============
 
 ammo.js autogenerates its API from the Bullet source code, so it should
 be basically identical. There are however some differences:
+
+  * All ammo.js elements should be accessed through Ammo.*. For example,
+    Ammo.btVector3, etc., as you can see in the example code.
+
+    Note however that by default ammo.js does *not* wrap builds in a
+    closure - Ammo is just another name for |this|. The reason is that
+    closure wrapping, while it keeps the global namespace clean, has
+    significant performance downsides (currently 50% in the top engines).
+    If you must, use a closure, but otherwise it is better not to. Note
+    that it is a good idea to run ammo.js in a worker thread anyhow, in
+    which case the global namespace is kept clean, and there is
+    definitely no need for a closure (however, you must still be careful
+    if you compile with the closure compiler, to avoid stepping on the
+    minified names it generates).
+
+    Accessing elements in ammo.js through Ammo.* is not strictly
+    necessary in a normal (non-wrapped) build, but is recommended since
+    it makes it easy to use a wrapped build without changing your code.
+
+    If you do want to wrap a build in a closure, you can use wrap.py
+    which is a little tool for that.
 
   * Functions returning or getting float& or btScalar& are converted to
     float. The reason is that float& is basically float* with nicer syntax
