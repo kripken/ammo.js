@@ -24,6 +24,7 @@ EMSCRIPTEN_SETTINGS = {
   'CORRECT_SIGNS': 0,
   'OPTIMIZE': 1,
   'DISABLE_EXCEPTIONS': 1,
+  'RUNTIME_TYPE_INFO': 0,
 }
 EMSCRIPTEN_ARGS = [] # TODO: Consider adding '--dlmalloc'
 
@@ -57,7 +58,7 @@ elif build_type == 'ta2':
 else:
   raise Exception('Unknown build type: ' + build_type)
 
-DEBUG = 0
+DEBUG = 0 # might be needed for type info, safe heap, etc.
 
 # Startup
 
@@ -215,5 +216,6 @@ bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
 bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
 bundle.close()
 
-# Recommended: Also do closure compiler: java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
+# Recommended: Also do closure compiler:
+# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
 
