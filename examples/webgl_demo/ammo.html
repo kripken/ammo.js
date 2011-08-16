@@ -13,44 +13,44 @@
 
         // Bullet-interfacing code
 
-        var collisionConfiguration = new btDefaultCollisionConfiguration();
-        var dispatcher = new btCollisionDispatcher(collisionConfiguration);
-        var overlappingPairCache = new btDbvtBroadphase();
-        var solver = new btSequentialImpulseConstraintSolver();
-        var dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-        dynamicsWorld.setGravity(new btVector3(0, -10, 0));
+        var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+        var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+        var overlappingPairCache = new Ammo.btDbvtBroadphase();
+        var solver = new Ammo.btSequentialImpulseConstraintSolver();
+        var dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+        dynamicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
 
-        var groundShape = new btBoxShape(new btVector3(50, 50, 50));
+        var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
 
         var bodies = [];
 
-        var groundTransform = new btTransform();
+        var groundTransform = new Ammo.btTransform();
         groundTransform.setIdentity();
-        groundTransform.setOrigin(new btVector3(0, -56, 0));
+        groundTransform.setOrigin(new Ammo.btVector3(0, -56, 0));
 
         (function() {
           var mass = 0;
-          var localInertia = new btVector3(0, 0, 0);
-          var myMotionState = new btDefaultMotionState(groundTransform);
-          var rbInfo = new btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
-          var body = new btRigidBody(rbInfo);
+          var localInertia = new Ammo.btVector3(0, 0, 0);
+          var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
+          var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
+          var body = new Ammo.btRigidBody(rbInfo);
 
           dynamicsWorld.addRigidBody(body);
           bodies.push(body);
         })();
 
-        var boxShape = new btBoxShape(new btVector3(1, 1, 1));
+        var boxShape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1));
 
         NUMRANGE.forEach(function(i) {
-          var startTransform = new btTransform();
+          var startTransform = new Ammo.btTransform();
           startTransform.setIdentity();
           var mass = 1;
-          var localInertia = new btVector3(0, 0, 0);
+          var localInertia = new Ammo.btVector3(0, 0, 0);
           boxShape.calculateLocalInertia(mass, localInertia);
         
-          var myMotionState = new btDefaultMotionState(startTransform);
-          var rbInfo = new btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
-          var body = new btRigidBody(rbInfo);
+          var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+          var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
+          var body = new Ammo.btRigidBody(rbInfo);
 
           dynamicsWorld.addRigidBody(body);
           bodies.push(body);
@@ -69,7 +69,7 @@
 
         resetPositions();
 
-        var trans = new btTransform(); // taking this out of readBulletObject reduces the leaking
+        var trans = new Ammo.btTransform(); // taking this out of readBulletObject reduces the leaking
         function readBulletObject(i, pos, quat) {
           var body = bodies[i];
           body.getMotionState().getWorldTransform(trans);

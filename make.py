@@ -217,5 +217,6 @@ bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
 bundle.close()
 
 # Recommended: Also do closure compiler:
-# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
+# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.cc.js
+# and wrap.py after it
 
