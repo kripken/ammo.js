@@ -117,8 +117,8 @@ try:
   header_data = open('headers.pre.h', 'r').read()
   header_data = header_data.replace(' = btVector3(btScalar(0), btScalar(0), btScalar(0))', '') \
                            .replace('const btVehicleTuning& tuning', 'const btRaycastVehicle::btVehicleTuning& tuning') \
-                           .replace('( void )', '') \
-                           .replace('(void)', '') \
+                           .replace('( void )', '()') \
+                           .replace('(void)', '()') \
                            .replace('btTraversalMode', 'btQuantizedBvh::btTraversalMode') \
                            .replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*') \
                            .replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*') \
@@ -131,9 +131,10 @@ try:
                            .replace('LocalShapeInfo*', 'btCollisionWorld::LocalShapeInfo*') \
                            .replace('IWriter*', 'btDbvt::IWriter*') \
                            .replace('=btVector3(0,0,0)', '=btVector3') \
-                           .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo^') \
+                           .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo') \
                            .replace('btScalar', 'float') \
                            .replace('typedef float float;', '') \
+                           .replace('STAGECOUNT+1', '17') \
                            .replace('Handle*', 'btAxisSweep3Internal<BP_FP_INT_TYPE>::Handle*') \
                            .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
                            #.replace('BP_FP_INT_TYPE', 'int') \
@@ -149,7 +150,7 @@ try:
          # Ignore some things that CppHeaderParser has problems
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer",'
+         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo",'
          ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
          ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
@@ -220,6 +221,7 @@ this['Ammo'] = this; // With or without a closure, the proper usage is Ammo.*
 bundle.close()
 
 # Recommended: Also do closure compiler:
-# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.cc.js
-# and wrap.py after it
+# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
+
+# and wrap.py after it, optionally (decreases performance, but adds encapsulation)
 

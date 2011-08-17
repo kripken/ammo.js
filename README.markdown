@@ -94,6 +94,16 @@ be basically identical. There are however some differences:
     If you do want to wrap a build in a closure, you can use wrap.py
     which is a little tool for that.
 
+  * Member variables of structs and classes can be accessed through
+    setter and getter functions, that are prefixed with |get_| or |set_|.
+    For example,
+
+      rayCallback.get_m_rayToWorld()
+
+    will get m_rayToWorld from say a ClosestRayResultCallback. Native
+    JavaScript getters and setters could give a slightly nicer API here,
+    however their performance is potentially problematic.
+
   * Functions returning or getting float& or btScalar& are converted to
     float. The reason is that float& is basically float* with nicer syntax
     in C++, but from JavaScript you would need to write to the heap every

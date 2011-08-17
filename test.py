@@ -10,7 +10,7 @@ print 'Using build:', build
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
 def run(filename):
-  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'load("' + build + '")', filename], stdout=PIPE).communicate()[0]
+  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'load("' + build + '");load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
 
 __counter = 0
 def stage(text):
