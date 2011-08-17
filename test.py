@@ -47,7 +47,7 @@ for test in ['2', '3']:
 
 stage('stress')
 
-output = run(os.path.join('examples', 'stress.js'))
+output = run(os.path.join('tests', 'stress.js'))
 assert '''
 0 : 0.00,-56.00,0.00
 1 : 13.03,-5.00,-5.24
