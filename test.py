@@ -37,8 +37,8 @@ assert open(os.path.join('examples', 'hello_world.txt')).read() in output, outpu
 
 stage('regression tests')
 
-for test in [2, 3]:
-  name = str(test)+'.js'
+for test in ['2', '3']:
+  name = test + '.js'
   print '     ', name
   fullname = os.path.join('tests', name)
   output = run(fullname)

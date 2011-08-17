@@ -26,7 +26,7 @@ EMSCRIPTEN_SETTINGS = {
   'DISABLE_EXCEPTIONS': 1,
   'RUNTIME_TYPE_INFO': 0,
 }
-EMSCRIPTEN_ARGS = [] # TODO: Consider adding '--dlmalloc'
+EMSCRIPTEN_ARGS = ['--dlmalloc'] # dlmalloc makes us 3% larger and 1% slower, but without it we will leak since Bullet constantly allocs/frees
 
 if build_type == 'safe':
   EMSCRIPTEN_SETTINGS['RELOOP'] = 0

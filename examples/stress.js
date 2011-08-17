@@ -51,12 +51,22 @@ function main() {
     bodies.push(body);
   });
 
+  // Make sure we do not allocate memory!
+  var readMemoryCeiling;
+  try {
+    STATICTOP;
+    readMemoryCeiling = function() { return STATICTOP }
+  } catch(e) {
+    var mapping = getClosureMapping();
+    readMemoryCeiling = eval('(function() { return ' + mapping['STATICTOP'] + ' })');
+  }
+  var memoryStart = readMemoryCeiling();
+
   var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
   var startTime = Date.now();
 
   for (var i = 0; i < 450; i++) {
-    //print('statictop: ' + Qa); // TODO: Add check that we do not allocate memory
     dynamicsWorld.stepSimulation(1/60, 10);
     
     bodies.forEach(function(body, i) {
@@ -67,7 +77,11 @@ function main() {
     });
   }
 
-  print('total time: ' + ((Date.now()-startTime)/1000).toFixed(3));
+  var endTime = Date.now();
+
+  assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
+
+  print('total time: ' + ((endTime-startTime)/1000).toFixed(3));
 }
 
 main();
