@@ -191,3 +191,11 @@ following steps:
   * Run the WebGL demo in examples/webgl_demo and make sure it looks
     ok.
 
+
+TODO
+====
+
+  * The HEAP memory space may not be implemented as a flat object in
+    all JS engines, especially when we use a lot of memory. Need to
+    investigate this.
+

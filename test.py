@@ -9,8 +9,12 @@ print 'Using build:', build
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
+print
+print '==================================='
+print
+
 def run(filename):
-  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'load("' + build + '");load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
+  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
 
 __counter = 0
 def stage(text):
@@ -57,8 +61,11 @@ assert '''
 5 : 11.75,-5.00,11.25
 6 : 2.35,-5.61,0.12
 total time:''' in output, output
-print '   stress benchmark: ' + output.split('\n')[-2]
+assert 'ok.' in output, output
+print '   stress benchmark: ' + output.split('\n')[-3]
 
+print
+print '==================================='
 print
 print 'ok.'
 
