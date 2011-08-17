@@ -18,10 +18,7 @@ Discussion takes place on IRC at #emscripten on Mozilla's server (irc.mozilla.or
 Instructions
 ------------
 
-builds/ contains prebuilt versions of ammo.js:
-
- * ammo.js: Optimized and minified build. This is probably what you want.
- * ammo.slow.js: A very slow debug version. This includes many runtime checks and safety measures.
+builds/ammo.js contains a prebuilt version of ammo.js. This is probably what you want.
 
 You can also build ammo.js yourself, as follows:
 
@@ -37,12 +34,13 @@ You can also build ammo.js yourself, as follows:
 
       python make.py
 
-   which should generate builds/ammo.new.js. Note that this
-   is by default an unoptimized safe build which will run very slowly.
-   You can run make.py with argument |fast| to generate an optimized
-   make.
+   which should generate builds/ammo.new.js. Note that this is by default
+   an unoptimized safe build which will run very slowly. To generate an optimized
+   build (which takes much longer to generate), do
 
- * Run the automatic tests,
+      python make.py fast
+
+ * Optionally, run the automatic tests,
 
       python test.py
 
@@ -114,8 +112,28 @@ be basically identical. There are however some differences:
   * Not all classes are exposed, for various reasons. Please file an issue
     if you find that something you need is missing.
 
-  * Each call to |new X()| will leak. We have not integrated C++
-    memory management with the JavaScript GC yet.
+  * Each call to |new X()| allocates a new object, sort of like how C++
+    |new| works. You need to manually free such objects, which can be done
+    in JS using
+
+      destroy(OBJECT)
+
+    |delete| would have been a better parallel to C++, however |delete|
+    is a reserved work in JS.
+
+    Note that there is no way to allocate objects other than with |new X()|,
+    unlike in C++ where you can define an object and it is held on the stack,
+    and free'd automatically. (That might be possible with WeakMaps, but
+    not enough browsers support it yet.) So in practice you need to remember
+    to |destroy| the objects you create. However, you can let a lot of objects
+    leak, in many cases, for example when you are done with using Ammo, there
+    is really no need to free all the singleton objects you used. But, if
+    you do create a lot of new objects while running Ammo during a long
+    session, you should probably free those objects when possible.
+
+    Note that currently destroying a btDiscreteDynamicsWorld fails for some
+    reason (but normally you create a singleton of that, so you shouldn't
+    really need to destroy it anyhow).
 
   * Functions that return an entire object, like |btQuaternion someFunc()|,
     will return a reference to a static object held inside the binding
@@ -147,8 +165,29 @@ be basically identical. There are however some differences:
 Reporting Issues
 ================
 
-If you find a bug in ammo.js and file an issue, please test your code
-with the slow unoptimized build in builds/ammo.slow.js too, and mention
-in the issue how that works (the optimized build applies a few speculative
-speedups that can, in theory, break things; the slow build is safer).
+If you find a bug in ammo.js and file an issue, please include a script
+that reproduces the problem. That way it is easier to debug, and we can
+then include that script in our automatic tests.
+
+
+Release Process
+===============
+
+Pushing a new build in builds/ammo.js should be done only after the
+following steps:
+
+  * Build a safe build and make sure it passes all automatic tests. Safe
+    builds contain a lot of runtime assertions that can catch potential
+    bugs (similar to the sort of things valgrind can catch).
+
+  * Build a fast build and make sure it passes all automatic tests.
+
+  * Run closure compiler on that fast build and make sure it passes
+    all automatic tests.
+
+  * Make sure that the stress test benchmark did not regress
+    compared to the old build.
+
+  * Run the WebGL demo in examples/webgl_demo and make sure it looks
+    ok.
 

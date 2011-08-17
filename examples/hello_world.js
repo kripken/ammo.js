@@ -67,6 +67,15 @@ function main() {
       }
     });
   }
+
+  // Delete objects we created through |new|. We just do a few of them here, but you should do them all if you are not shutting down ammo.js
+  destroy(collisionConfiguration);
+  destroy(dispatcher);
+  destroy(overlappingPairCache);
+  destroy(solver);
+  //destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
+
+  print('ok.')
 }
 
 main();

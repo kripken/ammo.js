@@ -34,6 +34,7 @@ stage('hello world')
 
 output = run(os.path.join('examples', 'hello_world.js'))
 assert open(os.path.join('examples', 'hello_world.txt')).read() in output, output
+assert 'ok.' in output, output
 
 stage('regression tests')
 
