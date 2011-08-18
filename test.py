@@ -22,18 +22,6 @@ def stage(text):
   print __counter, ':', text
   __counter += 1
 
-stage('basics')
-
-output = run(os.path.join('examples', 'basics.js'))
-assert '''
-vec:4,5,6
-quat:14,25,36,77
-trans:true,true
-tvec:4,5,6
-tquat:0.16,0.28,0.40,0.86
-ClosestRayResultCallback: function
-''' in output, output
-
 stage('hello world')
 
 output = run(os.path.join('examples', 'hello_world.js'))
@@ -42,7 +30,7 @@ assert 'ok.' in output, output
 
 stage('regression tests')
 
-for test in ['2', '3']:
+for test in ['basics', 'wrapping', '2', '3']:
   name = test + '.js'
   print '     ', name
   fullname = os.path.join('tests', name)

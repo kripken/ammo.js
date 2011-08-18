@@ -1,6 +1,6 @@
 function assert(x, msg) {
   if (!x) {
-    throw 'Assertion: ' + (msg || 'Failure');
+    throw 'Assertion: ' + (msg || 'Failure') + ' at ' + new Error().stack;
   }
 }
 
