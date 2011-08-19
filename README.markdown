@@ -162,6 +162,22 @@ be basically identical. There are however some differences:
     the type of the argument.
 
 
+Troubleshooting
+===============
+
+  * It's easy to forget to write |new| when creating an object, for
+    example
+
+      var vec = Ammo.btVector3(1,2,3); // This is wrong! Need 'new'!
+
+    This can lead to error messages like the following:
+
+      Cannot read property 'a' of undefined
+      Cannot read property 'ptr' of undefined
+
+    This is an annoying aspect of JavaScript, sadly.
+
+
 Reporting Issues
 ================
 
