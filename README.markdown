@@ -161,6 +161,19 @@ be basically identical. There are however some differences:
     to another binding function, without that function needing to check
     the type of the argument.
 
+  * There is experimental support for binding operator functions. The following
+    might work:
+
+      operator         name in JS
+      --------         ----------
+          =              op_set
+          +              op_add
+          -              op_sub
+          *              op_mul
+          /              op_div
+         []              op_get
+         ==              op_eq
+
 
 Troubleshooting
 ===============

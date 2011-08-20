@@ -25,6 +25,16 @@ assertEq(typeof Ammo.ClosestRayResultCallback, 'function'); // make sure it was 
   var body = new Ammo.btRigidBody(rbInfo);
   new btPoint2PointConstraint(body, new btVector3(0, 0, 0)); // make sure we have the 2-param version of this
 
-  print('ok.');
 })();
+
+(function() {
+  // operators
+  var a = new Ammo.btVector3(5, 6, 7);
+  assertEq(5, a.x()); assertEq(6, a.y()); assertEq(7, a.z());
+  var result = a.op_mul(3);
+  assertEq(15, a.x()); assertEq(18, a.y()); assertEq(21, a.z());
+  assert(Ammo.compare(a, result));
+})();
+
+print('ok.');
 

@@ -22,12 +22,6 @@ def stage(text):
   print __counter, ':', text
   __counter += 1
 
-stage('hello world')
-
-output = run(os.path.join('examples', 'hello_world.js'))
-assert open(os.path.join('examples', 'hello_world.txt')).read() in output, output
-assert 'ok.' in output, output
-
 stage('regression tests')
 
 for test in ['basics', 'wrapping', '2', '3']:
@@ -36,6 +30,12 @@ for test in ['basics', 'wrapping', '2', '3']:
   fullname = os.path.join('tests', name)
   output = run(fullname)
   assert 'ok.' in output, output
+
+stage('hello world')
+
+output = run(os.path.join('examples', 'hello_world.js'))
+assert open(os.path.join('examples', 'hello_world.txt')).read() in output, output
+assert 'ok.' in output, output
 
 stage('stress')
 
