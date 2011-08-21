@@ -3,6 +3,19 @@
 import os, sys, re, json, shutil
 from subprocess import Popen, PIPE, STDOUT
 
+# Startup
+
+exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
+
+try:
+  EMSCRIPTEN_ROOT
+except:
+  print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
+  sys.exit(1)
+
+sys.path.append(EMSCRIPTEN_ROOT)
+import tools.shared as emscripten
+
 # Settings
 
 build_type = sys.argv[1] if len(sys.argv) >= 2 else 'safe'
@@ -28,25 +41,36 @@ EMSCRIPTEN_SETTINGS = {
 }
 EMSCRIPTEN_ARGS = ['--dlmalloc'] # dlmalloc makes us 3% larger and 1% slower, but without it we will leak since Bullet constantly allocs/frees
 
+LLVM_OPT_OPTS = []
+#LLVM_OPT_OPTS = emscripten.pick_llvm_opts(3, optimize_size=True, allow_nonportable=False, use_aa=False) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
+'''
+import os, sys, re
+
+infile = open(sys.argv[1], 'r').read()
+outfile = open(sys.argv[2], 'w')
+
+t1 = infile
+while True:
+  t2 = re.sub(r'\(\n?!\n?1\n?\+\n?\(\n?!\n?1\n?\+\n?(\w)\n?\)\n?\)', lambda m: '(!1+' + m.group(1) + ')', t1)
+  print len(infile), len(t2)
+  if t1 == t2: break
+  t1 = t2
+
+outfile.write(t2)
+'''
+
 if build_type == 'safe':
   EMSCRIPTEN_SETTINGS['RELOOP'] = 0
   EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 1
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 1
   EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
-  LLVM_OPT_OPTS = []
 elif build_type == 'fast':
   EMSCRIPTEN_SETTINGS['RELOOP'] = 1
   EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0 # is slower
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
   EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 1
-  LLVM_OPT_OPTS = [] # ['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', '-inline',
-                     #  '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg',
-                     #  '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch',
-                     #  '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading',
-                     #  '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes',
-                     #  '-deadtypeelim', '-globaldce', '-constmerge'] # These generate a big and slow build for some reason
 elif build_type == 'ta2':
   print 'WARNING: This build type is experimental!'
   EMSCRIPTEN_SETTINGS['RELOOP'] = 0 # For debugging
@@ -54,24 +78,19 @@ elif build_type == 'ta2':
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
   EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
-  LLVM_OPT_OPTS = ['-O3']
+  #LLVM_OPT_OPTS = emscripten.pick_llvm_opts(3, optimize_size=True, allow_nonportable=True)
+  #print LLVM_OPT_OPTS
+                   #['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', XXX'-inline'XXX,
+                   # '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg',
+                   # '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch',
+                   # '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading',
+                   # '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes',
+                   # '-deadtypeelim', '-globaldce', '-constmerge'] # These generate a big and slow build for some reason
+  EMSCRIPTEN_ARGS = [] # disable dlmalloc for now
 else:
   raise Exception('Unknown build type: ' + build_type)
 
 DEBUG = 0 # might be needed for type info, safe heap, etc.
-
-# Startup
-
-exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
-
-try:
-  EMSCRIPTEN_ROOT
-except:
-  print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
-  sys.exit(1)
-
-sys.path.append(EMSCRIPTEN_ROOT)
-import tools.shared as shared
 
 # Prep
 
@@ -146,7 +165,7 @@ try:
 
   print 'Processing...'
 
-  Popen([shared.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
+  Popen([emscripten.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
          # Ignore some things that CppHeaderParser has problems
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
@@ -158,7 +177,7 @@ try:
   #1/0.
 
   env = os.environ.copy()
-  env['EMMAKEN_COMPILER'] = shared.CLANG
+  env['EMMAKEN_COMPILER'] = emscripten.CLANG
   if DEBUG:
     env['CFLAGS'] = '-g'
   env['CC'] = env['CXX'] = env['RANLIB'] = env['AR'] = os.path.join(EMSCRIPTEN_ROOT, 'tools', 'emmaken.py')
@@ -179,11 +198,11 @@ try:
 
   stage('Link')
 
-  Popen([shared.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
-                           os.path.join('src', '.libs', 'libBulletDynamics.a'),
-                           os.path.join('src', '.libs', 'libLinearMath.a'),
-                           'bindings.bc',
-                           '-o', 'libbullet.bc']).communicate()
+  Popen([emscripten.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
+                               os.path.join('src', '.libs', 'libBulletDynamics.a'),
+                               os.path.join('src', '.libs', 'libLinearMath.a'),
+                               'bindings.bc',
+                               '-o', 'libbullet.bc']).communicate()
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
 
@@ -191,11 +210,11 @@ try:
     stage('LLVM optimizations')
 
     shutil.move('libbullet.bc', 'libbullet.bc.pre')
-    output = Popen([shared.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
+    output = Popen([emscripten.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
 
   stage('LLVM binary => LL assembly')
 
-  Popen([shared.LLVM_DIS] + shared.LLVM_DIS_OPTS + ['libbullet.bc', '-o=libbullet.ll']).communicate()
+  Popen([emscripten.LLVM_DIS] + emscripten.LLVM_DIS_OPTS + ['libbullet.bc', '-o=libbullet.ll']).communicate()
 
   assert os.path.exists('libbullet.ll'), 'Failed to create assembly code'
 
@@ -220,8 +239,8 @@ this['Ammo'] = this; // With or without a closure, the proper usage is Ammo.*
 ''')
 bundle.close()
 
-# Recommended: Also do closure compiler:
-# java -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
+# Recommended: Also do closure compiler: (note: increase the memory usage as needed)
+# java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
 
 # and wrap.py after it, optionally (decreases performance, but adds encapsulation)
 

@@ -22,20 +22,21 @@ def stage(text):
   print __counter, ':', text
   __counter += 1
 
-stage('regression tests')
+if len(sys.argv) != 3 or sys.argv[2] != 'benchmark':
+  stage('regression tests')
 
-for test in ['basics', 'wrapping', '2', '3']:
-  name = test + '.js'
-  print '     ', name
-  fullname = os.path.join('tests', name)
-  output = run(fullname)
+  for test in ['basics', 'wrapping', '2', '3']:
+    name = test + '.js'
+    print '     ', name
+    fullname = os.path.join('tests', name)
+    output = run(fullname)
+    assert 'ok.' in output, output
+
+  stage('hello world')
+
+  output = run(os.path.join('examples', 'hello_world.js'))
+  assert open(os.path.join('examples', 'hello_world.txt')).read() in output, output
   assert 'ok.' in output, output
-
-stage('hello world')
-
-output = run(os.path.join('examples', 'hello_world.js'))
-assert open(os.path.join('examples', 'hello_world.txt')).read() in output, output
-assert 'ok.' in output, output
 
 stage('stress')
 
