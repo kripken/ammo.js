@@ -1,14 +1,20 @@
 // Stress test
 
+var TEST_MEMORY = true;
+
 var readMemoryCeiling;
-try {
-  STATICTOP;
-  readMemoryCeiling = function() { return STATICTOP + _sbrk.DATASIZE }
-} catch(e) {
-  var mapping = getClosureMapping();
-  var key = '0';
-  for (k in eval(mapping['_sbrk'])) { key = k }; // hackish - relies on the order. TODO: fix
-  readMemoryCeiling = eval('(function() { return ' + mapping['STATICTOP'] + ' + ' + mapping['_sbrk'] + '.' + key + ' })');
+if (TEST_MEMORY) {
+  (function() {
+    try {
+      STATICTOP;
+      readMemoryCeiling = function() { return STATICTOP + _sbrk.DATASIZE }
+    } catch(e) {
+      var mapping = getClosureMapping();
+      var key = '0';
+      for (var k in eval(mapping['_sbrk'])) { key = k }; // hackish - relies on the order. TODO: fix
+      readMemoryCeiling = eval('(function() { return ' + mapping['STATICTOP'] + ' + ' + mapping['_sbrk'] + '.' + key + ' })');
+    }
+  })();
 }
 
 function benchmark() {
@@ -68,7 +74,7 @@ function benchmark() {
   var startTime = Date.now();
 
   for (var i = 0; i < 450; i++) {
-    if (i === 250) memoryStart = readMemoryCeiling();
+    if (i === 250 && TEST_MEMORY) memoryStart = readMemoryCeiling();
 
     dynamicsWorld.stepSimulation(1/60, 10);
     
@@ -82,7 +88,7 @@ function benchmark() {
 
   var endTime = Date.now();
 
-  assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
+  if (TEST_MEMORY) assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
 
   print('total time: ' + ((endTime-startTime)/1000).toFixed(3));
 }
@@ -104,7 +110,7 @@ function testDestroy() {
 }
 
 benchmark();
-testDestroy();
+if (TEST_MEMORY) testDestroy();
 
 print('ok.')
 
