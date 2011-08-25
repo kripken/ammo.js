@@ -9,12 +9,18 @@ print 'Using build:', build
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
+JS_ENGINE = SPIDERMONKEY_ENGINE
+#JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
+
 print
 print '==================================='
 print
 
 def run(filename):
-  return Popen(SPIDERMONKEY_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
+  if JS_ENGINE == SPIDERMONKEY_ENGINE:
+    return Popen(JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
+  else:
+    return Popen(JS_ENGINE + [build, os.path.join('tests', 'testutils.js'), filename], stdout=PIPE).communicate()[0]
 
 __counter = 0
 def stage(text):
