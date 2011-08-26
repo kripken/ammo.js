@@ -100,7 +100,7 @@
         var position = [0,0,0];
         var quaternion = new CubicVR.Quaternion;
 
-        function simulatePhysics(dt) {
+        function simulate(dt) {
           dynamicsWorld.stepSimulation(dt, 2);
 
           // Read bullet data into JS objects
@@ -112,6 +112,8 @@
             renderObject.position[2] = position[2];
             renderObject.rotation = quaternion.toEuler();
           }
+
+          if (noneActive()) restart();
         }
 
         var fpsInfo = {
@@ -131,6 +133,13 @@
             fpsInfo.num = 0;
           }
         }
+
+        function restart() {
+          totalTime = 0;
+          resetPositions();
+        }
+
+        // CubicVR code
 
         function startUp() {
           var canvas = document.getElementById("canvas");
@@ -200,24 +209,14 @@
           var floor_ = new CubicVR.SceneObject({ mesh: floorMesh, position: [0, -FLOOR_SIZE/2-6, 0] });
           scene.bindSceneObject(floor_, true);
 
-          function checkRestart() {
-            if (noneActive()) restart();
-          }
-
           var mvc = new CubicVR.MouseViewController(canvas, scene.camera);
 
           CubicVR.MainLoop(function(timer, gl) {
             var dt = timer.getLastUpdateSeconds();
-            simulatePhysics(dt);
-            checkRestart();
+            simulate(dt);
             scene.render();
             showFPS(dt);
           });
-        }
-
-        function restart() {
-          totalTime = 0;
-          resetPositions();
         }
       </script>
     </head>
