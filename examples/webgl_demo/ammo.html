@@ -139,6 +139,9 @@
           resetPositions();
         }
 
+        var FLOOR_SIZE = 100;
+        var FLOOR_HEIGHT = -56
+
         // CubicVR code
 
         function startUp() {
@@ -154,15 +157,17 @@
           };
 
           var scene = new CubicVR.Scene(canvas.width, canvas.height, 70);
+
           var light = new CubicVR.Light({
-            type: CubicVR.enums.light.type.POINT,
-            method: CubicVR.enums.light.method.DYNAMIC,
-            diffuse: [1, 1, 1],
-            specular: [0.25, 0.25, 0.25],
-            position: [0, 5, 20],
-            distance: 200
+            type:CubicVR.enums.light.type.AREA,
+            intensity: 0.9,
+            mapRes: 512,
+            areaCeiling: 80,
+            areaFloor: FLOOR_HEIGHT,
+            areaAxis: [15, 10]
           });
           scene.bindLight(light);
+          CubicVR.setSoftShadows(true);
 
           scene.camera.position = [0, 2.4, 17];
           scene.camera.target = [0, 2.4, 0];
@@ -191,7 +196,6 @@
             scene.bindSceneObject(boxes[i], true);
           }
 
-          var FLOOR_SIZE = 100;
           var floorMaterial = new CubicVR.Material({
             textures: {
               color: new CubicVR.Texture("cube3.jpg")
@@ -206,7 +210,7 @@
             }
           }).calcNormals().triangulateQuads().compile().clean();
 
-          var floor_ = new CubicVR.SceneObject({ mesh: floorMesh, position: [0, -FLOOR_SIZE/2-6, 0] });
+          var floor_ = new CubicVR.SceneObject({ mesh: floorMesh, position: [0, FLOOR_HEIGHT, 0] });
           scene.bindSceneObject(floor_, true);
 
           var mvc = new CubicVR.MouseViewController(canvas, scene.camera);
@@ -214,6 +218,7 @@
           CubicVR.MainLoop(function(timer, gl) {
             var dt = timer.getLastUpdateSeconds();
             simulate(dt);
+            scene.updateShadows();
             scene.render();
             showFPS(dt);
           });
