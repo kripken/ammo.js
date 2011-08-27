@@ -1,7 +1,7 @@
 <html>
     <head>
       <title>Bullet/WebGL Demo</title>
-      <script src="CubicVR.js" type="text/javascript"></script>
+      <script src="CubicVR.min.js" type="text/javascript"></script>
       <script src="../../builds/ammo.js" type="text/javascript"></script>
       <style type="text/css">
         body { background-color: #ccc; }
@@ -146,7 +146,7 @@
           canvas.width = screen.width*0.70;
           canvas.height = screen.height*0.55;
 
-          var gl = CubicVR.GLCore.init(canvas, "CubicVR_Core.vs", "CubicVR_Core.fs");
+          var gl = CubicVR.GLCore.init(canvas);
 
           if (!gl) {
             alert("Sorry, no WebGL support :(");
@@ -183,7 +183,7 @@
                 projectionMode: CubicVR.enums.uv.projection.CUBIC,
                 scale: [2, 2, 2]
               }
-            }).triangulateQuads().compile().clean();
+            }).calcNormals().triangulateQuads().compile().clean();
           });
 
           for (var i = 0; i < NUM; i++) {
@@ -201,10 +201,10 @@
             size: FLOOR_SIZE,
             material: floorMaterial,
             uvmapper: {
-              projectionMode: CubicVR.enums.uv.projection.CUBIC,
-              scale: [FLOOR_SIZE, FLOOR_SIZE, FLOOR_SIZE]
+                projectionMode: CubicVR.enums.uv.projection.CUBIC,
+                scale: [4, 4, 4]
             }
-          }).triangulateQuads().compile().clean();
+          }).calcNormals().triangulateQuads().compile().clean();
 
           var floor_ = new CubicVR.SceneObject({ mesh: floorMesh, position: [0, -FLOOR_SIZE/2-6, 0] });
           scene.bindSceneObject(floor_, true);
