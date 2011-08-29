@@ -2,17 +2,18 @@
 
 var TEST_MEMORY = true;
 
-var readMemoryCeiling;
+var readMemoryCeiling, malloc;
 if (TEST_MEMORY) {
   (function() {
     try {
       STATICTOP;
       readMemoryCeiling = function() { return STATICTOP + _sbrk.DATASIZE }
+      malloc = _malloc;
     } catch(e) {
       var mapping = getClosureMapping();
       var key = '0';
-      for (var k in eval(mapping['_sbrk'])) { key = k }; // hackish - relies on the order. TODO: fix
-      readMemoryCeiling = eval('(function() { return ' + mapping['STATICTOP'] + ' + ' + mapping['_sbrk'] + '.' + key + ' })');
+      readMemoryCeiling = eval('(function() { return ' + mapping['STATICTOP'] + ' + ' + mapping['_sbrk$DATASIZE'] + ' })');
+      malloc = eval(mapping['_malloc']);
     }
   })();
 }
@@ -72,6 +73,8 @@ function benchmark() {
   var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
   var startTime = Date.now();
+
+  malloc(5*1024*1024); // stress memory usage
 
   for (var i = 0; i < 450; i++) {
     if (i === 250 && TEST_MEMORY) memoryStart = readMemoryCeiling();
