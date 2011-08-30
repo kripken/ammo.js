@@ -92,6 +92,14 @@ be basically identical. There are however some differences:
     If you do want to wrap a build in a closure, you can use wrap.py
     which is a little tool for that.
 
+    Note that non-wrapped builds can lead to problems if the rest of
+    your code uses global variables that collide with ammo.js's! You
+    can run your code in JavaScript strict mode to see if that might be
+    the problem, it will warn about your functions writing to global
+    variables (but it won't notice your actual global variables accessed
+    outside of functions). You can also check if this is the problem by
+    wrapping an ammo.js build using wrap.py.
+
   * Member variables of structs and classes can be accessed through
     setter and getter functions, that are prefixed with |get_| or |set_|.
     For example,
