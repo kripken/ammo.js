@@ -65,11 +65,12 @@ demo code in
   examples/webgl_demo/ammo.html
 
 
-API Differences
-===============
+Bindings API
+============
 
 ammo.js autogenerates its API from the Bullet source code, so it should
-be basically identical. There are however some differences:
+be basically identical. There are however some differences and things
+to be aware of:
 
   * All ammo.js elements should be accessed through Ammo.*. For example,
     Ammo.btVector3, etc., as you can see in the example code.
@@ -149,16 +150,26 @@ be basically identical. There are however some differences:
     times and still use the values - you must copy them.
 
   * All the bindings functions expect to receive wrapper objects, that
-    contain the raw pointer inside them (.ptr). If you have a raw pointer,
-    wrap it by calling CLASSNAME__wrap(ptr) where CLASSNAME is the class name.
-    If you want to pass a null pointer, use NULL which is a wrapper object
-    defined for that purpose (with ptr == 0). The reason for this is that
-    the bindings code is faster if it does not need to check each argument
-    for its type and convert them on the fly. In practice this should not be
-    an inconvenience, and you shouldn't need to think about it, because
-    bindings functions return wrapped objects, so you can just pass those
-    back into other bindings functions. In other words, you should normally
-    never have to see a raw pointer.
+    contain the raw pointer inside them, and not a raw pointer (which is
+    just a memory address - an integer). You should normally not need
+    to deal with raw pointers, but if you do, the following functions can
+    help:
+
+      wrapPointer(ptr, Class)   - Returns a wrapped object
+      getPointer(object)        - Returns a raw pointer
+      castObject(object, Class) - Returns a wrapping of the same pointer but to
+                                  another class
+      compare(object1, object2) - Compares two objects' pointers
+
+    Note that there is always a *single* wrapped object for a certain pointer.
+    This allows you to add data on that object and use it elsewhere, by using
+    normal JavaScript syntax (object.attribute = someData etc.). Note that
+    this almost means that compare() is not needed - since you can compare two
+    objects of the same class, and if they have the same pointer they must be
+    the same object - but not quite: The tricky case is where one is a subclass
+    of the other, in which case the wrapped objects are different while the
+    pointer is the same. So, the correct way to compare two objects is to call
+    compare().
 
   * All the bindings functions that return pointers/references/objects
     will return wrapped pointers. The only potentially confusing case is
@@ -168,6 +179,14 @@ be basically identical. There are however some differences:
     returning a wrapper, you can always take the output and pass it back
     to another binding function, without that function needing to check
     the type of the argument.
+
+    If you want to pass a null pointer, use that NULL object. The reason is that
+    the bindings code is faster if it does not need to check each argument
+    for its type and convert them on the fly. In practice this should not be
+    an inconvenience, and you shouldn't need to think about it, because
+    bindings functions return wrapped objects, so you can just pass those
+    back into other bindings functions. In other words, you should normally
+    never have to see a raw pointer.
 
   * There is experimental support for binding operator functions. The following
     might work:
