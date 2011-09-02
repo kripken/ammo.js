@@ -155,7 +155,10 @@ to be aware of:
     to deal with raw pointers, but if you do, the following functions can
     help:
 
-      wrapPointer(ptr, Class)   - Returns a wrapped object
+      wrapPointer(ptr, Class)   - Given a raw pointer (an integer), returns a
+                                  wrapped object. Note that if you do not pass
+                                  Class, it will be assumed to be
+                                  |Object| - this is likely not what you want!
       getPointer(object)        - Returns a raw pointer
       castObject(object, Class) - Returns a wrapping of the same pointer but to
                                   another class
