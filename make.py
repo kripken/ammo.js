@@ -131,7 +131,7 @@ try:
 
   print 'Preprocessing...'
 
-  Popen(['cpp', '-x', 'c++', '-I../src', '../src/btBulletDynamicsCommon.h'], stdout=open('headers.pre.h', 'w')).communicate()
+  Popen(['cpp', '-x', 'c++', '-I../src', '../../root.h'], stdout=open('headers.pre.h', 'w')).communicate()
 
   print 'Cleaning...'
 
@@ -171,7 +171,8 @@ try:
          # Ignore some things that CppHeaderParser has problems
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo",'
+         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo,btAABB,'
+         'btContactArray,btPairCachingGhostObject::getOverlappingPairs,btGhostObject::getOverlappingPairs",'
          ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
          ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
@@ -186,7 +187,7 @@ try:
 
   stage('Build bindings')
 
-  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', 'btBulletDynamicsCommon.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
+  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', '../../root.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
 
   #1/0.
 
@@ -200,9 +201,9 @@ try:
 
   stage('Link')
 
-  Popen([emscripten.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a'),
-                               os.path.join('src', '.libs', 'libBulletDynamics.a'),
-                               os.path.join('src', '.libs', 'libLinearMath.a'),
+  Popen([emscripten.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a.bc'),
+                               os.path.join('src', '.libs', 'libBulletDynamics.a.bc'),
+                               os.path.join('src', '.libs', 'libLinearMath.a.bc'),
                                'bindings.bc',
                                '-o', 'libbullet.bc']).communicate()
 
