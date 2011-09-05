@@ -1,6 +1,6 @@
 #include "bullet/src/btBulletDynamicsCommon.h"
 
-//#include "bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h"
 
 /*
 #include "bullet/src/BulletCollision/Gimpact/btBoxCollision.h"

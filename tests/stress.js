@@ -1,6 +1,6 @@
 // Stress test
 
-var TEST_MEMORY = true;
+var TEST_MEMORY = 1;
 
 var readMemoryCeiling, malloc;
 if (TEST_MEMORY) {
@@ -74,7 +74,7 @@ function benchmark() {
 
   var startTime = Date.now();
 
-  malloc(5*1024*1024); // stress memory usage
+  if (TEST_MEMORY) malloc(5*1024*1024); // stress memory usage
 
   for (var i = 0; i < 450; i++) {
     if (i === 250 && TEST_MEMORY) memoryStart = readMemoryCeiling();
