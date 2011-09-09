@@ -204,6 +204,26 @@ to be aware of:
          []              op_get
          ==              op_eq
 
+  * There is experimental support for callbacks from C++ back into JS. See
+    tests/wrapping.js 's use of ConcreteContactResultCallback. Basically you
+    need to create an object of a particular (concrete, not abstract) class,
+    and you can then customize it's vtable, replacing some virtual functions
+    with others. Note that we do not have the type signature for functions at
+    runtime (we can add it, but it would bloat the library), which means you
+    will need to convert types manually, so if a parameter is a pointer or
+    a reference to say a btVector3, you should do
+
+      obj = Ammo.wrapPointer(arg, Ammo.btVector3)
+
+    and for your return value, if it is a pointer or a reference, return
+
+      obj.ptr
+
+    Other types (ints, doubles) can be left as-is. Note also that as mentioned
+    above this approach only works for concrete classes, not abstract ones.
+    That is the purpose of ConcreteContactResultCallback. You can add similar
+    things to root.h as needed.
+
 
 Troubleshooting
 ===============

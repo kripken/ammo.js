@@ -101,10 +101,10 @@ function testDestroy() {
   var vec = new Ammo.btVector3(4, 5, 6);
   var memoryStart = readMemoryCeiling();
   for (var i = 0; i < NUM; i++) {
-    destroy(vec);
+    Ammo.destroy(vec);
     vec = new Ammo.btVector3(4, 5, 6);
   }
-  destroy(vec);
+  Ammo.destroy(vec);
   assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
   for (var i = 0; i < NUM; i++) {
     vec = new Ammo.btVector3(4, 5, 6);

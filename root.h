@@ -17,3 +17,13 @@
 #include "bullet/src/BulletCollision/Gimpact/btTriangleShapeEx.h"
 */
 
+// Additions
+
+class ConcreteContactResultCallback : public btCollisionWorld::ContactResultCallback // for JS callbacks through vtable customization
+{
+public:
+  ConcreteContactResultCallback() {};
+  virtual float addSingleResult(btManifoldPoint& cp, const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1) { return 0; };
+};
+
+

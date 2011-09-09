@@ -23,7 +23,7 @@ assertEq(typeof Ammo.ClosestRayResultCallback, 'function'); // make sure it was 
   var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
   var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
   var body = new Ammo.btRigidBody(rbInfo);
-  new btPoint2PointConstraint(body, new btVector3(0, 0, 0)); // make sure we have the 2-param version of this
+  new Ammo.btPoint2PointConstraint(body, new Ammo.btVector3(0, 0, 0)); // make sure we have the 2-param version of this
 
 })();
 

@@ -50,7 +50,7 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
   assertEq(Ammo.getClass(body), Ammo.btRigidBody);
   assertEq(body.info, 1230);
 
-  var asCollision = Ammo.castObject(body, btCollisionObject);
+  var asCollision = Ammo.castObject(body, Ammo.btCollisionObject);
   assertNeq(asCollision.info, 1230);
   assertEq(Ammo.getClass(asCollision), Ammo.btCollisionObject);
   assertNeq(body, asCollision, 'Not the same yet - different class');
@@ -59,6 +59,22 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
   var upcasted = Ammo.btRigidBody.prototype.upcast(asCollision);
   assertEq(body, upcasted, 'Must be the exactly same object now, as the class is the same');
   assertEq(upcasted.info, 1230);
+})();
+
+// Callbacks from C++ to JS
+
+(function() {
+  var calledBack = false;
+  var callback = new Ammo.ConcreteContactResultCallback();
+  Ammo.customizeVTable(callback, [{
+    original: Ammo.ConcreteContactResultCallback.prototype.addSingleResult,
+    replacement: function(cp, etc) {
+      calledBack = true;
+    }
+  }]);
+  assert(!calledBack);
+  callback.addSingleResult(Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL);
+  assert(calledBack);
 })();
 
 print('ok.')

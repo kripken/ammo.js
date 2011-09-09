@@ -156,7 +156,8 @@ try:
                            .replace('btScalar', 'float') \
                            .replace('typedef float float;', '') \
                            .replace('STAGECOUNT+1', '17') \
-                           .replace('Handle*', 'btAxisSweep3Internal<BP_FP_INT_TYPE>::Handle*') \
+                           .replace('BP_FP_INT_TYPE', 'double') \
+                           .replace('Handle*', 'btAxisSweep3Internal<double>::Handle*') \
                            .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
                            #.replace('BP_FP_INT_TYPE', 'int') \
   header_data = re.sub(r'struct ([\w\d :\n]+){', r'class \1 { public: ', header_data)
@@ -172,7 +173,8 @@ try:
          '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
          'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
          'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo,btAABB,'
-         'btContactArray,btPairCachingGhostObject::getOverlappingPairs,btGhostObject::getOverlappingPairs",'
+         'btContactArray,btPairCachingGhostObject::getOverlappingPairs,btGhostObject::getOverlappingPairs,Edge,Handle,'
+         'btDbvtAabbMm::NotEqual,btDbvtAabbMm::Merge,btDbvtAabbMm::Select,btDbvtAabbMm::Proximity,btDbvtAabbMm::Intersect",'
          ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
          ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
@@ -238,7 +240,7 @@ bundle = open(os.path.join('builds', 'ammo.new.js'), 'w')
 bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
 bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
 bundle.write('''
-this['Ammo'] = this; // With or without a closure, the proper usage is Ammo.*
+this['Ammo'] = Module; // With or without a closure, the proper usage is Ammo.*
 ''')
 bundle.close()
 
