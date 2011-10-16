@@ -41,6 +41,7 @@ EMSCRIPTEN_SETTINGS = {
   'TOTAL_MEMORY': 50*1024*1024,
   'FAST_MEMORY': 12*1024*1024, # This might need to be increased, if you see perf decrease greatly when using a lot of resources
   'PROFILE': 0,
+  'INLINE_LIBRARY_FUNCS': 0, # This makes us larger, and slightly slower
 }
 EMSCRIPTEN_ARGS = ['--dlmalloc'] # dlmalloc makes us 3% larger and 1% slower, but without it we will leak since Bullet constantly allocs/frees
 
