@@ -175,7 +175,7 @@
           var boxMaterials = NUMRANGE.map(function(i) {
             return new CubicVR.Material({
               textures: {
-                color: new CubicVR.Texture("cube" + i + ".jpg")
+                color: new CubicVR.Texture("cube" + ((i % 5)+1) + ".jpg")
               }
             });
           });
