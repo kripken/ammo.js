@@ -191,14 +191,21 @@ try:
 
   stage('Build bindings')
 
-  print Popen([env['EMMAKEN_COMPILER'], '-I../src', '-include', '../../root.h', 'bindings.cpp', '-emit-llvm', '-c', '-o', 'bindings.bc']).communicate()
+  print Popen([emscripten.EMMAKEN, '-I../src', '-include', '../../root.h', 'bindings.cpp', '-c', '-o', 'bindings.bc']).communicate()
 
   #1/0.
 
-  stage('Build Bullet')
-
   if not os.path.exists('config.h'):
+    stage('Configure')
+
+    env['EMMAKEN_JUST_CONFIGURE'] = '1'
     Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
+    del env['EMMAKEN_JUST_CONFIGURE']
+
+  stage('Make')
+
+  # XXX This is needed the first time, since configure is run again internally. break, then make clean and start again after this!
+  #     env['EMMAKEN_JUST_CONFIGURE'] = '1'
   Popen(['make', '-j', '2'], env=env).communicate()
 
   assert(os.path.exists('bindings.bc'))
@@ -246,7 +253,12 @@ this['Ammo'] = Module; // With or without a closure, the proper usage is Ammo.*
 ''')
 bundle.close()
 
-# Recommended: Also do closure compiler: (note: increase the memory usage as needed)
+# Recommended:
+# Eliminator
+#  ~/Dev/emscripten/tools/eliminator/node_modules/coffee-script/bin/coffee ~/Dev/emscripten/tools/eliminator/eliminator.coffee < builds/ammo.new.js > builds/ammo.elim.js
+
+# Closure compiler: (note: increase the memory usage as needed)
+# java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.elim.js --js_output_file builds/ammo.js
 # java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
 
 # and wrap.py after it, optionally (decreases performance, but adds encapsulation)
