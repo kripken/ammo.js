@@ -254,12 +254,11 @@ this['Ammo'] = Module; // With or without a closure, the proper usage is Ammo.*
 bundle.close()
 
 # Recommended:
+
 # Eliminator
 #  ~/Dev/emscripten/tools/eliminator/node_modules/coffee-script/bin/coffee ~/Dev/emscripten/tools/eliminator/eliminator.coffee < builds/ammo.new.js > builds/ammo.elim.js
-
 # Closure compiler: (note: increase the memory usage as needed)
 # java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.elim.js --js_output_file builds/ammo.js
-# java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.new.js --js_output_file builds/ammo.js
 
 # and wrap.py after it, optionally (decreases performance, but adds encapsulation)
 
