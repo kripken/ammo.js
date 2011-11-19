@@ -47,7 +47,7 @@ EMSCRIPTEN_SETTINGS = {
 EMSCRIPTEN_ARGS = ['--dlmalloc'] # dlmalloc makes us 3% larger and 1% slower, but without it we will leak since Bullet constantly allocs/frees
 
 LLVM_OPT_OPTS = []
-#LLVM_OPT_OPTS = emscripten.pick_llvm_opts(3, optimize_size=True, allow_nonportable=False, use_aa=False) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
+
 '''
 import os, sys, re
 
@@ -70,12 +70,24 @@ if build_type == 'safe':
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 1
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 1
   EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
+
+  #emscripten.Building.LLVM_OPTS = 1
+  #emscripten.Settings.QUANTUM_SIZE = EMSCRIPTEN_SETTINGS['QUANTUM_SIZE']
+  #LLVM_OPT_OPTS = emscripten.Building.pick_llvm_opts(3, safe=True) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
+  #print 'opts:', LLVM_OPT_OPTS
+
 elif build_type in ['fast', 'ta1']:
   EMSCRIPTEN_SETTINGS['RELOOP'] = 1
   EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0 if build_type == 'fast' else 1
   EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
   EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
   EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 1
+
+  #emscripten.Building.LLVM_OPTS = 1
+  #emscripten.Settings.QUANTUM_SIZE = EMSCRIPTEN_SETTINGS['QUANTUM_SIZE']
+  #LLVM_OPT_OPTS = emscripten.Building.pick_llvm_opts(3, safe=False) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
+  #print 'opts:', LLVM_OPT_OPTS
+
 elif build_type == 'ta2':
   print 'WARNING: This build type is experimental!'
   EMSCRIPTEN_SETTINGS['RELOOP'] = 0 # For debugging
@@ -222,22 +234,16 @@ try:
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
 
   if LLVM_OPT_OPTS:
-    stage('LLVM optimizations')
+    stage('LLVM optimizations: ' + str(LLVM_OPT_OPTS))
 
     shutil.move('libbullet.bc', 'libbullet.bc.pre')
     output = Popen([emscripten.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
-
-  stage('LLVM binary => LL assembly')
-
-  Popen([emscripten.LLVM_DIS] + emscripten.LLVM_DIS_OPTS + ['libbullet.bc', '-o=libbullet.ll']).communicate()
-
-  assert os.path.exists('libbullet.ll'), 'Failed to create assembly code'
 
   stage('Emscripten: LL assembly => JavaScript')
 
   settings = ['-s %s=%s' % (k, json.dumps(v)) for k, v in EMSCRIPTEN_SETTINGS.items()]
 
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py')] + EMSCRIPTEN_ARGS + ['libbullet.ll'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py')] + EMSCRIPTEN_ARGS + ['libbullet.bc'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
