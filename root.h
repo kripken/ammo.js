@@ -1,6 +1,7 @@
 #include "bullet/src/btBulletDynamicsCommon.h"
 
 #include "bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
 /*
 #include "bullet/src/BulletCollision/Gimpact/btBoxCollision.h"
