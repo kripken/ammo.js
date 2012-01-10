@@ -18,35 +18,13 @@ import tools.shared as emscripten
 
 # Settings
 
-build_type = sys.argv[1] if len(sys.argv) >= 2 else 'safe'
+emcc_args = sys.argv[1:] or ['-O3']
 
 print
 print '--------------------------------------------------'
-print 'Building ammo.js, build type:', build_type
+print 'Building ammo.js, build type:', emcc_args
 print '--------------------------------------------------'
 print
-
-EMSCRIPTEN_SETTINGS = {
-  'SKIP_STACK_IN_SMALL': 1,
-  'INIT_STACK': 0,
-  'PGO': 0,
-  'CHECK_OVERFLOWS': 0,
-  'CHECK_SIGNED_OVERFLOWS': 0,
-  'CORRECT_OVERFLOWS': 0,
-  'CHECK_SIGNS': 0,
-  'CORRECT_SIGNS': 0,
-  # TODO 'CORRECT_ROUNDINGS': 0,
-  'MICRO_OPTS': 1,
-  'DISABLE_EXCEPTION_CATCHING': 1,
-  'RUNTIME_TYPE_INFO': 0,
-  'TOTAL_MEMORY': 50*1024*1024,
-  'FAST_MEMORY': 12*1024*1024, # This might need to be increased, if you see perf decrease greatly when using a lot of resources
-  'PROFILE': 0,
-  'INLINE_LIBRARY_FUNCS': 0, # This makes us larger, and slightly slower
-}
-EMSCRIPTEN_ARGS = ['--dlmalloc'] # dlmalloc makes us 3% larger and 1% slower, but without it we will leak since Bullet constantly allocs/frees
-
-LLVM_OPT_OPTS = []
 
 '''
 import os, sys, re
@@ -63,62 +41,6 @@ while True:
 
 outfile.write(t2)
 '''
-
-if build_type == 'safe':
-  EMSCRIPTEN_SETTINGS['RELOOP'] = 0
-  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0
-  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 1
-  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 1
-  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
-
-  #emscripten.Building.LLVM_OPTS = 1
-  #emscripten.Settings.QUANTUM_SIZE = EMSCRIPTEN_SETTINGS['QUANTUM_SIZE']
-  #LLVM_OPT_OPTS = emscripten.Building.pick_llvm_opts(3, safe=True) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
-  #print 'opts:', LLVM_OPT_OPTS
-
-elif build_type in ['fast', 'ta1']:
-  EMSCRIPTEN_SETTINGS['RELOOP'] = 1
-  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 0 if build_type == 'fast' else 1
-  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
-  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
-  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 1
-
-  #emscripten.Building.LLVM_OPTS = 1
-  #emscripten.Settings.QUANTUM_SIZE = EMSCRIPTEN_SETTINGS['QUANTUM_SIZE']
-  #LLVM_OPT_OPTS = emscripten.Building.pick_llvm_opts(3, safe=False) # XXX this gives smaller code, but slightly slower after closure. Also requires this fix:
-  #print 'opts:', LLVM_OPT_OPTS
-
-elif build_type == 'ta2':
-  print 'WARNING: This build type is experimental!'
-  EMSCRIPTEN_SETTINGS['RELOOP'] = 0 # For debugging
-  EMSCRIPTEN_SETTINGS['USE_TYPED_ARRAYS'] = 2
-  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 0
-  EMSCRIPTEN_SETTINGS['ASSERTIONS'] = 0
-  EMSCRIPTEN_SETTINGS['QUANTUM_SIZE'] = 4
-  #LLVM_OPT_OPTS = emscripten.pick_llvm_opts(3, optimize_size=True, allow_nonportable=True)
-  #print LLVM_OPT_OPTS
-                   #['-globalopt', '-ipsccp', '-deadargelim', '-simplifycfg', '-prune-eh', XXX'-inline'XXX,
-                   # '-functionattrs', '-argpromotion', '-simplify-libcalls', '-jump-threading', '-simplifycfg',
-                   # '-tailcallelim', '-simplifycfg', '-reassociate', '-loop-rotate', '-licm', '-loop-unswitch',
-                   # '-indvars', '-loop-deletion', '-loop-unroll', '-memcpyopt', '-sccp', '-jump-threading',
-                   # '-correlated-propagation', '-dse', '-adce', '-simplifycfg', '-strip-dead-prototypes',
-                   # '-deadtypeelim', '-globaldce', '-constmerge'] # These generate a big and slow build for some reason
-  EMSCRIPTEN_ARGS = [] # disable dlmalloc for now
-else:
-  raise Exception('Unknown build type: ' + build_type)
-
-DEBUG = 0 # might be needed for type info, safe heap, etc.
-
-# Prep
-
-if EMSCRIPTEN_SETTINGS['SAFE_HEAP']:
-  # Ignore bitfield warnings
-  EMSCRIPTEN_SETTINGS['SAFE_HEAP'] = 3
-  EMSCRIPTEN_SETTINGS['SAFE_HEAP_LINES'] = ['btVoronoiSimplexSolver.h:40', 'btVoronoiSimplexSolver.h:41',
-                                            'btVoronoiSimplexSolver.h:42', 'btVoronoiSimplexSolver.h:43',
-                                            'btMinMax.h:43', 'btMinMax.h:52'] # btVector3 does operations on uninitialized |w| coordinate
-
-  DEBUG = 1
 
 # Utilities
 
@@ -196,76 +118,39 @@ try:
 
   #1/0.
 
-  env = os.environ.copy()
-  env['EMMAKEN_COMPILER'] = emscripten.CLANG
-  if DEBUG:
-    env['CFLAGS'] = '-g'
-  env['CC'] = env['CXX'] = env['RANLIB'] = env['AR'] = os.path.join(EMSCRIPTEN_ROOT, 'tools', 'emmaken.py')
-
   stage('Build bindings')
 
-  print Popen([emscripten.EMMAKEN, '-I../src', '-include', '../../root.h', 'bindings.cpp', '-c', '-o', 'bindings.bc']).communicate()
+  emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', '../../root.h', 'bindings.cpp', '-c', '-o', 'bindings.bc'])
 
   #1/0.
 
   if not os.path.exists('config.h'):
     stage('Configure')
 
-    env['EMMAKEN_JUST_CONFIGURE'] = '1'
-    Popen(['../configure', '--disable-demos','--disable-dependency-tracking'], env=env).communicate()
-    del env['EMMAKEN_JUST_CONFIGURE']
+    emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
   stage('Make')
 
-  # XXX This is needed the first time, since configure is run again internally. break, then make clean and start again after this!
-  #     env['EMMAKEN_JUST_CONFIGURE'] = '1'
-  Popen(['make', '-j', '2'], env=env).communicate()
+  emscripten.Building.make(['make', '-j', '2'])
 
   assert(os.path.exists('bindings.bc'))
 
   stage('Link')
 
-  Popen([emscripten.LLVM_LINK, os.path.join('src', '.libs', 'libBulletCollision.a.bc'),
-                               os.path.join('src', '.libs', 'libBulletDynamics.a.bc'),
-                               os.path.join('src', '.libs', 'libLinearMath.a.bc'),
-                               'bindings.bc',
-                               '-o', 'libbullet.bc']).communicate()
+  emscripten.Building.link([os.path.join('src', '.libs', 'libBulletCollision.a.bc'),
+                            os.path.join('src', '.libs', 'libBulletDynamics.a.bc'),
+                            os.path.join('src', '.libs', 'libLinearMath.a.bc'),
+                            'bindings.bc'],
+                           'libbullet.bc')
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
 
-  if LLVM_OPT_OPTS:
-    stage('LLVM optimizations: ' + str(LLVM_OPT_OPTS))
+  stage('emcc')
 
-    shutil.move('libbullet.bc', 'libbullet.bc.pre')
-    output = Popen([emscripten.LLVM_OPT, 'libbullet.bc.pre'] + LLVM_OPT_OPTS + ['-o=libbullet.bc'], stdout=PIPE, stderr=STDOUT).communicate()
-
-  stage('Emscripten: LL assembly => JavaScript')
-
-  settings = ['-s %s=%s' % (k, json.dumps(v)) for k, v in EMSCRIPTEN_SETTINGS.items()]
-
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'emscripten.py')] + EMSCRIPTEN_ARGS + ['libbullet.bc'] + settings, stdout=open('libbullet.js', 'w'), stderr=STDOUT).communicate()
+  emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')], 'libbullet.js')
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
 finally:
   os.chdir(this_dir);
-
-stage('Bundle')
-
-bundle = open(os.path.join('builds', 'ammo.new.js'), 'w')
-bundle.write(open(os.path.join('bullet', 'build', 'libbullet.js'), 'r').read())
-bundle.write(open(os.path.join('bullet', 'build', 'bindings.js'), 'r').read())
-bundle.write('''
-this['Ammo'] = Module; // With or without a closure, the proper usage is Ammo.*
-''')
-bundle.close()
-
-# Recommended:
-
-# Eliminator
-#  ~/Dev/emscripten/tools/eliminator/node_modules/coffee-script/bin/coffee ~/Dev/emscripten/tools/eliminator/eliminator.coffee < builds/ammo.new.js > builds/ammo.elim.js
-# Closure compiler: (note: increase the memory usage as needed)
-# java -Xmx1024m -jar /home/alon/Dev/closure-compiler-read-only/build/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --variable_map_output_file builds/ammo.vars --js builds/ammo.elim.js --js_output_file builds/ammo.js
-
-# and wrap.py after it, optionally (decreases performance, but adds encapsulation)
 
