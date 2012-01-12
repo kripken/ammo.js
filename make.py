@@ -18,7 +18,7 @@ import tools.shared as emscripten
 
 # Settings
 
-emcc_args = sys.argv[1:] or ['-O3']
+emcc_args = sys.argv[1:] or ['-O3', '-s', 'USE_TYPED_ARRAYS=1', '-s', 'QUANTUM_SIZE=1']
 
 print
 print '--------------------------------------------------'
@@ -147,7 +147,8 @@ try:
 
   stage('emcc')
 
-  emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')], 'libbullet.js')
+  emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
+                           os.path.join('..', '..', 'builds', 'ammo.js'))
 
   assert os.path.exists('libbullet.js'), 'Failed to create script code'
 
