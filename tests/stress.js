@@ -1,6 +1,6 @@
 // Stress test
 
-var TEST_MEMORY = 1;
+var TEST_MEMORY = 0;
 
 var readMemoryCeiling, malloc;
 if (TEST_MEMORY) {
