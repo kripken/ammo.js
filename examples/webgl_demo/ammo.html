@@ -8,7 +8,7 @@
       </style>
 
       <script type="text/javascript">
-        var NUM = 8;
+        var NUM = 10;
         var NUMRANGE = [];
         while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
 
@@ -85,13 +85,18 @@
           quat.w = rotation.w();
         }
 
+        var lastInactivity = Date.now();
         function noneActive() {
           var num = 0;
           NUMRANGE.forEach(function(i) {
             var body = bodies[i];
             num += body.isActive();
           });
-          return num == 0;
+          if ((Date.now() - lastInactivity) >= 1000*num) { // consider none active also if enough time passed
+            lastInactivity = Date.now();
+            return true;
+          }
+          return false;
         }
 
         // Main demo code

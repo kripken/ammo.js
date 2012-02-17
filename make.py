@@ -18,7 +18,20 @@ import tools.shared as emscripten
 
 # Settings
 
-emcc_args = sys.argv[1:] or ['-O3', '-s', 'USE_TYPED_ARRAYS=1', '-s', 'QUANTUM_SIZE=1']
+'''
+-O3 stuff:
+          Settings.CORRECT_SIGNS = 0
+          Settings.CORRECT_OVERFLOWS = 0
+          Settings.CORRECT_ROUNDINGS = 0
+          Settings.I64_MODE = 0
+          Settings.DOUBLE_MODE = 0
+'''
+# -O2 works
+# -O3 -s I64_MODE=1 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 works
+# -O3 -s I64_MODE=1 -s DOUBLE_MODE=1 almost ok, but they stay active forever
+# -O2 -s I64_MODE=0 -s DOUBLE_MODE=0 fails
+# -O3 fails
+emcc_args = sys.argv[1:] or '-O3 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
 
 print
 print '--------------------------------------------------'
