@@ -150,10 +150,10 @@ try:
 
   stage('Link')
 
-  emscripten.Building.link([os.path.join('src', '.libs', 'libBulletCollision.a.bc'),
-                            os.path.join('src', '.libs', 'libBulletDynamics.a.bc'),
-                            os.path.join('src', '.libs', 'libLinearMath.a.bc'),
-                            'bindings.bc'],
+  emscripten.Building.link(['bindings.bc',
+                            os.path.join('src', '.libs', 'libBulletCollision.so'),
+                            os.path.join('src', '.libs', 'libBulletDynamics.so'),
+                            os.path.join('src', '.libs', 'libLinearMath.so')],
                            'libbullet.bc')
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
@@ -163,7 +163,7 @@ try:
   emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
                            os.path.join('..', '..', 'builds', 'ammo.js'))
 
-  assert os.path.exists('libbullet.js'), 'Failed to create script code'
+  assert os.path.exists(os.path.join('..', '..', 'builds', 'ammo.js')), 'Failed to create script code'
 
 finally:
   os.chdir(this_dir);
