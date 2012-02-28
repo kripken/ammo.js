@@ -8,7 +8,7 @@
       </style>
 
       <script type="text/javascript">
-        var NUM = 10;
+        var NUM = 20;
         var NUMRANGE = [];
         while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
 
@@ -167,10 +167,11 @@
           var light = new CubicVR.Light({
             type:CubicVR.enums.light.type.AREA,
             intensity: 0.9,
-            mapRes: 512,
             areaCeiling: 80,
             areaFloor: FLOOR_HEIGHT,
-            areaAxis: [15, 10]
+            areaAxis: [15, 10],
+            distance: 60,
+            mapRes: 1024
           });
           scene.bindLight(light);
           CubicVR.setSoftShadows(true);
