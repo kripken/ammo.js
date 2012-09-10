@@ -151,14 +151,14 @@ try:
   stage('Link')
 
   emscripten.Building.link(['bindings.bc',
-                            os.path.join('src', '.libs', 'libBulletCollision.so'),
-                            os.path.join('src', '.libs', 'libBulletDynamics.so'),
-                            os.path.join('src', '.libs', 'libLinearMath.so')],
+                            os.path.join('src', '.libs', 'libBulletCollision.a'),
+                            os.path.join('src', '.libs', 'libBulletDynamics.a'),
+                            os.path.join('src', '.libs', 'libLinearMath.a')],
                            'libbullet.bc')
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
 
-  stage('emcc')
+  stage('emcc: ' + ' '.join(emcc_args))
 
   emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
                            os.path.join('..', '..', 'builds', 'ammo.js'))

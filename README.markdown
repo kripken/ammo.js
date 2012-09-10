@@ -34,11 +34,7 @@ You can also build ammo.js yourself, as follows:
 
       python make.py
 
-   which should generate builds/ammo.new.js. Note that this is by default
-   an unoptimized safe build which will run very slowly. To generate an optimized
-   build (which takes much longer to generate), do
-
-      python make.py fast
+   which should generate builds/ammo.js.
 
  * Optionally, run the automatic tests,
 
