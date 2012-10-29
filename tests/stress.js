@@ -76,7 +76,7 @@ function benchmark() {
 
   if (TEST_MEMORY) malloc(5*1024*1024); // stress memory usage
 
-  for (var i = 0; i < 450; i++) {
+  for (var i = 0; i < 1000; i++) {
     if (i === 250 && TEST_MEMORY) memoryStart = readMemoryCeiling();
 
     dynamicsWorld.stepSimulation(1/60, 10);
