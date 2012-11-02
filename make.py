@@ -33,6 +33,8 @@ import tools.shared as emscripten
 # -O3 fails
 emcc_args = sys.argv[1:] or '-O3 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
 
+emcc_args += ['-s', 'TOTAL_MEMORY=52428800'] # default 50MB. Compile with ALLOW_MEMORY_GROWTH if you want a growable heap (slower though).
+
 print
 print '--------------------------------------------------'
 print 'Building ammo.js, build type:', emcc_args
