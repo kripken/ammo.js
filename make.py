@@ -19,19 +19,15 @@ import tools.shared as emscripten
 # Settings
 
 '''
--O3 stuff:
+          Settings.INLINING_LIMIT = 0
+          Settings.DOUBLE_MODE = 0
+          Settings.PRECISE_I64_MATH = 0
           Settings.CORRECT_SIGNS = 0
           Settings.CORRECT_OVERFLOWS = 0
           Settings.CORRECT_ROUNDINGS = 0
-          Settings.I64_MODE = 0
-          Settings.DOUBLE_MODE = 0
 '''
-# -O2 works
-# -O3 -s I64_MODE=1 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 works
-# -O3 -s I64_MODE=1 -s DOUBLE_MODE=1 almost ok, but they stay active forever
-# -O2 -s I64_MODE=0 -s DOUBLE_MODE=0 fails
-# -O3 fails
-emcc_args = sys.argv[1:] or '-O3 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
+#emcc_args = sys.argv[1:] or '-O3 --closure 0 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
+emcc_args = sys.argv[1:] or '-O2 -s INLINING_LIMIT=0 -s DOUBLE_MODE=0 -s PRECISE_I64_MATH=0 -s CORRECT_OVERFLOWS=0'.split(' ')
 
 emcc_args += ['-s', 'TOTAL_MEMORY=52428800'] # default 50MB. Compile with ALLOW_MEMORY_GROWTH if you want a growable heap (slower though).
 

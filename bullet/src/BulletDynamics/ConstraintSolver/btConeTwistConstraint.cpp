@@ -777,7 +777,7 @@ void btConeTwistConstraint::calcAngleInfo2(const btTransform& transA, const btTr
 			btVector3 twistAxis;
 			computeTwistLimitInfo(qABTwist, m_twistAngle, twistAxis);
 
-			if (m_twistAngle > m_twistSpan*m_limitSoftness)
+			if (m_twistAngle > m_twistSpan*m_limitSoftness + 0.0001) // XXX EMSCRIPTEN: add some fudge factor to get around ammo.js issue 28
 			{
 				m_solveTwistLimit = true;
 
