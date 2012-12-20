@@ -1,8 +1,8 @@
 import os, sys, re, json
 from subprocess import Popen, PIPE, STDOUT
 
-# By default use builds/ammo.new.js. Or the commandline argument can override that.
-build = os.path.join('builds', 'ammo.new.js')
+# By default use builds/ammo.js. Or the commandline argument can override that.
+build = os.path.join('builds', 'ammo.js')
 if len(sys.argv) > 1:
   build = sys.argv[1]
 print 'Using build:', build
