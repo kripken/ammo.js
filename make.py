@@ -148,10 +148,12 @@ try:
 
   stage('Link')
 
-  emscripten.Building.link(['bindings.bc',
-                            os.path.join('src', '.libs', 'libBulletCollision.a'),
+  emscripten.Building.link([
+                            'bindings.bc',
                             os.path.join('src', '.libs', 'libBulletDynamics.a'),
-                            os.path.join('src', '.libs', 'libLinearMath.a')],
+                            os.path.join('src', '.libs', 'libBulletCollision.a'),
+                            os.path.join('src', '.libs', 'libLinearMath.a')
+                           ],
                            'libbullet.bc')
 
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
