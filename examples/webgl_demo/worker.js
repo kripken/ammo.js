@@ -106,10 +106,22 @@ function timeToRestart() { // restart if at least one is inactive - the scene is
   return false;
 }
 
+var meanDt = 0;
+
 function simulate(dt) {
+  dt = dt || 1;
+
   dynamicsWorld.stepSimulation(dt, 2);
 
-  var data = { objects: [] };
+  var alpha;
+  if (meanDt > 0) {
+    alpha = Math.min(0.1, dt/1000);
+  } else {
+    alpha = 0.1; // first run
+  }
+  meanDt = alpha*dt + (1-alpha)*meanDt;
+
+  var data = { objects: [], fps: Math.round(1000/meanDt) };
 
   // Read bullet data into JS objects
   for (var i = 0; i < NUM; i++) {

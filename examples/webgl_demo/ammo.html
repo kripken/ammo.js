@@ -15,23 +15,15 @@
 
         var quaternion = new CubicVR.Quaternion;
 
-        var fpsInfo = {
-          dts: 0,
-          num: 0,
-          lastHUD: Date.now()
-        };
-
+        var lastFPS = 0;
         var outElement = null;
-        function showFPS(dt) {
+        var currFPS = 0;
+        function showFPS() {
           if (!outElement) outElement = document.getElementById('out');
           var now = Date.now();
-          fpsInfo.dts += dt;
-          fpsInfo.num++;
-          if (now - fpsInfo.lastHUD > 333) {
-            outElement.value = Math.ceil(-1/(fpsInfo.dts/fpsInfo.num));
-            fpsInfo.lastHUD = now;
-            fpsInfo.dts = 0;
-            fpsInfo.num = 0;
+          if (now - lastFPS > 333) {
+            outElement.value = currFPS;
+            lastFPS = now;
           }
         }
 
@@ -126,6 +118,7 @@
               quaternion.w = physicsObject[6];
               renderObject.rotation = quaternion.toEuler();
             }
+            currFPS = data.fps;
           };
 
           // Main loop
@@ -135,7 +128,7 @@
           CubicVR.MainLoop(function(timer, gl) {
             var dt = timer.getLastUpdateSeconds();
             scene.render();
-            showFPS(dt);
+            showFPS();
           });
         }
       </script>
