@@ -107,6 +107,7 @@ function timeToRestart() { // restart if at least one is inactive - the scene is
 }
 
 var meanDt = 0;
+var counter = 0;
 
 function simulate(dt) {
   dt = dt || 1;
@@ -130,9 +131,11 @@ function simulate(dt) {
     data.objects[i] = object;
   }
 
-  postMessage(data);
+  if (counter % 2 == 0) postMessage(data);
 
   if (timeToRestart()) resetPositions();
+
+  counter++;
 }
 
 var last = Date.now();
@@ -140,6 +143,6 @@ while (1) {
   var now = Date.now();
   simulate(now - last);
   last = now;
-  //break;
+  while (Date.now() - now < 1000/60) {} // throttle to 60fps TODO FIXME XXX
 }
 
