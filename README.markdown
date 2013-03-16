@@ -2,7 +2,7 @@ ammo.js
 =======
 
 
-**Demo: http://syntensity.com/static/ammo.html**
+**Demo: http://kripken.github.com/ammo.js/ammo.html**
 
 **Example code to give you an idea of the API: https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/ammo.html#L14**
 
