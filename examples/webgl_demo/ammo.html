@@ -146,12 +146,15 @@
           lastHUD: Date.now()
         };
 
+        var outElement = null;
         function showFPS(dt) {
+          if (!outElement) outElement = document.getElementById('out')
           var now = Date.now();
           fpsInfo.dts += dt;
           fpsInfo.num++;
           if (now - fpsInfo.lastHUD > 333) {
             document.getElementById('out').innerHTML = '<b>FPS: ' + Math.ceil(1/(fpsInfo.dts/fpsInfo.num)) + '</b>';
+            outElement.value = Math.ceil(1/(fpsInfo.dts/fpsInfo.num));
             fpsInfo.lastHUD = now;
             fpsInfo.dts = 0;
             fpsInfo.num = 0;
@@ -253,7 +256,7 @@
 
         <canvas id="canvas" width="600" height="500"></canvas>
         <br><br>
-        <div id="out">waka</div>
+        <div>FPS: <input type="text" id="out" readonly="1" size="3"></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript
