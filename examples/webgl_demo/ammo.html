@@ -182,7 +182,7 @@
           var scene = new CubicVR.Scene(canvas.width, canvas.height, 70);
 
           var light = new CubicVR.Light({
-            type:CubicVR.enums.light.type.AREA,
+            type:CubicVR.enums.light.type.POINT,
             intensity: 0.9,
             areaCeiling: 80,
             areaFloor: FLOOR_HEIGHT,
@@ -191,7 +191,6 @@
             mapRes: 1024
           });
           scene.bindLight(light);
-          CubicVR.setSoftShadows(true);
 
           scene.camera.position = [0, 2.4, 17];
           scene.camera.target = [0, 2.4, 0];
@@ -242,7 +241,6 @@
           CubicVR.MainLoop(function(timer, gl) {
             var dt = timer.getLastUpdateSeconds();
             simulate(dt);
-            scene.updateShadows();
             scene.render();
             showFPS(dt);
           });
