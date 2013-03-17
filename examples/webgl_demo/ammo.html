@@ -34,10 +34,7 @@
 
         // CubicVR code
 
-        function startUp() {
-          var NUM = parseInt(document.getElementById('in').value);
-          if (!NUM) { alert('expected valid number: ' + NUM); throw 'fail' }
-
+        function startUp(NUM) {
           var NUMRANGE = [];
           while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
 
@@ -152,7 +149,23 @@
 
         <canvas id="canvas" width="1" height="1"></canvas>
         <br>
-        <div id="before">Boxes: <input type="text" id="in" size="5" value="300"><input type="button" onclick="startUp()"></div>
+        <div id="before">
+          <form>
+            Boxes:
+            <select name="boxes">
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="300" selected>300</option>
+              <option value="500">500</option>
+              <option value="750">750</option>
+              <option value="1000">1000</option>
+              <option value="2000">2000</option>
+            </select>
+            <input type="button" value="go!" onclick="startUp(boxes.value);">
+          </form>
+        </div>
         <div id="during"><div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
