@@ -62,27 +62,27 @@
           scene.camera.position = [0, 2.4, 17];
           scene.camera.target = [0, 2.4, 0];
 
-          var boxMaterials = NUMRANGE.map(function(i) {
-            return new CubicVR.Material({
+          var boxMaterials = [];
+          var boxMeshes = [];
+
+          for (var i = 0; i < 5; i++) {
+            boxMaterials[i] = new CubicVR.Material({
               textures: {
-                color: new CubicVR.Texture("cube" + (Math.floor(Math.random()*5)+1) + ".jpg")
+                color: new CubicVR.Texture("cube" + (i+1) + ".jpg")
               }
             });
-          });
-
-          var boxMeshes = boxMaterials.map(function(boxMaterial) {
-            return new CubicVR.primitives.box({
+            boxMeshes[i] = new CubicVR.primitives.box({
               size: 2.0,
-              material: boxMaterial,
+              material: boxMaterials[i],
               uvmapper: {
                 projectionMode: CubicVR.enums.uv.projection.CUBIC,
                 scale: [2, 2, 2]
               }
             }).calcNormals().triangulateQuads().compile().clean();
-          });
+          }
 
           for (var i = 0; i < NUM; i++) {
-            boxes[i] = new CubicVR.SceneObject({ mesh: boxMeshes[i], position: [0, -10000, 0] });
+            boxes[i] = new CubicVR.SceneObject({ mesh: boxMeshes[Math.floor(Math.random()*5)], position: [0, -10000, 0] });
             scene.bindSceneObject(boxes[i], true);
           }
 
