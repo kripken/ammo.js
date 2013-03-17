@@ -140,7 +140,7 @@ function simulate(dt) {
 }
 
 onmessage = function(event) {
-  NUM = 300;
+  NUM = event.data;
   NUMRANGE.length = 0;
   while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
 
