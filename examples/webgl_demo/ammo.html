@@ -30,14 +30,25 @@
         var FLOOR_SIZE = 100;
         var FLOOR_HEIGHT = -56
 
+        var physicsWorker = new Worker('worker.js');
+
         // CubicVR code
 
         function startUp() {
+          var NUM = parseInt(document.getElementById('in').value);
+          if (!NUM) { alert('expected valid number: ' + NUM); throw 'fail' }
+
+          var NUMRANGE = [];
+          while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
+
           document.getElementById('postdiv').innerHTML = '(' + NUM + ' cubes)';
+
+          document.getElementById('before').style.visibility = 'hidden';
+          document.getElementById('during').style.visibility = 'visible';
 
           var canvas = document.getElementById("canvas");
           canvas.width = screen.width*0.75;
-          canvas.height = screen.height*0.60;
+          canvas.height = screen.height*0.50;
 
           var gl = CubicVR.GLCore.init(canvas);
 
@@ -105,7 +116,6 @@
 
           // Worker
 
-          var physicsWorker = new Worker('worker.js');
           physicsWorker.onmessage = function(event) {
             var data = event.data;
             for (var i = 0; i < NUM; i++) {
@@ -122,6 +132,7 @@
             }
             currFPS = data.fps;
           };
+          physicsWorker.postMessage(NUM);
 
           // Main loop
 
@@ -135,13 +146,14 @@
         }
       </script>
     </head>
-    <body onload="startUp()">
+    <body onload="document.getElementById('during').style.visibility = 'hidden'">
       <center>
-        <h2>ammo.js Benchmark</h2>
+        <h2>ammo.js benchmark</h2>
 
-        <canvas id="canvas"></canvas>
-        <br><br>
-        <div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div>
+        <canvas id="canvas" width="1" height="1"></canvas>
+        <br>
+        <div id="before">Boxes: <input type="text" id="in" size="5" value="300"><input type="button" onclick="startUp()"></div>
+        <div id="during"><div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript

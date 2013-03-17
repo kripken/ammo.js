@@ -1,5 +1,7 @@
 
-importScripts('../../builds/ammo.asm.js', 'shared.js');
+importScripts('../../builds/ammo.asm.js');
+
+var NUM = 0, NUMRANGE = [];
 
 // Bullet-interfacing code
 
@@ -31,21 +33,6 @@ groundTransform.setOrigin(new Ammo.btVector3(0, -56, 0));
 
 var boxShape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1));
 
-NUMRANGE.forEach(function(i) {
-  var startTransform = new Ammo.btTransform();
-  startTransform.setIdentity();
-  var mass = 1;
-  var localInertia = new Ammo.btVector3(0, 0, 0);
-  boxShape.calculateLocalInertia(mass, localInertia);
-
-  var myMotionState = new Ammo.btDefaultMotionState(startTransform);
-  var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
-  var body = new Ammo.btRigidBody(rbInfo);
-
-  dynamicsWorld.addRigidBody(body);
-  bodies.push(body);
-});
-
 function resetPositions() {
   var side = Math.ceil(Math.pow(NUM, 1/3));
   var i = 1;
@@ -69,7 +56,24 @@ function resetPositions() {
   }
 }
 
-resetPositions();
+function startUp() {
+  NUMRANGE.forEach(function(i) {
+    var startTransform = new Ammo.btTransform();
+    startTransform.setIdentity();
+    var mass = 1;
+    var localInertia = new Ammo.btVector3(0, 0, 0);
+    boxShape.calculateLocalInertia(mass, localInertia);
+
+    var myMotionState = new Ammo.btDefaultMotionState(startTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
+    var body = new Ammo.btRigidBody(rbInfo);
+
+    dynamicsWorld.addRigidBody(body);
+    bodies.push(body);
+  });
+
+  resetPositions();
+}
 
 var transform = new Ammo.btTransform(); // taking this out of readBulletObject reduces the leaking
 
@@ -135,13 +139,20 @@ function simulate(dt) {
   if (timeToRestart()) resetPositions();
 }
 
+onmessage = function(event) {
+  NUM = 300;
+  NUMRANGE.length = 0;
+  while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
 
-var last = Date.now();
-function mainLoop() {
-  var now = Date.now();
-  simulate(now - last);
-  last = now;
+  startUp();
+
+  var last = Date.now();
+  function mainLoop() {
+    var now = Date.now();
+    simulate(now - last);
+    last = now;
+  }
+
+  setInterval(mainLoop, 1000/60);
 }
-
-setInterval(mainLoop, 1000/60);
 
