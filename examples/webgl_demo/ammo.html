@@ -36,8 +36,8 @@
           document.getElementById('postdiv').innerHTML = '(' + NUM + ' cubes)';
 
           var canvas = document.getElementById("canvas");
-          canvas.width = screen.width*0.70;
-          canvas.height = screen.height*0.55;
+          canvas.width = screen.width*0.75;
+          canvas.height = screen.height*0.60;
 
           var gl = CubicVR.GLCore.init(canvas);
 
@@ -137,18 +137,17 @@
     </head>
     <body onload="startUp()">
       <center>
-        <h2>ammo.js WebGL Demo</h2>
+        <h2>ammo.js Benchmark</h2>
 
-        <canvas id="canvas" width="600" height="500"></canvas>
+        <canvas id="canvas"></canvas>
         <br><br>
         <div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript
-        using <b><a href="http://emscripten.org">Emscripten</a></b>. WebGL rendering in this demo is done using
+        using <b><a href="http://emscripten.org">Emscripten</a></b> in
+        <b><a href="http://asmjs.org">asm.js</a></b> mode. WebGL rendering in this demo is done using
         <b><a href="https://github.com/cjcliffe/CubicVR.js/">CubicVR.js</a></b>.
-        </p><p>
-        Adjust the view by dragging the mouse over the canvas.
         </p>
       </center>
     </body>
