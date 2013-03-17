@@ -55,9 +55,9 @@ function resetPositions() {
         if (i == bodies.length) break;
         var body = bodies[i++];
         var origin = body.getWorldTransform().getOrigin();
-        origin.setX(x * (2.2 + Math.random()) - 1.7 - side/2);
-        origin.setY(y * (4.2 + Math.random()));
-        origin.setZ(z * (2.2 + Math.random()) - 1.7 - side - 5);
+        origin.setX((x - side/2)*(2.2 + Math.random()));
+        origin.setY(y * (3 + Math.random()));
+        origin.setZ((z - side/2)*(2.2 + Math.random()) - side - 3);
         body.activate();
         var rotation = body.getWorldTransform().getRotation();
         rotation.setX(1);
