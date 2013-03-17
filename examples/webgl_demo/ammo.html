@@ -33,6 +33,8 @@
         // CubicVR code
 
         function startUp() {
+          document.getElementById('postdiv').innerHTML = '(' + NUM + ' cubes)';
+
           var canvas = document.getElementById("canvas");
           canvas.width = screen.width*0.70;
           canvas.height = screen.height*0.55;
@@ -139,7 +141,7 @@
 
         <canvas id="canvas" width="600" height="500"></canvas>
         <br><br>
-        <div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div>
+        <div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript
