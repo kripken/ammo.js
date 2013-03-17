@@ -30,7 +30,7 @@
         var FLOOR_SIZE = 100;
         var FLOOR_HEIGHT = -56
 
-        var physicsWorker = new Worker('worker.js');
+        var physicsWorker = null;
 
         // CubicVR code
 
@@ -40,7 +40,7 @@
 
           document.getElementById('postdiv').innerHTML = '(' + NUM + ' cubes)';
 
-          document.getElementById('before').style.visibility = 'hidden';
+          //document.getElementById('before').style.visibility = 'hidden';
           document.getElementById('during').style.visibility = 'visible';
 
           var canvas = document.getElementById("canvas");
@@ -113,8 +113,12 @@
 
           // Worker
 
+          if (physicsWorker) physicsWorker.terminate();
+          physicsWorker = new Worker('worker.js');
+
           physicsWorker.onmessage = function(event) {
             var data = event.data;
+            if (data.objects.length != NUM) return;
             for (var i = 0; i < NUM; i++) {
               var physicsObject = data.objects[i];
               var renderObject = boxes[i];
@@ -161,7 +165,8 @@
               <option value="500">500</option>
               <option value="750">750</option>
               <option value="1000">1000</option>
-              <option value="2000">2000</option>
+              <option value="1500">1500</option>
+              <option value="2500">2500</option>
             </select>
             <input type="button" value="go!" onclick="startUp(boxes.value);">
           </form>

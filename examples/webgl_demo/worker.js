@@ -1,4 +1,6 @@
 
+var Module = { TOTAL_MEMORY: 256*1024*1024 };
+
 importScripts('../../builds/ammo.asm.js');
 
 var NUM = 0, NUMRANGE = [];
@@ -139,6 +141,8 @@ function simulate(dt) {
   if (timeToRestart()) resetPositions();
 }
 
+var interval = null;
+
 onmessage = function(event) {
   NUM = event.data;
   NUMRANGE.length = 0;
@@ -153,6 +157,7 @@ onmessage = function(event) {
     last = now;
   }
 
-  setInterval(mainLoop, 1000/60);
+  if (interval) clearInterval(interval);
+  interval = setInterval(mainLoop, 1000/60);
 }
 
