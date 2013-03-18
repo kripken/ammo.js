@@ -31,6 +31,7 @@
         var FLOOR_HEIGHT = -56
 
         var physicsWorker = null;
+        var nextPhysicsWorker = new Worker('worker.js');
 
         // CubicVR code
 
@@ -114,7 +115,9 @@
           // Worker
 
           if (physicsWorker) physicsWorker.terminate();
-          physicsWorker = new Worker('worker.js');
+          physicsWorker = nextPhysicsWorker;
+          nextPhysicsWorker = null;
+          if (!physicsWorker) physicsWorker = new Worker('worker.js');
 
           physicsWorker.onmessage = function(event) {
             var data = event.data;
