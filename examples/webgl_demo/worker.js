@@ -112,7 +112,7 @@ function timeToRestart() { // restart if at least one is inactive - the scene is
   return false;
 }
 
-var meanDt = 0;
+var meanDt = 0, meanDt2 = 0, frame = 1;
 
 function simulate(dt) {
   dt = dt || 1;
@@ -127,7 +127,10 @@ function simulate(dt) {
   }
   meanDt = alpha*dt + (1-alpha)*meanDt;
 
-  var data = { objects: [], fps: Math.round(1000/meanDt) };
+  var alpha2 = 1/frame++;
+  meanDt2 = alpha2*dt + (1-alpha2)*meanDt2;
+
+  var data = { objects: [], currFPS: Math.round(1000/meanDt), allFPS: Math.round(1000/meanDt2) };
 
   // Read bullet data into JS objects
   for (var i = 0; i < NUM; i++) {
@@ -147,6 +150,9 @@ onmessage = function(event) {
   NUM = event.data;
   NUMRANGE.length = 0;
   while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
+
+  frame = 1;
+  meanDt = meanDt2 = 0;
 
   startUp();
 

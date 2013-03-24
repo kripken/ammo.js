@@ -17,12 +17,12 @@
 
         var lastFPS = 0;
         var outElement = null;
-        var currFPS = 0;
+        var currFPS = 0, allFPS = 0;
         function showFPS() {
           if (!outElement) outElement = document.getElementById('out');
           var now = Date.now();
           if (now - lastFPS > 333) {
-            outElement.value = currFPS;
+            outElement.value = currFPS + ' / ' + allFPS;
             lastFPS = now;
           }
         }
@@ -134,7 +134,8 @@
               quaternion.w = physicsObject[6];
               renderObject.rotation = quaternion.toEuler();
             }
-            currFPS = data.fps;
+            currFPS = data.currFPS;
+            allFPS = data.allFPS;
           };
           physicsWorker.postMessage(NUM);
 
@@ -174,7 +175,7 @@
             <input type="button" value="go!" onclick="startUp(boxes.value);">
           </form>
         </div>
-        <div id="during"><div>Physics FPS: <input type="text" id="out" readonly="1" size="3"></div><div id="postdiv"></div></div>
+        <div id="during"><div>Physics FPS (current / stable): <input type="text" id="out" readonly="1" size="7"></div><div id="postdiv"></div></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript
