@@ -2,158 +2,54 @@
     <head>
       <title>Bullet/WebGL Demo</title>
       <script src="CubicVR.min.js" type="text/javascript"></script>
-      <script src="../../builds/ammo.js" type="text/javascript"></script>
       <style type="text/css">
-        body { background-color: #ccc; }
+        body {
+          background-color: #ccc;
+          text-size-adjust: none;
+        }
       </style>
 
+      <script src="shared.js"></script>
+
       <script type="text/javascript">
-        var NUM = 35;
-        var NUMRANGE = [];
-        while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
-
-        // Bullet-interfacing code
-
-        var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
-        var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
-        var overlappingPairCache = new Ammo.btDbvtBroadphase();
-        var solver = new Ammo.btSequentialImpulseConstraintSolver();
-        var dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-        dynamicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
-
-        var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
-
-        var bodies = [];
-
-        var groundTransform = new Ammo.btTransform();
-        groundTransform.setIdentity();
-        groundTransform.setOrigin(new Ammo.btVector3(0, -56, 0));
-
-        (function() {
-          var mass = 0;
-          var localInertia = new Ammo.btVector3(0, 0, 0);
-          var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
-          var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
-          var body = new Ammo.btRigidBody(rbInfo);
-
-          dynamicsWorld.addRigidBody(body);
-          bodies.push(body);
-        })();
-
-        var boxShape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1));
-
-        NUMRANGE.forEach(function(i) {
-          var startTransform = new Ammo.btTransform();
-          startTransform.setIdentity();
-          var mass = 1;
-          var localInertia = new Ammo.btVector3(0, 0, 0);
-          boxShape.calculateLocalInertia(mass, localInertia);
-        
-          var myMotionState = new Ammo.btDefaultMotionState(startTransform);
-          var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
-          var body = new Ammo.btRigidBody(rbInfo);
-
-          dynamicsWorld.addRigidBody(body);
-          bodies.push(body);
-        });
-
-        function resetPositions() {
-          NUMRANGE.forEach(function(i) {
-            var body = bodies[i];
-            var origin = body.getWorldTransform().getOrigin();
-            origin.setX((Math.random()-0.5)*2);
-            origin.setY(4+i*2.5);
-            origin.setZ((Math.random()-0.5)*1);
-            body.activate();
-          });
-        }
-
-        resetPositions();
-
-        var transform = new Ammo.btTransform(); // taking this out of readBulletObject reduces the leaking
-        function readBulletObject(i, pos, quat) {
-          var body = bodies[i];
-          body.getMotionState().getWorldTransform(transform);
-          var origin = transform.getOrigin();
-          pos[0] = origin.x();
-          pos[1] = origin.y();
-          pos[2] = origin.z();
-          var rotation = transform.getRotation();
-          quat.x = rotation.x();
-          quat.y = rotation.y();
-          quat.z = rotation.z();
-          quat.w = rotation.w();
-        }
-
-        var lastInactivity = Date.now();
-        function noneActive() {
-          var num = 0;
-          NUMRANGE.forEach(function(i) {
-            var body = bodies[i];
-            num += body.isActive();
-          });
-          if ((Date.now() - lastInactivity) >= 1000*num) { // consider none active also if enough time passed
-            lastInactivity = Date.now();
-            return true;
-          }
-          return false;
-        }
-
         // Main demo code
 
         var boxes = [];
 
-        var position = [0,0,0];
         var quaternion = new CubicVR.Quaternion;
 
-        function simulate(dt) {
-          dynamicsWorld.stepSimulation(dt, 2);
-
-          // Read bullet data into JS objects
-          for (var i = 0; i < NUM; i++) {
-            readBulletObject(i+1, position, quaternion);
-            var renderObject = boxes[i];
-            renderObject.position[0] = position[0];
-            renderObject.position[1] = position[1];
-            renderObject.position[2] = position[2];
-            renderObject.rotation = quaternion.toEuler();
-          }
-
-          if (noneActive()) restart();
-        }
-
-        var fpsInfo = {
-          dts: 0,
-          num: 0,
-          lastHUD: Date.now()
-        };
-
-        function showFPS(dt) {
+        var lastFPS = 0;
+        var outElement = null;
+        var currFPS = 0, allFPS = 0;
+        function showFPS() {
+          if (!outElement) outElement = document.getElementById('out');
           var now = Date.now();
-          fpsInfo.dts += dt;
-          fpsInfo.num++;
-          if (now - fpsInfo.lastHUD > 333) {
-            document.getElementById('out').innerHTML = '<b>FPS: ' + Math.ceil(1/(fpsInfo.dts/fpsInfo.num)) + '</b>';
-            fpsInfo.lastHUD = now;
-            fpsInfo.dts = 0;
-            fpsInfo.num = 0;
+          if (now - lastFPS > 333) {
+            outElement.value = currFPS + ' / ' + allFPS;
+            lastFPS = now;
           }
-        }
-
-        function restart() {
-          totalTime = 0;
-          resetPositions();
         }
 
         var FLOOR_SIZE = 100;
         var FLOOR_HEIGHT = -56
 
+        var physicsWorker = null;
+        var nextPhysicsWorker = new Worker('worker.js');
+
         // CubicVR code
 
-        function startUp() {
+        function startUp(NUM) {
+          var NUMRANGE = [];
+          while (NUMRANGE.length < NUM) NUMRANGE.push(NUMRANGE.length+1);
+
+          document.getElementById('postdiv').innerHTML = '(' + NUM + ' cubes)';
+
+          //document.getElementById('before').style.visibility = 'hidden';
+          document.getElementById('during').style.visibility = 'visible';
+
           var canvas = document.getElementById("canvas");
-          canvas.width = screen.width*0.70;
-          canvas.height = screen.height*0.55;
+          canvas.width = screen.width*0.75;
+          canvas.height = screen.height*0.50;
 
           var gl = CubicVR.GLCore.init(canvas);
 
@@ -165,7 +61,7 @@
           var scene = new CubicVR.Scene(canvas.width, canvas.height, 70);
 
           var light = new CubicVR.Light({
-            type:CubicVR.enums.light.type.AREA,
+            type:CubicVR.enums.light.type.POINT,
             intensity: 0.9,
             areaCeiling: 80,
             areaFloor: FLOOR_HEIGHT,
@@ -174,32 +70,31 @@
             mapRes: 1024
           });
           scene.bindLight(light);
-          CubicVR.setSoftShadows(true);
 
           scene.camera.position = [0, 2.4, 17];
           scene.camera.target = [0, 2.4, 0];
 
-          var boxMaterials = NUMRANGE.map(function(i) {
-            return new CubicVR.Material({
+          var boxMaterials = [];
+          var boxMeshes = [];
+
+          for (var i = 0; i < 5; i++) {
+            boxMaterials[i] = new CubicVR.Material({
               textures: {
-                color: new CubicVR.Texture("cube" + ((i % 5)+1) + ".jpg")
+                color: new CubicVR.Texture("cube" + (i+1) + ".jpg")
               }
             });
-          });
-
-          var boxMeshes = boxMaterials.map(function(boxMaterial) {
-            return new CubicVR.primitives.box({
+            boxMeshes[i] = new CubicVR.primitives.box({
               size: 2.0,
-              material: boxMaterial,
+              material: boxMaterials[i],
               uvmapper: {
                 projectionMode: CubicVR.enums.uv.projection.CUBIC,
                 scale: [2, 2, 2]
               }
             }).calcNormals().triangulateQuads().compile().clean();
-          });
+          }
 
           for (var i = 0; i < NUM; i++) {
-            boxes[i] = new CubicVR.SceneObject({ mesh: boxMeshes[i], position: [0, -10000, 0] });
+            boxes[i] = new CubicVR.SceneObject({ mesh: boxMeshes[Math.floor(Math.random()*5)], position: [0, -10000, 0] });
             scene.bindSceneObject(boxes[i], true);
           }
 
@@ -220,32 +115,76 @@
           var floor_ = new CubicVR.SceneObject({ mesh: floorMesh, position: [0, FLOOR_HEIGHT, 0] });
           scene.bindSceneObject(floor_, true);
 
+          // Worker
+
+          if (physicsWorker) physicsWorker.terminate();
+          physicsWorker = nextPhysicsWorker;
+          nextPhysicsWorker = null;
+          if (!physicsWorker) physicsWorker = new Worker('worker.js');
+
+          physicsWorker.onmessage = function(event) {
+            var data = event.data;
+            if (data.objects.length != NUM) return;
+            for (var i = 0; i < NUM; i++) {
+              var physicsObject = data.objects[i];
+              var renderObject = boxes[i];
+              renderObject.position[0] = physicsObject[0];
+              renderObject.position[1] = physicsObject[1];
+              renderObject.position[2] = physicsObject[2];
+              quaternion.x = physicsObject[3];
+              quaternion.y = physicsObject[4];
+              quaternion.z = physicsObject[5];
+              quaternion.w = physicsObject[6];
+              renderObject.rotation = quaternion.toEuler();
+            }
+            currFPS = data.currFPS;
+            allFPS = data.allFPS;
+          };
+          physicsWorker.postMessage(NUM);
+
+          // Main loop
+
           var mvc = new CubicVR.MouseViewController(canvas, scene.camera);
 
           CubicVR.MainLoop(function(timer, gl) {
             var dt = timer.getLastUpdateSeconds();
-            simulate(dt);
-            scene.updateShadows();
             scene.render();
-            showFPS(dt);
+            showFPS();
           });
         }
       </script>
     </head>
-    <body onload="startUp()">
+    <body onload="document.getElementById('during').style.visibility = 'hidden'">
       <center>
-        <h2>ammo.js WebGL Demo</h2>
+        <h2>ammo.js benchmark</h2>
 
-        <canvas id="canvas" width="600" height="500"></canvas>
-        <br><br>
-        <div id="out">waka</div>
+        <canvas id="canvas" width="1" height="1"></canvas>
+        <br>
+        <div id="before">
+          <form>
+            Boxes:
+            <select name="boxes">
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="300">300</option>
+              <option value="500" selected>500</option>
+              <option value="750">750</option>
+              <option value="1000">1000</option>
+              <option value="1500">1500</option>
+              <option value="2500">2500</option>
+            </select>
+            <input type="button" value="go!" onclick="startUp(boxes.value);">
+          </form>
+        </div>
+        <div id="during"><div>Physics FPS (current / stable): <input type="text" id="out" readonly="1" size="7"></div><div id="postdiv"></div></div>
         <p>
         This is <b><a href="https://github.com/kripken/ammo.js">ammo.js</a></b>, a port of
         the <b><a href="http://www.bulletphysics.com">Bullet physics engine</a></b> from C++ to JavaScript
-        using <b><a href="http://emscripten.org">Emscripten</a></b>. WebGL rendering in this demo is done using
+        using <b><a href="http://emscripten.org">Emscripten</a></b> in
+        <b><a href="http://asmjs.org">asm.js</a></b> mode. WebGL rendering in this demo is done using
         <b><a href="https://github.com/cjcliffe/CubicVR.js/">CubicVR.js</a></b>.
-        </p><p>
-        Adjust the view by dragging the mouse over the canvas.
         </p>
       </center>
     </body>

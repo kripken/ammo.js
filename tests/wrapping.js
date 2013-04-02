@@ -63,6 +63,7 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
 
 // Callbacks from C++ to JS
 
+// not supported in asm
 (function() {
   var calledBack = false;
   var callback = new Ammo.ConcreteContactResultCallback();
