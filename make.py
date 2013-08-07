@@ -27,7 +27,7 @@ import tools.shared as emscripten
           Settings.CORRECT_ROUNDINGS = 0
 '''
 #emcc_args = sys.argv[1:] or '-O3 --closure 0 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
-emcc_args = sys.argv[1:] or '-O2 -s DOUBLE_MODE=0 -s PRECISE_I64_MATH=0 -s ASM_JS=1 -s EXPORT_BINDINGS=1 -s DEAD_FUNCTIONS=["__ZSt9terminatev","__ZN20btAxisSweep3InternalItE26processAllOverlappingPairsEP17btOverlapCallback","__ZN20btAxisSweep3InternalIjE26processAllOverlappingPairsEP17btOverlapCallback"]'.split(' ')
+emcc_args = sys.argv[1:] or '-O2 -s DOUBLE_MODE=0 -s PRECISE_I64_MATH=0 -s ASM_JS=1 -s EXPORT_BINDINGS=1 -s RESERVED_FUNCTION_POINTERS=20 -s DEAD_FUNCTIONS=["__ZSt9terminatev","__ZN20btAxisSweep3InternalItE26processAllOverlappingPairsEP17btOverlapCallback","__ZN20btAxisSweep3InternalIjE26processAllOverlappingPairsEP17btOverlapCallback"]'.split(' ')
 
 emcc_args += ['-s', 'TOTAL_MEMORY=%d' % (64*1024*1024)] # default 64MB. Compile with ALLOW_MEMORY_GROWTH if you want a growable heap (slower though).
 
