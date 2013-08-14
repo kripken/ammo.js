@@ -123,6 +123,7 @@ try:
          'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo,btAABB,'
          'btContactArray,btPairCachingGhostObject::getOverlappingPairs,btGhostObject::getOverlappingPairs,Edge,Handle,'
          'btDbvtAabbMm::NotEqual,btDbvtAabbMm::Merge,btDbvtAabbMm::Select,btDbvtAabbMm::Proximity,btDbvtAabbMm::Intersect",'
+         'btCollisionObjectWrapper,ConcreteContactResultCallback,'
          ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
          ''' "export": 1 }'''],
         stdout=open('o', 'w'), stderr=STDOUT).communicate()
