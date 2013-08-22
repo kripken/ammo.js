@@ -22,7 +22,7 @@ subject to the following restrictions:
 
 
 
-void SpuContactManifoldCollisionAlgorithm::processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void SpuContactManifoldCollisionAlgorithm::processCollision (const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	btAssert(0);
 }
@@ -34,7 +34,7 @@ btScalar SpuContactManifoldCollisionAlgorithm::calculateTimeOfImpact(btCollision
 }
 
 #ifndef __SPU__
-SpuContactManifoldCollisionAlgorithm::SpuContactManifoldCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1)
+SpuContactManifoldCollisionAlgorithm::SpuContactManifoldCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObject* body0,const btCollisionObject* body1)
 :btCollisionAlgorithm(ci)
 #ifdef USE_SEPDISTANCE_UTIL
 ,m_sepDistance(body0->getCollisionShape()->getAngularMotionDisc(),body1->getCollisionShape()->getAngularMotionDisc())

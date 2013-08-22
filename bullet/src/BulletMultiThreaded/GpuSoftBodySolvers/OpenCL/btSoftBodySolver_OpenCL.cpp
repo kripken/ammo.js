@@ -20,9 +20,14 @@ subject to the following restrictions:
 #include "btSoftBodySolver_OpenCL.h"
 #include "BulletSoftBody/btSoftBodySolverVertexBuffer.h"
 #include "BulletSoftBody/btSoftBody.h"
+#include "BulletSoftBody/btSoftBodyInternals.h"
 #include "BulletCollision/CollisionShapes/btCapsuleShape.h"
+#include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "LinearMath/btQuickprof.h"
 #include <limits.h>
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+
+#define BT_SUPPRESS_OPENCL_ASSERTS
 
 #ifdef USE_MINICL
 	#include "MiniCL/cl.h"
@@ -34,8 +39,7 @@ subject to the following restrictions:
 	#endif //__APPLE__
 #endif//USE_MINICL
 
-#define BT_DEFAULT_WORKGROUPSIZE 128
-
+#define BT_DEFAULT_WORKGROUPSIZE 64
 
 
 #define RELEASE_CL_KERNEL(kernelName) {if( kernelName ){ clReleaseKernel( kernelName ); kernelName = 0; }}
@@ -43,32 +47,6 @@ subject to the following restrictions:
 
 //CL_VERSION_1_1 seems broken on NVidia SDK so just disable it
 
-#if (0)//CL_VERSION_1_1 == 1)
- //OpenCL 1.1 kernels use float3
-#define MSTRINGIFY(A) #A
-static const char* PrepareLinksCLString = 
-#include "OpenCLC/PrepareLinks.cl"
-static const char* UpdatePositionsFromVelocitiesCLString = 
-#include "OpenCLC/UpdatePositionsFromVelocities.cl"
-static const char* SolvePositionsCLString = 
-#include "OpenCLC/SolvePositions.cl"
-static const char* UpdateNodesCLString = 
-#include "OpenCLC/UpdateNodes.cl"
-static const char* UpdatePositionsCLString = 
-#include "OpenCLC/UpdatePositions.cl"
-static const char* UpdateConstantsCLString = 
-#include "OpenCLC/UpdateConstants.cl"
-static const char* IntegrateCLString = 
-#include "OpenCLC/Integrate.cl"
-static const char* ApplyForcesCLString = 
-#include "OpenCLC/ApplyForces.cl"
-static const char* UpdateNormalsCLString = 
-#include "OpenCLC/UpdateNormals.cl"
-static const char* VSolveLinksCLString = 
-#include "OpenCLC/VSolveLinks.cl"
-static const char* SolveCollisionsAndUpdateVelocitiesCLString =
-#include "OpenCLC/SolveCollisionsAndUpdateVelocities.cl"
-#else
 ////OpenCL 1.0 kernels don't use float3
 #define MSTRINGIFY(A) #A
 static const char* PrepareLinksCLString = 
@@ -87,13 +65,14 @@ static const char* IntegrateCLString =
 #include "OpenCLC10/Integrate.cl"
 static const char* ApplyForcesCLString = 
 #include "OpenCLC10/ApplyForces.cl"
+static const char* UpdateFixedVertexPositionsCLString = 
+#include "OpenCLC10/UpdateFixedVertexPositions.cl"
 static const char* UpdateNormalsCLString = 
 #include "OpenCLC10/UpdateNormals.cl"
 static const char* VSolveLinksCLString = 
 #include "OpenCLC10/VSolveLinks.cl"
 static const char* SolveCollisionsAndUpdateVelocitiesCLString =
 #include "OpenCLC10/SolveCollisionsAndUpdateVelocities.cl"
-#endif //CL_VERSION_1_1
 
 
 btSoftBodyVertexDataOpenCL::btSoftBodyVertexDataOpenCL( cl_command_queue queue, cl_context ctx) :
@@ -139,27 +118,48 @@ bool btSoftBodyVertexDataOpenCL::moveToAccelerator()
 	return success;
 }
 
-bool btSoftBodyVertexDataOpenCL::moveFromAccelerator()
+bool btSoftBodyVertexDataOpenCL::moveFromAccelerator(bool bCopy, bool bCopyMinimum)
 {
 	bool success = true;
-	success = success && m_clClothIdentifier.moveFromGPU();
-	success = success && m_clVertexPosition.moveFromGPU();
-	success = success && m_clVertexPreviousPosition.moveFromGPU();
-	success = success && m_clVertexVelocity.moveFromGPU();
-	success = success && m_clVertexForceAccumulator.moveFromGPU();
-	success = success && m_clVertexNormal.moveFromGPU();
-	success = success && m_clVertexInverseMass.moveFromGPU();
-	success = success && m_clVertexArea.moveFromGPU();
-	success = success && m_clVertexTriangleCount.moveFromGPU();
+
+	if (!bCopy)
+	{
+		success = success && m_clClothIdentifier.moveFromGPU();
+		success = success && m_clVertexPosition.moveFromGPU();
+		success = success && m_clVertexPreviousPosition.moveFromGPU();
+		success = success && m_clVertexVelocity.moveFromGPU();
+		success = success && m_clVertexForceAccumulator.moveFromGPU();
+		success = success && m_clVertexNormal.moveFromGPU();
+		success = success && m_clVertexInverseMass.moveFromGPU();
+		success = success && m_clVertexArea.moveFromGPU();
+		success = success && m_clVertexTriangleCount.moveFromGPU();
+	}
+	else
+	{
+		if (bCopyMinimum)
+		{
+			success = success && m_clVertexPosition.copyFromGPU();
+			success = success && m_clVertexNormal.copyFromGPU();
+		}
+		else
+		{
+			success = success && m_clClothIdentifier.copyFromGPU();
+			success = success && m_clVertexPosition.copyFromGPU();
+			success = success && m_clVertexPreviousPosition.copyFromGPU();
+			success = success && m_clVertexVelocity.copyFromGPU();
+			success = success && m_clVertexForceAccumulator.copyFromGPU();
+			success = success && m_clVertexNormal.copyFromGPU();
+			success = success && m_clVertexInverseMass.copyFromGPU();
+			success = success && m_clVertexArea.copyFromGPU();
+			success = success && m_clVertexTriangleCount.copyFromGPU();
+		}
+	}
 
 	if( success )
 		m_onGPU = true;
 
 	return success;
 }
-
-
-
 
 btSoftBodyLinkDataOpenCL::btSoftBodyLinkDataOpenCL(cl_command_queue queue,  cl_context ctx) 
 :m_cqCommandQue(queue),
@@ -600,11 +600,12 @@ void btSoftBodyTriangleDataOpenCL::generateBatches()
 
 
 
-btOpenCLSoftBodySolver::btOpenCLSoftBodySolver(cl_command_queue queue, cl_context ctx) :
+btOpenCLSoftBodySolver::btOpenCLSoftBodySolver(cl_command_queue queue, cl_context ctx, bool bUpdateAchchoredNodePos) :
 	m_linkData(queue, ctx),
 	m_vertexData(queue, ctx),
 	m_triangleData(queue, ctx),
-	clFunctions(queue, ctx),
+	m_defaultCLFunctions(queue, ctx),
+	m_currentCLFunctions(&m_defaultCLFunctions),
 	m_clPerClothAcceleration(queue, ctx, &m_perClothAcceleration, true ),
 	m_clPerClothWindVelocity(queue, ctx, &m_perClothWindVelocity, true ),
 	m_clPerClothDampingFactor(queue,ctx, &m_perClothDampingFactor, true ),
@@ -615,10 +616,14 @@ btOpenCLSoftBodySolver::btOpenCLSoftBodySolver(cl_command_queue queue, cl_contex
 	m_clPerClothCollisionObjects( queue, ctx, &m_perClothCollisionObjects, true ),
 	m_clCollisionObjectDetails( queue, ctx, &m_collisionObjectDetails, true ),
 	m_clPerClothFriction( queue, ctx, &m_perClothFriction, false ),
+	m_clAnchorPosition( queue, ctx, &m_anchorPosition, true ),
+	m_clAnchorIndex( queue, ctx, &m_anchorIndex, true),
 	m_cqCommandQue( queue ),
 	m_cxMainContext(ctx),
-	m_defaultWorkGroupSize(BT_DEFAULT_WORKGROUPSIZE)
+	m_defaultWorkGroupSize(BT_DEFAULT_WORKGROUPSIZE),
+	m_bUpdateAnchoredNodePos(bUpdateAchchoredNodePos)
 {
+
 	// Initial we will clearly need to update solver constants
 	// For now this is global for the cloths linked with this solver - we should probably make this body specific 
 	// for performance in future once we understand more clearly when constants need to be updated
@@ -626,21 +631,22 @@ btOpenCLSoftBodySolver::btOpenCLSoftBodySolver(cl_command_queue queue, cl_contex
 
 	m_shadersInitialized = false;
 
-	prepareLinksKernel = 0;
-	solvePositionsFromLinksKernel = 0;
-	updateConstantsKernel = 0;
-	integrateKernel = 0;
-	addVelocityKernel = 0;
-	updatePositionsFromVelocitiesKernel = 0;
-	updateVelocitiesFromPositionsWithoutVelocitiesKernel = 0;
-	updateVelocitiesFromPositionsWithVelocitiesKernel = 0;
-	vSolveLinksKernel = 0;
-	solveCollisionsAndUpdateVelocitiesKernel = 0;
-	resetNormalsAndAreasKernel = 0;
-	resetNormalsAndAreasKernel = 0;
-	normalizeNormalsAndAreasKernel = 0;
-	outputToVertexArrayKernel = 0;
-	applyForcesKernel = 0;
+	m_prepareLinksKernel = 0;
+	m_solvePositionsFromLinksKernel = 0;
+	m_updateConstantsKernel = 0;
+	m_integrateKernel = 0;
+	m_addVelocityKernel = 0;
+	m_updatePositionsFromVelocitiesKernel = 0;
+	m_updateVelocitiesFromPositionsWithoutVelocitiesKernel = 0;
+	m_updateVelocitiesFromPositionsWithVelocitiesKernel = 0;
+	m_vSolveLinksKernel = 0;
+	m_solveCollisionsAndUpdateVelocitiesKernel = 0;
+	m_resetNormalsAndAreasKernel = 0;
+	m_updateSoftBodiesKernel = 0;
+	m_normalizeNormalsAndAreasKernel = 0;
+	m_outputToVertexArrayKernel = 0;
+	m_applyForcesKernel = 0;
+	m_updateFixedVertexPositionsKernel = 0;
 }
 
 btOpenCLSoftBodySolver::~btOpenCLSoftBodySolver()
@@ -650,28 +656,30 @@ btOpenCLSoftBodySolver::~btOpenCLSoftBodySolver()
 
 void btOpenCLSoftBodySolver::releaseKernels()
 {
-	RELEASE_CL_KERNEL( prepareLinksKernel );
-	RELEASE_CL_KERNEL( solvePositionsFromLinksKernel );
-	RELEASE_CL_KERNEL( updateConstantsKernel );
-	RELEASE_CL_KERNEL( integrateKernel );
-	RELEASE_CL_KERNEL( addVelocityKernel );
-	RELEASE_CL_KERNEL( updatePositionsFromVelocitiesKernel );
-	RELEASE_CL_KERNEL( updateVelocitiesFromPositionsWithoutVelocitiesKernel );
-	RELEASE_CL_KERNEL( updateVelocitiesFromPositionsWithVelocitiesKernel );
-	RELEASE_CL_KERNEL( vSolveLinksKernel );
-	RELEASE_CL_KERNEL( solveCollisionsAndUpdateVelocitiesKernel );
-	RELEASE_CL_KERNEL( resetNormalsAndAreasKernel );
-	RELEASE_CL_KERNEL( normalizeNormalsAndAreasKernel );
-	RELEASE_CL_KERNEL( outputToVertexArrayKernel );
-	RELEASE_CL_KERNEL( applyForcesKernel );
+	RELEASE_CL_KERNEL( m_prepareLinksKernel );
+	RELEASE_CL_KERNEL( m_solvePositionsFromLinksKernel );
+	RELEASE_CL_KERNEL( m_updateConstantsKernel );
+	RELEASE_CL_KERNEL( m_integrateKernel );
+	RELEASE_CL_KERNEL( m_addVelocityKernel );
+	RELEASE_CL_KERNEL( m_updatePositionsFromVelocitiesKernel );
+	RELEASE_CL_KERNEL( m_updateVelocitiesFromPositionsWithoutVelocitiesKernel );
+	RELEASE_CL_KERNEL( m_updateVelocitiesFromPositionsWithVelocitiesKernel );
+	RELEASE_CL_KERNEL( m_vSolveLinksKernel );
+	RELEASE_CL_KERNEL( m_solveCollisionsAndUpdateVelocitiesKernel );
+	RELEASE_CL_KERNEL( m_resetNormalsAndAreasKernel );
+	RELEASE_CL_KERNEL( m_normalizeNormalsAndAreasKernel );
+	RELEASE_CL_KERNEL( m_outputToVertexArrayKernel );
+	RELEASE_CL_KERNEL( m_applyForcesKernel );
+	RELEASE_CL_KERNEL( m_updateFixedVertexPositionsKernel );
 
 	m_shadersInitialized = false;
 }
 
-void btOpenCLSoftBodySolver::copyBackToSoftBodies()
+void btOpenCLSoftBodySolver::copyBackToSoftBodies(bool bMove)
 {
+
 	// Move the vertex data back to the host first
-	m_vertexData.moveFromAccelerator();
+	m_vertexData.moveFromAccelerator(!bMove);
 
 	// Loop over soft bodies, copying all the vertex positions back for each body in turn
 	for( int softBodyIndex = 0; softBodyIndex < m_softBodySet.size(); ++softBodyIndex )
@@ -686,17 +694,18 @@ void btOpenCLSoftBodySolver::copyBackToSoftBodies()
 		for( int vertex = 0; vertex < numVertices; ++vertex )
 		{
 			using Vectormath::Aos::Point3;
-			Point3 vertexPosition( getVertexData().getVertexPositions()[firstVertex + vertex] );
+			Point3 vertexPosition( m_vertexData.getVertexPositions()[firstVertex + vertex] );
+			Point3 normal(m_vertexData.getNormal(firstVertex + vertex));
 
 			softBody->m_nodes[vertex].m_x.setX( vertexPosition.getX() );
 			softBody->m_nodes[vertex].m_x.setY( vertexPosition.getY() );
 			softBody->m_nodes[vertex].m_x.setZ( vertexPosition.getZ() );
 
-			softBody->m_nodes[vertex].m_n.setX( vertexPosition.getX() );
-			softBody->m_nodes[vertex].m_n.setY( vertexPosition.getY() );
-			softBody->m_nodes[vertex].m_n.setZ( vertexPosition.getZ() );
+			softBody->m_nodes[vertex].m_n.setX( normal.getX() );
+			softBody->m_nodes[vertex].m_n.setY( normal.getY() );
+			softBody->m_nodes[vertex].m_n.setZ( normal.getZ() );
 		}
-	}
+	}	
 } // btOpenCLSoftBodySolver::copyBackToSoftBodies
 
 void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &softBodies, bool forceUpdate )
@@ -708,7 +717,10 @@ void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &sof
 		getTriangleData().clear();
 		getLinkData().clear();
 		m_softBodySet.resize(0);
+		m_anchorIndex.clear();
 
+		int maxPiterations = 0;
+		int maxViterations = 0;
 
 		for( int softBodyIndex = 0; softBodyIndex < softBodies.size(); ++softBodyIndex )
 		{
@@ -727,7 +739,7 @@ void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &sof
 			m_perClothDragFactor.push_back( softBody->m_cfg.kDG );
 			m_perClothMediumDensity.push_back(softBody->getWorldInfo()->air_density);
 			// Simple init values. Actually we'll put 0 and -1 into them at the appropriate time
-			m_perClothFriction.push_back( softBody->getFriction() );
+			m_perClothFriction.push_back(softBody->m_cfg.kDF);
 			m_perClothCollisionObjects.push_back( CollisionObjectIndices(-1, -1) );
 
 			// Add space for new vertices and triangles in the default solver for now
@@ -757,6 +769,8 @@ void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &sof
 				float vertexInverseMass = softBody->m_nodes[vertex].m_im;
 				desc.setInverseMass(vertexInverseMass);
 				getVertexData().setVertexAt( desc, firstVertex + vertex );
+
+				m_anchorIndex.push_back(-1);
 			}
 
 			// Copy triangles similarly
@@ -779,7 +793,7 @@ void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &sof
 
 			int firstLink = getLinkData().getNumLinks();
 			int numLinks = softBody->m_links.size();
-			int maxLinks = numLinks;
+//			int maxLinks = numLinks;
 			
 			// Allocate space for the links
 			getLinkData().createLinks( numLinks );
@@ -803,15 +817,81 @@ void btOpenCLSoftBodySolver::optimize( btAlignedObjectArray< btSoftBody * > &sof
 			newSoftBody->setMaxTriangles( maxTriangles );
 			newSoftBody->setFirstLink( firstLink );
 			newSoftBody->setNumLinks( numLinks );
+
+			// Find maximum piterations and viterations
+			int piterations = softBody->m_cfg.piterations;
+
+            if ( piterations > maxPiterations )
+                  maxPiterations = piterations;
+
+            int viterations = softBody->m_cfg.viterations;
+
+			if ( viterations > maxViterations )
+                  maxViterations = viterations;
+
+			// zero mass
+			for( int vertex = 0; vertex < numVertices; ++vertex )
+			{
+				if ( softBody->m_nodes[vertex].m_im == 0 )
+				{
+					AnchorNodeInfoCL nodeInfo;
+					nodeInfo.clVertexIndex = firstVertex + vertex;
+					nodeInfo.pNode = &softBody->m_nodes[vertex];
+
+					m_anchorNodeInfoArray.push_back(nodeInfo);
+				}
+			}			
+
+			// anchor position
+			if ( numVertices > 0 )
+			{
+				for ( int anchorIndex = 0; anchorIndex < softBody->m_anchors.size(); anchorIndex++ )
+				{
+					btSoftBody::Node* anchorNode = softBody->m_anchors[anchorIndex].m_node;
+					btSoftBody::Node* firstNode = &softBody->m_nodes[0];
+
+					AnchorNodeInfoCL nodeInfo;
+					nodeInfo.clVertexIndex = firstVertex + (int)(anchorNode - firstNode);
+					nodeInfo.pNode = anchorNode;
+
+					m_anchorNodeInfoArray.push_back(nodeInfo);
+				}
+			}			
 		}
 
+		
+		m_anchorPosition.clear();		
+		m_anchorPosition.resize(m_anchorNodeInfoArray.size());
 
-
+		for ( int anchorNode = 0; anchorNode < m_anchorNodeInfoArray.size(); anchorNode++ )
+		{
+			const AnchorNodeInfoCL& anchorNodeInfo = m_anchorNodeInfoArray[anchorNode];
+			m_anchorIndex[anchorNodeInfo.clVertexIndex] = anchorNode;
+			getVertexData().getInverseMass(anchorNodeInfo.clVertexIndex) = 0.0f;
+		}
+		
 		updateConstants(0.f);
 
+		// set position and velocity iterations
+		setNumberOfPositionIterations(maxPiterations);
+		setNumberOfVelocityIterations(maxViterations);
 
+		// set wind velocity
+		m_perClothWindVelocity.resize( m_softBodySet.size() );
+		for( int softBodyIndex = 0; softBodyIndex < m_softBodySet.size(); ++softBodyIndex )
+		{
+			btSoftBody *softBody = m_softBodySet[softBodyIndex]->getSoftBody();			
+			m_perClothWindVelocity[softBodyIndex] = toVector3(softBody->getWindVelocity());
+		}
+
+		m_clPerClothWindVelocity.changedOnCPU();
+
+		// generate batches
 		m_linkData.generateBatches();		
 		m_triangleData.generateBatches();
+
+		// Build the shaders to match the batching parameters
+		buildShaders();
 	}
 }
 
@@ -837,18 +917,18 @@ btSoftBodyTriangleData &btOpenCLSoftBodySolver::getTriangleData()
 void btOpenCLSoftBodySolver::resetNormalsAndAreas( int numVertices )
 {
 	cl_int ciErrNum;
-	ciErrNum = clSetKernelArg(resetNormalsAndAreasKernel, 0, sizeof(numVertices), (void*)&numVertices); //oclCHECKERROR(ciErrNum, CL_SUCCESS);
-	ciErrNum = clSetKernelArg(resetNormalsAndAreasKernel, 1, sizeof(cl_mem), (void*)&m_vertexData.m_clVertexNormal.m_buffer);//oclCHECKERROR(ciErrNum, CL_SUCCESS);
-	ciErrNum = clSetKernelArg(resetNormalsAndAreasKernel,  2, sizeof(cl_mem), (void*)&m_vertexData.m_clVertexArea.m_buffer); //oclCHECKERROR(ciErrNum, CL_SUCCESS);
+	ciErrNum = clSetKernelArg(m_resetNormalsAndAreasKernel, 0, sizeof(numVertices), (void*)&numVertices); //oclCHECKERROR(ciErrNum, CL_SUCCESS);
+	ciErrNum = clSetKernelArg(m_resetNormalsAndAreasKernel, 1, sizeof(cl_mem), (void*)&m_vertexData.m_clVertexNormal.m_buffer);//oclCHECKERROR(ciErrNum, CL_SUCCESS);
+	ciErrNum = clSetKernelArg(m_resetNormalsAndAreasKernel,  2, sizeof(cl_mem), (void*)&m_vertexData.m_clVertexArea.m_buffer); //oclCHECKERROR(ciErrNum, CL_SUCCESS);
 	size_t numWorkItems = m_defaultWorkGroupSize*((numVertices + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
 
 	if (numWorkItems)
 	{
-		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, resetNormalsAndAreasKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0 );
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, m_resetNormalsAndAreasKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0 );
 
 		if( ciErrNum != CL_SUCCESS )
 		{
-			btAssert( 0 && "enqueueNDRangeKernel(resetNormalsAndAreasKernel)" );
+			btAssert( 0 && "enqueueNDRangeKernel(m_resetNormalsAndAreasKernel)" );
 		}
 	}
 
@@ -856,20 +936,19 @@ void btOpenCLSoftBodySolver::resetNormalsAndAreas( int numVertices )
 
 void btOpenCLSoftBodySolver::normalizeNormalsAndAreas( int numVertices )
 {
-
 	cl_int ciErrNum;
 
-	ciErrNum = clSetKernelArg(normalizeNormalsAndAreasKernel, 0, sizeof(int),(void*) &numVertices);
-	ciErrNum = clSetKernelArg(normalizeNormalsAndAreasKernel, 1, sizeof(cl_mem), &m_vertexData.m_clVertexTriangleCount.m_buffer);
-	ciErrNum = clSetKernelArg(normalizeNormalsAndAreasKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
-	ciErrNum = clSetKernelArg(normalizeNormalsAndAreasKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
+	ciErrNum = clSetKernelArg(m_normalizeNormalsAndAreasKernel, 0, sizeof(int),(void*) &numVertices);
+	ciErrNum = clSetKernelArg(m_normalizeNormalsAndAreasKernel, 1, sizeof(cl_mem), &m_vertexData.m_clVertexTriangleCount.m_buffer);
+	ciErrNum = clSetKernelArg(m_normalizeNormalsAndAreasKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
+	ciErrNum = clSetKernelArg(m_normalizeNormalsAndAreasKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
 	size_t	numWorkItems = m_defaultWorkGroupSize*((numVertices + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
 	if (numWorkItems)
 	{
-		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, normalizeNormalsAndAreasKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0);
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, m_normalizeNormalsAndAreasKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0);
 		if( ciErrNum != CL_SUCCESS ) 
 		{
-			btAssert( 0 && "enqueueNDRangeKernel(normalizeNormalsAndAreasKernel)");
+			btAssert( 0 && "enqueueNDRangeKernel(m_normalizeNormalsAndAreasKernel)");
 		}
 	}
 
@@ -877,22 +956,21 @@ void btOpenCLSoftBodySolver::normalizeNormalsAndAreas( int numVertices )
 
 void btOpenCLSoftBodySolver::executeUpdateSoftBodies( int firstTriangle, int numTriangles )
 {
-
 	cl_int ciErrNum;
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 0, sizeof(int), (void*) &firstTriangle);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 1, sizeof(int), &numTriangles);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 2, sizeof(cl_mem), &m_triangleData.m_clVertexIndices.m_buffer);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 6, sizeof(cl_mem), &m_triangleData.m_clNormal.m_buffer);
-	ciErrNum = clSetKernelArg(updateSoftBodiesKernel, 7, sizeof(cl_mem), &m_triangleData.m_clArea.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 0, sizeof(int), (void*) &firstTriangle);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 1, sizeof(int), &numTriangles);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 2, sizeof(cl_mem), &m_triangleData.m_clVertexIndices.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 6, sizeof(cl_mem), &m_triangleData.m_clNormal.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateSoftBodiesKernel, 7, sizeof(cl_mem), &m_triangleData.m_clArea.m_buffer);
 
 	size_t numWorkItems = m_defaultWorkGroupSize*((numTriangles + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, updateSoftBodiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue, m_updateSoftBodiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(normalizeNormalsAndAreasKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_normalizeNormalsAndAreasKernel)");
 	}
 
 }
@@ -903,7 +981,7 @@ void btOpenCLSoftBodySolver::updateSoftBodies()
 
 
 	int numVertices = m_vertexData.getNumVertices();
-	int numTriangles = m_triangleData.getNumTriangles();
+//	int numTriangles = m_triangleData.getNumTriangles();
 
 	// Ensure data is on accelerator
 	m_vertexData.moveToAccelerator();
@@ -943,41 +1021,67 @@ void btOpenCLSoftBodySolver::ApplyClampedForce( float solverdt, const Vectormath
 	}
 }
 
+void btOpenCLSoftBodySolver::updateFixedVertexPositions()
+{	
+	// Ensure data is on accelerator
+	m_vertexData.moveToAccelerator();
+	m_clAnchorPosition.moveToGPU();
+	m_clAnchorIndex.moveToGPU();
+
+	cl_int ciErrNum ;
+	int numVerts = m_vertexData.getNumVertices();
+	ciErrNum = clSetKernelArg(m_updateFixedVertexPositionsKernel, 0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_updateFixedVertexPositionsKernel,1, sizeof(cl_mem), &m_clAnchorIndex.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateFixedVertexPositionsKernel,2, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateFixedVertexPositionsKernel,3, sizeof(cl_mem), &m_clAnchorPosition.m_buffer);
+
+	size_t numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
+	if (numWorkItems)
+	{
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_updateFixedVertexPositionsKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0);
+		if( ciErrNum != CL_SUCCESS ) 
+		{
+			btAssert( 0 &&  "enqueueNDRangeKernel(m_updateFixedVertexPositionsKernel)");
+		}
+	}
+
+}
+
 void btOpenCLSoftBodySolver::applyForces( float solverdt )
 {	
-
 	// Ensure data is on accelerator
 	m_vertexData.moveToAccelerator();
 	m_clPerClothAcceleration.moveToGPU();
 	m_clPerClothLiftFactor.moveToGPU();
 	m_clPerClothDragFactor.moveToGPU();
 	m_clPerClothMediumDensity.moveToGPU();
-	m_clPerClothWindVelocity.moveToGPU();			
+	m_clPerClothWindVelocity.moveToGPU();	
 
 	cl_int ciErrNum ;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(applyForcesKernel, 0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 1, sizeof(float), &solverdt);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 1, sizeof(float), &solverdt);
 	float fl = FLT_EPSILON;
-	ciErrNum = clSetKernelArg(applyForcesKernel, 2, sizeof(float), &fl);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clClothIdentifier.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 7, sizeof(cl_mem), &m_clPerClothLiftFactor.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 8 ,sizeof(cl_mem), &m_clPerClothDragFactor.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel, 9, sizeof(cl_mem), &m_clPerClothWindVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel,10, sizeof(cl_mem), &m_clPerClothAcceleration.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel,11, sizeof(cl_mem), &m_clPerClothMediumDensity.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel,12, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
-	ciErrNum = clSetKernelArg(applyForcesKernel,13, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 2, sizeof(float), &fl);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clClothIdentifier.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexNormal.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexArea.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 7, sizeof(cl_mem), &m_clPerClothLiftFactor.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 8 ,sizeof(cl_mem), &m_clPerClothDragFactor.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel, 9, sizeof(cl_mem), &m_clPerClothWindVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel,10, sizeof(cl_mem), &m_clPerClothAcceleration.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel,11, sizeof(cl_mem), &m_clPerClothMediumDensity.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel,12, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
+	ciErrNum = clSetKernelArg(m_applyForcesKernel,13, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+
 	size_t numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
 	if (numWorkItems)
 	{
-		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,applyForcesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0);
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_applyForcesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize, 0,0,0);
 		if( ciErrNum != CL_SUCCESS ) 
 		{
-			btAssert( 0 &&  "enqueueNDRangeKernel(applyForcesKernel)");
+			btAssert( 0 &&  "enqueueNDRangeKernel(m_applyForcesKernel)");
 		}
 	}
 
@@ -988,28 +1092,26 @@ void btOpenCLSoftBodySolver::applyForces( float solverdt )
  */
 void btOpenCLSoftBodySolver::integrate( float solverdt )
 {
-	
-
 	// Ensure data is on accelerator
 	m_vertexData.moveToAccelerator();
 
 	cl_int ciErrNum;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(integrateKernel, 0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(integrateKernel, 1, sizeof(float), &solverdt);
-	ciErrNum = clSetKernelArg(integrateKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
-	ciErrNum = clSetKernelArg(integrateKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
-	ciErrNum = clSetKernelArg(integrateKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(integrateKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(integrateKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 1, sizeof(float), &solverdt);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 4, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_integrateKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
 
 	size_t numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
 	if (numWorkItems)
 	{
-		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,integrateKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_integrateKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 		if( ciErrNum != CL_SUCCESS )
 		{
-			btAssert( 0 &&  "enqueueNDRangeKernel(integrateKernel)");
+			btAssert( 0 &&  "enqueueNDRangeKernel(m_integrateKernel)");
 		}
 	}
 
@@ -1073,7 +1175,7 @@ class QuickSortCompare
 {
 	public:
 
-	bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b )
+	bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b ) const
 	{
 		return ( a.softBodyIdentifier < b.softBodyIdentifier );
 	}
@@ -1138,8 +1240,8 @@ void btOpenCLSoftBodySolver::solveConstraints( float solverdt )
 	using Vectormath::Aos::dot;
 
 	// Prepare links
-	int numLinks = m_linkData.getNumLinks();
-	int numVertices = m_vertexData.getNumVertices();
+//	int numLinks = m_linkData.getNumLinks();
+//	int numVertices = m_vertexData.getNumVertices();
 
 	float kst = 1.f;
 	float ti = 0.f;
@@ -1181,7 +1283,7 @@ void btOpenCLSoftBodySolver::solveConstraints( float solverdt )
 		updateVelocitiesFromPositionsWithoutVelocities( 1.f/solverdt );
 	}
 
-	// Solve drift
+	// Solve position
 	for( int iteration = 0; iteration < m_numberOfPositionIterations ; ++iteration )
 	{
 		for( int i = 0; i < m_linkData.m_batchStartLengths.size(); ++i )
@@ -1205,64 +1307,61 @@ void btOpenCLSoftBodySolver::solveConstraints( float solverdt )
 // Kernel dispatches
 void btOpenCLSoftBodySolver::prepareLinks()
 {
-
 	cl_int ciErrNum;
 	int numLinks = m_linkData.getNumLinks();
-	ciErrNum = clSetKernelArg(prepareLinksKernel,0, sizeof(int), &numLinks);
-	ciErrNum = clSetKernelArg(prepareLinksKernel,1, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
-	ciErrNum = clSetKernelArg(prepareLinksKernel,2, sizeof(cl_mem), &m_linkData.m_clLinksMassLSC.m_buffer);
-	ciErrNum = clSetKernelArg(prepareLinksKernel,3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(prepareLinksKernel,4, sizeof(cl_mem), &m_linkData.m_clLinksLengthRatio.m_buffer);
-	ciErrNum = clSetKernelArg(prepareLinksKernel,5, sizeof(cl_mem), &m_linkData.m_clLinksCLength.m_buffer);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,0, sizeof(int), &numLinks);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,1, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,2, sizeof(cl_mem), &m_linkData.m_clLinksMassLSC.m_buffer);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,4, sizeof(cl_mem), &m_linkData.m_clLinksLengthRatio.m_buffer);
+	ciErrNum = clSetKernelArg(m_prepareLinksKernel,5, sizeof(cl_mem), &m_linkData.m_clLinksCLength.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((m_linkData.getNumLinks() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,prepareLinksKernel, 1 , NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_prepareLinksKernel, 1 , NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(prepareLinksKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_prepareLinksKernel)");
 	}
 
 }
 
 void btOpenCLSoftBodySolver::updatePositionsFromVelocities( float solverdt )
 {
-
 	cl_int ciErrNum;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(updatePositionsFromVelocitiesKernel,0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(updatePositionsFromVelocitiesKernel,1, sizeof(float), &solverdt);
-	ciErrNum = clSetKernelArg(updatePositionsFromVelocitiesKernel,2, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(updatePositionsFromVelocitiesKernel,3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updatePositionsFromVelocitiesKernel,4, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updatePositionsFromVelocitiesKernel,0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_updatePositionsFromVelocitiesKernel,1, sizeof(float), &solverdt);
+	ciErrNum = clSetKernelArg(m_updatePositionsFromVelocitiesKernel,2, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_updatePositionsFromVelocitiesKernel,3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updatePositionsFromVelocitiesKernel,4, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,updatePositionsFromVelocitiesKernel, 1, NULL, &numWorkItems,&m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_updatePositionsFromVelocitiesKernel, 1, NULL, &numWorkItems,&m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(updatePositionsFromVelocitiesKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_updatePositionsFromVelocitiesKernel)");
 	}
 
 }
 
 void btOpenCLSoftBodySolver::solveLinksForPosition( int startLink, int numLinks, float kst, float ti )
 {
-
 	cl_int ciErrNum;
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,0, sizeof(int), &startLink);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,1, sizeof(int), &numLinks);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,2, sizeof(float), &kst);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,3, sizeof(float), &ti);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,4, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,5, sizeof(cl_mem), &m_linkData.m_clLinksMassLSC.m_buffer);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,6, sizeof(cl_mem), &m_linkData.m_clLinksRestLengthSquared.m_buffer);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,7, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
-	ciErrNum = clSetKernelArg(solvePositionsFromLinksKernel,8, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,0, sizeof(int), &startLink);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,1, sizeof(int), &numLinks);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,2, sizeof(float), &kst);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,3, sizeof(float), &ti);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,4, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,5, sizeof(cl_mem), &m_linkData.m_clLinksMassLSC.m_buffer);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,6, sizeof(cl_mem), &m_linkData.m_clLinksRestLengthSquared.m_buffer);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,7, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
+	ciErrNum = clSetKernelArg(m_solvePositionsFromLinksKernel,8, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((numLinks + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,solvePositionsFromLinksKernel,1,NULL,&numWorkItems,&m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_solvePositionsFromLinksKernel,1,NULL,&numWorkItems,&m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum!= CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(solvePositionsFromLinksKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_solvePositionsFromLinksKernel)");
 	}
 
 } // solveLinksForPosition
@@ -1270,45 +1369,44 @@ void btOpenCLSoftBodySolver::solveLinksForPosition( int startLink, int numLinks,
 
 void btOpenCLSoftBodySolver::solveLinksForVelocity( int startLink, int numLinks, float kst )
 {
-
 	cl_int ciErrNum;
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 0, sizeof(int), &startLink);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 1, sizeof(int), &numLinks);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 2, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 3, sizeof(cl_mem), &m_linkData.m_clLinksLengthRatio.m_buffer);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 4, sizeof(cl_mem), &m_linkData.m_clLinksCLength.m_buffer);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 5, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
-	ciErrNum = clSetKernelArg(vSolveLinksKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 0, sizeof(int), &startLink);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 1, sizeof(int), &numLinks);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 2, sizeof(float), &kst);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 3, sizeof(cl_mem), &m_linkData.m_clLinks.m_buffer);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 4, sizeof(cl_mem), &m_linkData.m_clLinksLengthRatio.m_buffer);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 5, sizeof(cl_mem), &m_linkData.m_clLinksCLength.m_buffer);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 6, sizeof(cl_mem), &m_vertexData.m_clVertexInverseMass.m_buffer);
+	ciErrNum = clSetKernelArg(m_vSolveLinksKernel, 7, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((numLinks + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,vSolveLinksKernel,1,NULL,&numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_vSolveLinksKernel,1,NULL,&numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(vSolveLinksKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_vSolveLinksKernel)");
 	}
 
 }
 
 void btOpenCLSoftBodySolver::updateVelocitiesFromPositionsWithVelocities( float isolverdt )
 {
-
 	cl_int ciErrNum;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel,0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 1, sizeof(float), &isolverdt);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clClothIdentifier.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 5, sizeof(cl_mem), &m_clPerClothVelocityCorrectionCoefficient.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 6, sizeof(cl_mem), &m_clPerClothDampingFactor.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 7, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithVelocitiesKernel, 8, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel,0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 1, sizeof(float), &isolverdt);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 2, sizeof(cl_mem), &m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 3, sizeof(cl_mem), &m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 4, sizeof(cl_mem), &m_vertexData.m_clClothIdentifier.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 5, sizeof(cl_mem), &m_clPerClothVelocityCorrectionCoefficient.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 6, sizeof(cl_mem), &m_clPerClothDampingFactor.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 7, sizeof(cl_mem), &m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithVelocitiesKernel, 8, sizeof(cl_mem), &m_vertexData.m_clVertexForceAccumulator.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,updateVelocitiesFromPositionsWithVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_updateVelocitiesFromPositionsWithVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(updateVelocitiesFromPositionsWithVelocitiesKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_updateVelocitiesFromPositionsWithVelocitiesKernel)");
 	}
 
 
@@ -1316,23 +1414,22 @@ void btOpenCLSoftBodySolver::updateVelocitiesFromPositionsWithVelocities( float 
 
 void btOpenCLSoftBodySolver::updateVelocitiesFromPositionsWithoutVelocities( float isolverdt )
 {
-
 	cl_int ciErrNum;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 1, sizeof(float), &isolverdt);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 2, sizeof(cl_mem),&m_vertexData.m_clVertexPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 3, sizeof(cl_mem),&m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 4, sizeof(cl_mem),&m_vertexData.m_clClothIdentifier.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 5, sizeof(cl_mem),&m_clPerClothDampingFactor.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 6, sizeof(cl_mem),&m_vertexData.m_clVertexVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(updateVelocitiesFromPositionsWithoutVelocitiesKernel, 7, sizeof(cl_mem),&m_vertexData.m_clVertexForceAccumulator.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 1, sizeof(float), &isolverdt);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 2, sizeof(cl_mem),&m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 3, sizeof(cl_mem),&m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 4, sizeof(cl_mem),&m_vertexData.m_clClothIdentifier.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 5, sizeof(cl_mem),&m_clPerClothDampingFactor.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 6, sizeof(cl_mem),&m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 7, sizeof(cl_mem),&m_vertexData.m_clVertexForceAccumulator.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
-	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,updateVelocitiesFromPositionsWithoutVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+	ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_updateVelocitiesFromPositionsWithoutVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 	if( ciErrNum != CL_SUCCESS ) 
 	{
-		btAssert( 0 &&  "enqueueNDRangeKernel(updateVelocitiesFromPositionsWithoutVelocitiesKernel)");
+		btAssert( 0 &&  "enqueueNDRangeKernel(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel)");
 	}
 
 } // updateVelocitiesFromPositionsWithoutVelocities
@@ -1341,7 +1438,6 @@ void btOpenCLSoftBodySolver::updateVelocitiesFromPositionsWithoutVelocities( flo
 
 void btOpenCLSoftBodySolver::solveCollisionsAndUpdateVelocities( float isolverdt )
 {
-
 	// Copy kernel parameters to GPU
 	m_vertexData.moveToAccelerator();
 	m_clPerClothFriction.moveToGPU();
@@ -1349,28 +1445,27 @@ void btOpenCLSoftBodySolver::solveCollisionsAndUpdateVelocities( float isolverdt
 	m_clPerClothCollisionObjects.moveToGPU();
 	m_clCollisionObjectDetails.moveToGPU();
 
-
 	cl_int ciErrNum;
 	int numVerts = m_vertexData.getNumVertices();
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 0, sizeof(int), &numVerts);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 1, sizeof(int), &isolverdt);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 2, sizeof(cl_mem),&m_vertexData.m_clClothIdentifier.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 3, sizeof(cl_mem),&m_vertexData.m_clVertexPreviousPosition.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 4, sizeof(cl_mem),&m_clPerClothFriction.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 5, sizeof(cl_mem),&m_clPerClothDampingFactor.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 6, sizeof(cl_mem),&m_clPerClothCollisionObjects.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 7, sizeof(cl_mem),&m_clCollisionObjectDetails.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 8, sizeof(cl_mem),&m_vertexData.m_clVertexForceAccumulator.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 9, sizeof(cl_mem),&m_vertexData.m_clVertexVelocity.m_buffer);
-	ciErrNum = clSetKernelArg(solveCollisionsAndUpdateVelocitiesKernel, 10, sizeof(cl_mem),&m_vertexData.m_clVertexPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 0, sizeof(int), &numVerts);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 1, sizeof(int), &isolverdt);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 2, sizeof(cl_mem),&m_vertexData.m_clClothIdentifier.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 3, sizeof(cl_mem),&m_vertexData.m_clVertexPreviousPosition.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 4, sizeof(cl_mem),&m_clPerClothFriction.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 5, sizeof(cl_mem),&m_clPerClothDampingFactor.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 6, sizeof(cl_mem),&m_clPerClothCollisionObjects.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 7, sizeof(cl_mem),&m_clCollisionObjectDetails.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 8, sizeof(cl_mem),&m_vertexData.m_clVertexForceAccumulator.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 9, sizeof(cl_mem),&m_vertexData.m_clVertexVelocity.m_buffer);
+	ciErrNum = clSetKernelArg(m_solveCollisionsAndUpdateVelocitiesKernel, 10, sizeof(cl_mem),&m_vertexData.m_clVertexPosition.m_buffer);
 
 	size_t	numWorkItems = m_defaultWorkGroupSize*((m_vertexData.getNumVertices() + (m_defaultWorkGroupSize-1)) / m_defaultWorkGroupSize);
 	if (numWorkItems)
 	{
-		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,solveCollisionsAndUpdateVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
+		ciErrNum = clEnqueueNDRangeKernel(m_cqCommandQue,m_solveCollisionsAndUpdateVelocitiesKernel, 1, NULL, &numWorkItems, &m_defaultWorkGroupSize,0,0,0);
 		if( ciErrNum != CL_SUCCESS ) 
 		{
-			btAssert( 0 &&  "enqueueNDRangeKernel(updateVelocitiesFromPositionsWithoutVelocitiesKernel)");
+			btAssert( 0 &&  "enqueueNDRangeKernel(m_updateVelocitiesFromPositionsWithoutVelocitiesKernel)");
 		}
 	}
 
@@ -1440,10 +1535,10 @@ void btSoftBodySolverOutputCLtoCPU::copySoftBodyToVertexBuffer( const btSoftBody
 
 
 
-cl_kernel CLFunctions::compileCLKernelFromString( const char* kernelSource, const char* kernelName, const char* additionalMacros )
+cl_kernel CLFunctions::compileCLKernelFromString( const char* kernelSource, const char* kernelName, const char* additionalMacros ,const char* orgSrcFileNameForCaching)
 {
 	printf("compiling kernelName: %s ",kernelName);
-	cl_kernel kernel;
+	cl_kernel kernel=0;
 	cl_int ciErrNum;
 	size_t program_length = strlen(kernelSource);
 
@@ -1485,8 +1580,11 @@ cl_kernel CLFunctions::compileCLKernelFromString( const char* kernelSource, cons
 			printf("Error in clBuildProgram, Line %u in file %s, Log: \n%s\n !!!\n\n", __LINE__, __FILE__, build_log);
 			delete[] build_log;
 		}
+#ifndef BT_SUPPRESS_OPENCL_ASSERTS
 		btAssert(0);
-        exit(0);
+#endif //BT_SUPPRESS_OPENCL_ASSERTS
+		m_kernelCompilationFailures++;
+		return 0;
     }
 	
 	
@@ -1494,13 +1592,45 @@ cl_kernel CLFunctions::compileCLKernelFromString( const char* kernelSource, cons
     kernel = clCreateKernel(m_cpProgram, kernelName, &ciErrNum);
     if (ciErrNum != CL_SUCCESS)
     {
-        printf("Error in clCreateKernel, Line %u in file %s !!!\n\n", __LINE__, __FILE__);
+		const char* msg = "";
+        switch(ciErrNum)
+        {
+        case CL_INVALID_PROGRAM:
+            msg = "Program is not a valid program object.";
+            break;
+        case CL_INVALID_PROGRAM_EXECUTABLE:
+            msg = "There is no successfully built executable for program.";
+            break;
+        case CL_INVALID_KERNEL_NAME:
+            msg = "kernel_name is not found in program.";
+            break;
+        case CL_INVALID_KERNEL_DEFINITION:
+            msg = "the function definition for __kernel function given by kernel_name such as the number of arguments, the argument types are not the same for all devices for which the program executable has been built.";
+            break;
+        case CL_INVALID_VALUE:
+            msg = "kernel_name is NULL.";
+            break;
+        case CL_OUT_OF_HOST_MEMORY:
+            msg = "Failure to allocate resources required by the OpenCL implementation on the host.";
+            break;
+		default:
+			{
+			}
+        }
+
+        printf("Error in clCreateKernel for kernel '%s', error is \"%s\", Line %u in file %s !!!\n\n", kernelName, msg, __LINE__, __FILE__);
+
+#ifndef BT_SUPPRESS_OPENCL_ASSERTS
 		btAssert(0);
-		exit(0);
+#endif //BT_SUPPRESS_OPENCL_ASSERTS
+		m_kernelCompilationFailures++;
+		return 0;
     }
 
 	printf("ready. \n");
 	delete [] compileFlags;
+	if (!kernel)
+		m_kernelCompilationFailures++;
 	return kernel;
 
 }
@@ -1511,24 +1641,29 @@ void btOpenCLSoftBodySolver::predictMotion( float timeStep )
 	// Ensure that the DX11 ones are moved off the device so they will be updated correctly
 	m_clCollisionObjectDetails.changedOnCPU();
 	m_clPerClothCollisionObjects.changedOnCPU();
-	m_collisionObjectDetails.clear();
-	
-	{
-		BT_PROFILE("perClothWindVelocity");
-		// Fill the force arrays with current acceleration data etc
-		m_perClothWindVelocity.resize( m_softBodySet.size() );
-		for( int softBodyIndex = 0; softBodyIndex < m_softBodySet.size(); ++softBodyIndex )
-		{
-			btSoftBody *softBody = m_softBodySet[softBodyIndex]->getSoftBody();
-			
-			m_perClothWindVelocity[softBodyIndex] = toVector3(softBody->getWindVelocity());
-		}
-	}
-	{
-		BT_PROFILE("changedOnCPU");
-		m_clPerClothWindVelocity.changedOnCPU();
-	}
+	m_collisionObjectDetails.clear();	
 
+	if ( m_bUpdateAnchoredNodePos )
+	{
+		// In OpenCL cloth solver, if softbody node has zero inverse mass(infinite mass) or anchor attached, 
+		// we need to update the node position in case the node or anchor is animated externally.
+		// If there is no such node, we can eliminate the unnecessary CPU-to-GPU data trasferring. 
+		for ( int i = 0; i < m_anchorNodeInfoArray.size(); i++ )
+		{
+			const AnchorNodeInfoCL& anchorNodeInfo = m_anchorNodeInfoArray[i];
+			btSoftBody::Node* node = anchorNodeInfo.pNode;
+
+			using Vectormath::Aos::Point3;
+			Point3 pos((float)node->m_x.getX(), (float)node->m_x.getY(), (float)node->m_x.getZ());				
+			m_anchorPosition[i] = pos;
+		}
+
+		if ( m_anchorNodeInfoArray.size() > 0 )
+			m_clAnchorPosition.changedOnCPU();
+
+		updateFixedVertexPositions();
+	}
+		
 	{
 		BT_PROFILE("applyForces");
 		// Apply forces that we know about to the cloths
@@ -1560,7 +1695,7 @@ static Vectormath::Aos::Transform3 toTransform3( const btTransform &transform )
 
 void btOpenCLAcceleratedSoftBodyInterface::updateBounds( const btVector3 &lowerBound, const btVector3 &upperBound )
 {
-	float scalarMargin = this->getSoftBody()->getCollisionShape()->getMargin();
+	float scalarMargin = (float)getSoftBody()->getCollisionShape()->getMargin();
 	btVector3 vectorMargin( scalarMargin, scalarMargin, scalarMargin );
 	m_softBody->m_bounds[0] = lowerBound - vectorMargin;
 	m_softBody->m_bounds[1] = upperBound + vectorMargin;
@@ -1572,14 +1707,14 @@ void btOpenCLSoftBodySolver::processCollision( btSoftBody*, btSoftBody* )
 }
 
 // Add the collision object to the set to deal with for a particular soft body
-void btOpenCLSoftBodySolver::processCollision( btSoftBody *softBody, btCollisionObject* collisionObject )
+void btOpenCLSoftBodySolver::processCollision( btSoftBody *softBody, const btCollisionObjectWrapper* collisionObject )
 {
  	int softBodyIndex = findSoftBodyIndex( softBody );
 
 	if( softBodyIndex >= 0 )
 	{
-		btCollisionShape *collisionShape = collisionObject->getCollisionShape();
-		float friction = collisionObject->getFriction();
+		const btCollisionShape *collisionShape = collisionObject->getCollisionShape();
+		float friction = collisionObject->getCollisionObject()->getFriction();
 		int shapeType = collisionShape->getShapeType();
 		if( shapeType == CAPSULE_SHAPE_PROXYTYPE )
 		{
@@ -1589,22 +1724,26 @@ void btOpenCLSoftBodySolver::processCollision( btSoftBody *softBody, btCollision
 			newCollisionShapeDescription.collisionShapeType = shapeType;
 			// TODO: May need to transpose this matrix either here or in HLSL
 			newCollisionShapeDescription.shapeTransform = toTransform3(collisionObject->getWorldTransform());
-			btCapsuleShape *capsule = static_cast<btCapsuleShape*>( collisionShape );
+			const btCapsuleShape *capsule = static_cast<const btCapsuleShape*>( collisionShape );
 			newCollisionShapeDescription.radius = capsule->getRadius();
 			newCollisionShapeDescription.halfHeight = capsule->getHalfHeight();
 			newCollisionShapeDescription.margin = capsule->getMargin();
 			newCollisionShapeDescription.upAxis = capsule->getUpAxis();
 			newCollisionShapeDescription.friction = friction;
-			btRigidBody* body = static_cast< btRigidBody* >( collisionObject );
+			const btRigidBody* body = static_cast< const btRigidBody* >( collisionObject->getCollisionObject() );
 			newCollisionShapeDescription.linearVelocity = toVector3(body->getLinearVelocity());
 			newCollisionShapeDescription.angularVelocity = toVector3(body->getAngularVelocity());
 			m_collisionObjectDetails.push_back( newCollisionShapeDescription );
 
-		} else {
-			btAssert(0 && "Unsupported collision shape type\n");
+		} 		
+		else {
+#ifdef _DEBUG
+			printf("Unsupported collision shape type\n");
+#endif
+			//btAssert(0 && "Unsupported collision shape type\n");
 		}
 	} else {
-		btAssert("Unknown soft body");
+		btAssert(0 && "Unknown soft body");
 	}
 } // btOpenCLSoftBodySolver::processCollision
 
@@ -1646,31 +1785,36 @@ bool btOpenCLSoftBodySolver::checkInitialized()
 
 bool btOpenCLSoftBodySolver::buildShaders()
 {
-	// Ensure current kernels are released first
-	releaseKernels();
-
-	bool returnVal = true;
-
 	if( m_shadersInitialized )
 		return true;
+
+	const char* additionalMacros="";
+
+	// Ensure current kernels are released first
+	releaseKernels();
 	
-	prepareLinksKernel = clFunctions.compileCLKernelFromString( PrepareLinksCLString, "PrepareLinksKernel" );
-	updatePositionsFromVelocitiesKernel = clFunctions.compileCLKernelFromString( UpdatePositionsFromVelocitiesCLString, "UpdatePositionsFromVelocitiesKernel" );
-	solvePositionsFromLinksKernel = clFunctions.compileCLKernelFromString( SolvePositionsCLString, "SolvePositionsFromLinksKernel" );
-	updateVelocitiesFromPositionsWithVelocitiesKernel = clFunctions.compileCLKernelFromString( UpdateNodesCLString, "updateVelocitiesFromPositionsWithVelocitiesKernel" );
-	updateVelocitiesFromPositionsWithoutVelocitiesKernel = clFunctions.compileCLKernelFromString( UpdatePositionsCLString, "updateVelocitiesFromPositionsWithoutVelocitiesKernel" );
-	solveCollisionsAndUpdateVelocitiesKernel = clFunctions.compileCLKernelFromString( SolveCollisionsAndUpdateVelocitiesCLString, "SolveCollisionsAndUpdateVelocitiesKernel" );
-	integrateKernel = clFunctions.compileCLKernelFromString( IntegrateCLString, "IntegrateKernel" );
-	applyForcesKernel = clFunctions.compileCLKernelFromString( ApplyForcesCLString, "ApplyForcesKernel" );
+	m_currentCLFunctions->clearKernelCompilationFailures();
+
+	m_prepareLinksKernel = m_currentCLFunctions->compileCLKernelFromString( PrepareLinksCLString, "PrepareLinksKernel",additionalMacros,"OpenCLC10/PrepareLinks.cl" );
+	m_updatePositionsFromVelocitiesKernel = m_currentCLFunctions->compileCLKernelFromString( UpdatePositionsFromVelocitiesCLString, "UpdatePositionsFromVelocitiesKernel" ,additionalMacros,"OpenCLC10/UpdatePositionsFromVelocities.cl");
+	m_solvePositionsFromLinksKernel = m_currentCLFunctions->compileCLKernelFromString( SolvePositionsCLString, "SolvePositionsFromLinksKernel",additionalMacros,"OpenCLC10/SolvePositions.cl" );
+	m_vSolveLinksKernel = m_currentCLFunctions->compileCLKernelFromString( VSolveLinksCLString, "VSolveLinksKernel" ,additionalMacros,"OpenCLC10/VSolveLinks.cl");
+	m_updateVelocitiesFromPositionsWithVelocitiesKernel = m_currentCLFunctions->compileCLKernelFromString( UpdateNodesCLString, "updateVelocitiesFromPositionsWithVelocitiesKernel" ,additionalMacros,"OpenCLC10/UpdateNodes.cl");
+	m_updateVelocitiesFromPositionsWithoutVelocitiesKernel = m_currentCLFunctions->compileCLKernelFromString( UpdatePositionsCLString, "updateVelocitiesFromPositionsWithoutVelocitiesKernel" ,additionalMacros,"OpenCLC10/UpdatePositions.cl");
+	m_solveCollisionsAndUpdateVelocitiesKernel = m_currentCLFunctions->compileCLKernelFromString( SolveCollisionsAndUpdateVelocitiesCLString, "SolveCollisionsAndUpdateVelocitiesKernel" ,additionalMacros,"OpenCLC10/SolveCollisionsAndUpdateVelocities.cl");
+	m_integrateKernel = m_currentCLFunctions->compileCLKernelFromString( IntegrateCLString, "IntegrateKernel" ,additionalMacros,"OpenCLC10/Integrate.cl");
+	m_applyForcesKernel = m_currentCLFunctions->compileCLKernelFromString( ApplyForcesCLString, "ApplyForcesKernel" ,additionalMacros,"OpenCLC10/ApplyForces.cl");
+	m_updateFixedVertexPositionsKernel = m_currentCLFunctions->compileCLKernelFromString( UpdateFixedVertexPositionsCLString, "UpdateFixedVertexPositions" , additionalMacros, "OpenCLC10/UpdateFixedVertexPositions.cl");
 
 	// TODO: Rename to UpdateSoftBodies
-	resetNormalsAndAreasKernel = clFunctions.compileCLKernelFromString( UpdateNormalsCLString, "ResetNormalsAndAreasKernel" );
-	normalizeNormalsAndAreasKernel = clFunctions.compileCLKernelFromString( UpdateNormalsCLString, "NormalizeNormalsAndAreasKernel" );
-	updateSoftBodiesKernel = clFunctions.compileCLKernelFromString( UpdateNormalsCLString, "UpdateSoftBodiesKernel" );
+	m_resetNormalsAndAreasKernel = m_currentCLFunctions->compileCLKernelFromString( UpdateNormalsCLString, "ResetNormalsAndAreasKernel" ,additionalMacros,"OpenCLC10/UpdateNormals.cl");
+	m_normalizeNormalsAndAreasKernel = m_currentCLFunctions->compileCLKernelFromString( UpdateNormalsCLString, "NormalizeNormalsAndAreasKernel" ,additionalMacros,"OpenCLC10/UpdateNormals.cl");
+	m_updateSoftBodiesKernel = m_currentCLFunctions->compileCLKernelFromString( UpdateNormalsCLString, "UpdateSoftBodiesKernel" ,additionalMacros,"OpenCLC10/UpdateNormals.cl");
 
 
-	if( returnVal )
+	if( m_currentCLFunctions->getKernelCompilationFailures()==0 )
 		m_shadersInitialized = true;
 
-	return returnVal;
+	return m_shadersInitialized;
 }
+

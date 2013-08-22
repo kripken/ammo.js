@@ -1017,7 +1017,7 @@ public:
         spacebar_mouse_click = true;    /* Does spacebar simulate a mouse click? */
         live_type      = GLUI_LIVE_NONE;
         text = "";
-        last_live_text == "";
+       // last_live_text == "";
         live_inited    = false;
         collapsible    = false;
         is_open        = true;
@@ -2155,7 +2155,7 @@ public:
     void set_text( const char *text );
     const char *get_text( void )         { return text.c_str(); }
 
-    void dump( FILE *out, char *text );
+    void dump( FILE *out, const char *text );
     void set_tab_w(int w) { tab_width = w; }
     void set_start_line(int l) { start_line = l; }
     static void scrollbar_callback(GLUI_Control*);

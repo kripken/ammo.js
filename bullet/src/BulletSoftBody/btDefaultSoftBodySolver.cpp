@@ -35,7 +35,7 @@ btDefaultSoftBodySolver::~btDefaultSoftBodySolver()
 }
 
 // In this case the data is already in the soft bodies so there is no need for us to do anything
-void btDefaultSoftBodySolver::copyBackToSoftBodies()
+void btDefaultSoftBodySolver::copyBackToSoftBodies(bool bMove)
 {
 
 }
@@ -130,9 +130,9 @@ void btDefaultSoftBodySolver::processCollision( btSoftBody* softBody, btSoftBody
 }
 
 // For the default solver just leave the soft body to do its collision processing
-void btDefaultSoftBodySolver::processCollision( btSoftBody *softBody, btCollisionObject* collisionObject )
+void btDefaultSoftBodySolver::processCollision( btSoftBody *softBody, const btCollisionObjectWrapper* collisionObjectWrap )
 {
-	softBody->defaultCollisionHandler( collisionObject );
+	softBody->defaultCollisionHandler( collisionObjectWrap );
 } // btDefaultSoftBodySolver::processCollision
 
 

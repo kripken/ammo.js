@@ -13,7 +13,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "BulletMultiThreaded/GpuSoftBodySolvers/CPU/btSoftBodySolverData.h"
+#include "BulletMultiThreaded/GpuSoftBodySolvers/Shared/btSoftBodySolverData.h"
 #include "btSoftBodySolverBuffer_OpenCL.h"
 
 #ifndef BT_SOFT_BODY_SOLVER_VERTEX_DATA_OPENCL_H
@@ -45,7 +45,7 @@ public:
 
 	virtual bool moveToAccelerator();
 
-	virtual bool moveFromAccelerator();
+	virtual bool moveFromAccelerator(bool bCopy = false, bool bCopyMinimum = true);
 };
 
 

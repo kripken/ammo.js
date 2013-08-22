@@ -19,7 +19,7 @@ subject to the following restrictions:
 
 #include "BulletSoftBody/btSoftBodySolvers.h"
 #include "btSoftBodySolverVertexBuffer.h"
-
+struct btCollisionObjectWrapper;
 
 class btDefaultSoftBodySolver : public btSoftBodySolver
 {
@@ -46,7 +46,7 @@ public:
 
 	virtual void optimize( btAlignedObjectArray< btSoftBody * > &softBodies,bool forceUpdate=false );
 
-	virtual void copyBackToSoftBodies();
+	virtual void copyBackToSoftBodies(bool bMove = true);
 
 	virtual void solveConstraints( float solverdt );
 
@@ -54,7 +54,7 @@ public:
 
 	virtual void copySoftBodyToVertexBuffer( const btSoftBody *const softBody, btVertexBufferDescriptor *vertexBuffer );
 
-	virtual void processCollision( btSoftBody *, btCollisionObject* );
+	virtual void processCollision( btSoftBody *, const btCollisionObjectWrapper* );
 
 	virtual void processCollision( btSoftBody*, btSoftBody* );
 

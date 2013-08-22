@@ -272,8 +272,8 @@ class btConvexHullInternal
 		class Rational64
 		{
 			private:
-				uint64_t numerator;
-				uint64_t denominator;
+				uint64_t m_numerator;
+				uint64_t m_denominator;
 				int sign;
 				
 			public:
@@ -282,48 +282,48 @@ class btConvexHullInternal
 					if (numerator > 0)
 					{
 						sign = 1;
-						this->numerator = (uint64_t) numerator;
+						m_numerator = (uint64_t) numerator;
 					}
 					else if (numerator < 0)
 					{
 						sign = -1;
-						this->numerator = (uint64_t) -numerator;
+						m_numerator = (uint64_t) -numerator;
 					}
 					else
 					{
 						sign = 0;
-						this->numerator = 0;
+						m_numerator = 0;
 					}
 					if (denominator > 0)
 					{
-						this->denominator = (uint64_t) denominator;
+						m_denominator = (uint64_t) denominator;
 					}
 					else if (denominator < 0)
 					{
 						sign = -sign;
-						this->denominator = (uint64_t) -denominator;
+						m_denominator = (uint64_t) -denominator;
 					}
 					else
 					{
-						this->denominator = 0;
+						m_denominator = 0;
 					}
 				}
 				
 				bool isNegativeInfinity() const
 				{
-					return (sign < 0) && (denominator == 0);
+					return (sign < 0) && (m_denominator == 0);
 				}
 				
 				bool isNaN() const
 				{
-					return (sign == 0) && (denominator == 0);
+					return (sign == 0) && (m_denominator == 0);
 				}
 				
 				int compare(const Rational64& b) const;
 				
 				btScalar toScalar() const
 				{
-					return sign * ((denominator == 0) ? SIMD_INFINITY : (btScalar) numerator / denominator);
+					return sign * ((m_denominator == 0) ? SIMD_INFINITY : (btScalar) m_numerator / m_denominator);
 				}
 		};
 
@@ -932,7 +932,7 @@ int btConvexHullInternal::Rational64::compare(const Rational64& b) const
 
 #else
 
-	return sign * Int128::mul(numerator, b.denominator).ucmp(Int128::mul(denominator, b.numerator));
+	return sign * Int128::mul(m_numerator, b.m_denominator).ucmp(Int128::mul(m_denominator, b.m_numerator));
 
 #endif
 }
@@ -1974,17 +1974,21 @@ void btConvexHullInternal::compute(const void* coords, bool doubleCoords, int st
 	medAxis = 3 - maxAxis - minAxis;
 
 	s /= btScalar(10216);
-
+	if (((medAxis + 1) % 3) != maxAxis)
+	{
+		s *= -1;
+	}
 	scaling = s;
-	if (s[0] > 0)
+
+	if (s[0] != 0)
 	{
 		s[0] = btScalar(1) / s[0];
 	}
-	if (s[1] > 0)
+	if (s[1] != 0)
 	{
 		s[1] = btScalar(1) / s[1];
 	}
-	if (s[2] > 0)
+	if (s[2] != 0)
 	{
 		s[2] = btScalar(1) / s[2];
 	}
@@ -2065,9 +2069,7 @@ btVector3 btConvexHullInternal::toBtVector(const Point32& v)
 
 btVector3 btConvexHullInternal::getBtNormal(Face* face)
 {
-	btVector3 normal = toBtVector(face->dir0).cross(toBtVector(face->dir1));
-	normal /= ((medAxis + 1 == maxAxis) || (medAxis - 2 == maxAxis)) ? normal.length() : -normal.length();
-	return normal;
+	return toBtVector(face->dir0).cross(toBtVector(face->dir1)).normalized();
 }
 
 btVector3 btConvexHullInternal::getCoordinates(const Vertex* v)
@@ -2203,15 +2205,15 @@ btScalar btConvexHullInternal::shrink(btScalar amount, btScalar clampAmount)
 bool btConvexHullInternal::shiftFace(Face* face, btScalar amount, btAlignedObjectArray<Vertex*> stack)
 {
 	btVector3 origShift = getBtNormal(face) * -amount;
-	if (scaling[0] > 0)
+	if (scaling[0] != 0)
 	{
 		origShift[0] /= scaling[0];
 	}
-	if (scaling[1] > 0)
+	if (scaling[1] != 0)
 	{
 		origShift[1] /= scaling[1];
 	}
-	if (scaling[2] > 0)
+	if (scaling[2] != 0)
 	{
 		origShift[2] /= scaling[2];
 	}

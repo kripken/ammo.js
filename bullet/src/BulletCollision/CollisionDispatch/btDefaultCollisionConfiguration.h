@@ -78,10 +78,8 @@ protected:
 	btCollisionAlgorithmCreateFunc*	m_swappedCompoundCreateFunc;
 	btCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 	btCollisionAlgorithmCreateFunc* m_sphereSphereCF;
-#ifdef USE_BUGGY_SPHERE_BOX_ALGORITHM
 	btCollisionAlgorithmCreateFunc* m_sphereBoxCF;
 	btCollisionAlgorithmCreateFunc* m_boxSphereCF;
-#endif //USE_BUGGY_SPHERE_BOX_ALGORITHM
 
 	btCollisionAlgorithmCreateFunc* m_boxBoxCF;
 	btCollisionAlgorithmCreateFunc*	m_sphereTriangleCF;
@@ -128,6 +126,8 @@ public:
 	///See Bullet/Demos/CollisionDemo for an example how this feature gathers multiple points.
 	///@todo we could add a per-object setting of those parameters, for level-of-detail collision detection.
 	void	setConvexConvexMultipointIterations(int numPerturbationIterations=3, int minimumPointsPerturbationThreshold = 3);
+
+	void	setPlaneConvexMultipointIterations(int numPerturbationIterations=3, int minimumPointsPerturbationThreshold = 3);
 
 };
 

@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
 #include "LinearMath/btQuickprof.h"
 #include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuCollisionShapes.h"
-
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
 
 
@@ -166,7 +166,10 @@ public:
 						collisionPair.m_internalTmpValue =  2;
 					} else
 					{
-						collisionPair.m_algorithm = m_dispatcher->findAlgorithm(colObj0,colObj1);
+						btCollisionObjectWrapper ob0(0,colObj0->getCollisionShape(),colObj0,colObj0->getWorldTransform());
+						btCollisionObjectWrapper ob1(0,colObj1->getCollisionShape(),colObj1,colObj1->getWorldTransform());
+
+						collisionPair.m_algorithm = m_dispatcher->findAlgorithm(&ob0,&ob1);
 						collisionPair.m_internalTmpValue = 3;
 					}
 				} 
@@ -205,55 +208,60 @@ void	SpuGatheringCollisionDispatcher::dispatchAllCollisionPairs(btOverlappingPai
 
 		//send one big batch
 		int numTotalPairs = pairCache->getNumOverlappingPairs();
-		
-		btBroadphasePair* pairPtr = pairCache->getOverlappingPairArrayPtr();
-		int i;
+		if (numTotalPairs)
 		{
-			int pairRange =	SPU_BATCHSIZE_BROADPHASE_PAIRS;
-			if (numTotalPairs < (m_spuCollisionTaskProcess->getNumTasks()*SPU_BATCHSIZE_BROADPHASE_PAIRS))
+			btBroadphasePair* pairPtr = pairCache->getOverlappingPairArrayPtr();
+			int i;
 			{
-				pairRange = (numTotalPairs/m_spuCollisionTaskProcess->getNumTasks())+1;
-			}
-
-			BT_PROFILE("addWorkToTask");
-			for (i=0;i<numTotalPairs;)
-			{
-				//Performance Hint: tweak this number during benchmarking
-				
-				int endIndex = (i+pairRange) < numTotalPairs ? i+pairRange : numTotalPairs;
-				m_spuCollisionTaskProcess->addWorkToTask(pairPtr,i,endIndex);
-				i = endIndex;
-			}
-		}
-
-		{
-			BT_PROFILE("PPU fallback");
-			//handle PPU fallback pairs
-			for (i=0;i<numTotalPairs;i++)
-			{
-				btBroadphasePair& collisionPair = pairPtr[i];
-				if (collisionPair.m_internalTmpValue == 3)
+				int pairRange =	SPU_BATCHSIZE_BROADPHASE_PAIRS;
+				if (numTotalPairs < (m_spuCollisionTaskProcess->getNumTasks()*SPU_BATCHSIZE_BROADPHASE_PAIRS))
 				{
-					if (collisionPair.m_algorithm)
+					pairRange = (numTotalPairs/m_spuCollisionTaskProcess->getNumTasks())+1;
+				}
+	
+				BT_PROFILE("addWorkToTask");
+				for (i=0;i<numTotalPairs;)
+				{
+					//Performance Hint: tweak this number during benchmarking
+					
+					int endIndex = (i+pairRange) < numTotalPairs ? i+pairRange : numTotalPairs;
+					m_spuCollisionTaskProcess->addWorkToTask(pairPtr,i,endIndex);
+					i = endIndex;
+				}
+			}
+			{
+				BT_PROFILE("PPU fallback");
+				//handle PPU fallback pairs
+				for (i=0;i<numTotalPairs;i++)
+				{
+					btBroadphasePair& collisionPair = pairPtr[i];
+					if (collisionPair.m_internalTmpValue == 3)
 					{
-						btCollisionObject* colObj0 = (btCollisionObject*)collisionPair.m_pProxy0->m_clientObject;
-						btCollisionObject* colObj1 = (btCollisionObject*)collisionPair.m_pProxy1->m_clientObject;
-
-						if (dispatcher->needsCollision(colObj0,colObj1))
+						if (collisionPair.m_algorithm)
 						{
-							btManifoldResult contactPointResult(colObj0,colObj1);
-							
-							if (dispatchInfo.m_dispatchFunc == 		btDispatcherInfo::DISPATCH_DISCRETE)
+							btCollisionObject* colObj0 = (btCollisionObject*)collisionPair.m_pProxy0->m_clientObject;
+							btCollisionObject* colObj1 = (btCollisionObject*)collisionPair.m_pProxy1->m_clientObject;
+	
+							if (dispatcher->needsCollision(colObj0,colObj1))
 							{
-								//discrete collision detection query
-								collisionPair.m_algorithm->processCollision(colObj0,colObj1,dispatchInfo,&contactPointResult);
-							} else
-							{
-								//continuous collision detection query, time of impact (toi)
-								btScalar toi = collisionPair.m_algorithm->calculateTimeOfImpact(colObj0,colObj1,dispatchInfo,&contactPointResult);
-								if (dispatchInfo.m_timeOfImpact > toi)
-									dispatchInfo.m_timeOfImpact = toi;
+							//discrete collision detection query
+								btCollisionObjectWrapper ob0(0,colObj0->getCollisionShape(),colObj0,colObj0->getWorldTransform());
+								btCollisionObjectWrapper ob1(0,colObj1->getCollisionShape(),colObj1,colObj1->getWorldTransform());
 
+								btManifoldResult contactPointResult(&ob0,&ob1);
+								
+								if (dispatchInfo.m_dispatchFunc == 		btDispatcherInfo::DISPATCH_DISCRETE)
+								{
+									
+									collisionPair.m_algorithm->processCollision(&ob0,&ob1,dispatchInfo,&contactPointResult);
+								} else
+								{
+									//continuous collision detection query, time of impact (toi)
+									btScalar toi = collisionPair.m_algorithm->calculateTimeOfImpact(colObj0,colObj1,dispatchInfo,&contactPointResult);
+									if (dispatchInfo.m_timeOfImpact > toi)
+										dispatchInfo.m_timeOfImpact = toi;
+	
+								}
 							}
 						}
 					}
