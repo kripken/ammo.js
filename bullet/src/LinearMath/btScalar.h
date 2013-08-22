@@ -639,7 +639,7 @@ struct btTypedObject
 ///align a pointer to the provided alignment, upwards
 template <typename T>T* btAlignPointer(T* unalignedPtr, size_t alignment)
 {
-		
+	// XXX Enclosing superfluous struct removed - causes header parsing tool to fail
 	union btConvertPointerSizeT
 	{
 			T* ptr;
