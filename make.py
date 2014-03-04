@@ -136,6 +136,10 @@ try:
   #1/0.
 
   if not os.path.exists('config.h'):
+    if not os.path.exists('../configure'):
+      stage('Autogen')
+      Popen(['./autogen.sh'], cwd='..').communicate()
+
     stage('Configure')
 
     emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
