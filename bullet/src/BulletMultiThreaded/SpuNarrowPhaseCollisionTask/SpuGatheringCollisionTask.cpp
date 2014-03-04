@@ -127,7 +127,7 @@ bool gUseEpa = false;
 //int gNumConvexPoints0=0;
 
 ///Make sure no destructors are called on this memory
-struct	CollisionTask_LocalStoreMemory
+ATTRIBUTE_ALIGNED16(struct)	CollisionTask_LocalStoreMemory
 {
 	///This CollisionTask_LocalStoreMemory is mainly used for the SPU version, using explicit DMA
 	///Other platforms can use other memory programming models.
@@ -142,7 +142,7 @@ struct	CollisionTask_LocalStoreMemory
 	btPersistentManifold	gPersistentManifoldBuffer;
 	CollisionShape_LocalStoreMemory gCollisionShapes[2];
 	bvhMeshShape_LocalStoreMemory bvhShapeData;
-	SpuConvexPolyhedronVertexData convexVertexData[2];
+	ATTRIBUTE_ALIGNED16(SpuConvexPolyhedronVertexData convexVertexData[2]);
 	CompoundShape_LocalStoreMemory compoundShapeData[2];
 		
 	///The following pointers might either point into this local store memory, or to the original/other memory locations.
@@ -190,10 +190,27 @@ void* createCollisionLocalStoreMemory()
 {
 	return &gLocalStoreMemory;
 }
+void deleteCollisionLocalStoreMemory()
+{
+}
 #else
+
+btAlignedObjectArray<CollisionTask_LocalStoreMemory*> sLocalStorePointers;
+
 void* createCollisionLocalStoreMemory()
 {
-        return new CollisionTask_LocalStoreMemory;
+    CollisionTask_LocalStoreMemory* localStore = (CollisionTask_LocalStoreMemory*)btAlignedAlloc( sizeof(CollisionTask_LocalStoreMemory),16);
+    sLocalStorePointers.push_back(localStore);
+    return localStore;
+}
+
+void deleteCollisionLocalStoreMemory()
+{
+    for (int i=0;i<sLocalStorePointers.size();i++)
+    {
+        btAlignedFree(sLocalStorePointers[i]);
+    }
+    sLocalStorePointers.clear();
 }
 
 #endif
@@ -274,7 +291,7 @@ SIMD_FORCE_INLINE void small_cache_read_triple(	void* ls0, ppu_address_t ea0,
 
 
 
-class spuNodeCallback : public btNodeOverlapCallback
+ATTRIBUTE_ALIGNED16(class) spuNodeCallback : public btNodeOverlapCallback
 {
 	SpuCollisionPairInput* m_wuInput;
 	SpuContactResult&		m_spuContacts;
@@ -621,8 +638,9 @@ void	ProcessConvexConcaveSpuCollision(SpuCollisionPairInput* wuInput, CollisionT
 }
 
 
-int stats[11]={0,0,0,0,0,0,0,0,0,0,0};
-int degenerateStats[11]={0,0,0,0,0,0,0,0,0,0,0};
+#define MAX_DEGENERATE_STATS 15
+int stats[MAX_DEGENERATE_STATS]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int degenerateStats[MAX_DEGENERATE_STATS]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 
 ////////////////////////
@@ -758,8 +776,10 @@ void	ProcessSpuConvexConvexCollision(SpuCollisionPairInput* wuInput, CollisionTa
 		{
 			btGjkPairDetector gjk(shape0Ptr,shape1Ptr,shapeType0,shapeType1,marginA,marginB,&simplexSolver,penetrationSolver);//&vsSolver,penetrationSolver);
 			gjk.getClosestPoints(cpInput,spuContacts,0);//,debugDraw);
-			
+
+			btAssert(gjk.m_lastUsedMethod <MAX_DEGENERATE_STATS);
 			stats[gjk.m_lastUsedMethod]++;
+			btAssert(gjk.m_degenerateSimplex <MAX_DEGENERATE_STATS);
 			degenerateStats[gjk.m_degenerateSimplex]++;
 
 #ifdef USE_SEPDISTANCE_UTIL			
@@ -1361,8 +1381,8 @@ void	processCollisionTask(void* userPtr, void* lsMemPtr)
 											)
 										{
 											handleCollisionPair(collisionPairInput, lsMem, spuContacts,
-												(ppu_address_t)lsMem.getColObj0()->getRootCollisionShape(), &lsMem.gCollisionShapes[0].collisionShape,
-												(ppu_address_t)lsMem.getColObj1()->getRootCollisionShape(), &lsMem.gCollisionShapes[1].collisionShape);
+												(ppu_address_t)lsMem.getColObj0()->getCollisionShape(), &lsMem.gCollisionShapes[0].collisionShape,
+												(ppu_address_t)lsMem.getColObj1()->getCollisionShape(), &lsMem.gCollisionShapes[1].collisionShape);
 										} else
 										{
 												//spu_printf("boxbox dist = %f\n",distance);

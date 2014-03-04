@@ -53,7 +53,7 @@ btHashedOverlappingPairCache::~btHashedOverlappingPairCache()
 
 void	btHashedOverlappingPairCache::cleanOverlappingPair(btBroadphasePair& pair,btDispatcher* dispatcher)
 {
-	if (pair.m_algorithm)
+	if (pair.m_algorithm && dispatcher)
 	{
 		{
 			pair.m_algorithm->~btCollisionAlgorithm();
@@ -296,11 +296,7 @@ void* btHashedOverlappingPairCache::removeOverlappingPair(btBroadphaseProxy* pro
 	btAssert(pair->m_pProxy0->getUid() == proxyId1);
 	btAssert(pair->m_pProxy1->getUid() == proxyId2);
 
-	//int pairIndex = int(pair - &m_overlappingPairArray[0]); // XXX ammo.js: replaced this with a QUANTUM_SIZE == 1 friendly version
-	int pairIndex = (int(pair) - int(&m_overlappingPairArray[0])) / 
-	                (int(&m_overlappingPairArray[1]) - int(&m_overlappingPairArray[0])); 
-  // XXX ammo.js end
-
+	int pairIndex = int(pair - &m_overlappingPairArray[0]);
 	btAssert(pairIndex < m_overlappingPairArray.size());
 
 	// Remove the pair from the hash table.

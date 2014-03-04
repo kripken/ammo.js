@@ -18,7 +18,7 @@ SET(BulletSoftBodyOpenCLSolvers_SRCS
 SET(BulletSoftBodyOpenCLSolvers_HDRS
 	../btSoftBodySolver_OpenCL.h
 	../btSoftBodySolver_OpenCLSIMDAware.h
-	../../CPU/btSoftBodySolverData.h
+	../../Shared/btSoftBodySolverData.h
 	../btSoftBodySolverVertexData_OpenCL.h
 	../btSoftBodySolverTriangleData_OpenCL.h
 	../btSoftBodySolverLinkData_OpenCL.h
@@ -28,32 +28,12 @@ SET(BulletSoftBodyOpenCLSolvers_HDRS
 	../btSoftBodySolverOutputCLtoGL.h
 )
 
-# OpenCL and HLSL Shaders.
-# Build rules generated to stringify these into headers
-# which are needed by some of the sources
-SET(BulletSoftBodyOpenCLSolvers_Shaders
-#	OutputToVertexArray
-	UpdateNormals
-	Integrate
-	UpdatePositions
-	UpdateNodes
-	SolvePositions
-	UpdatePositionsFromVelocities
-	ApplyForces
-	PrepareLinks
-	VSolveLinks
-)
-
-foreach(f ${BulletSoftBodyOpenCLSolvers_Shaders})
-    LIST(APPEND BulletSoftBodyOpenCLSolvers_OpenCLC "../OpenCLC/${f}.cl")
-endforeach(f) 
 
 
 
 ADD_LIBRARY(BulletSoftBodySolvers_OpenCL_AMD
 	${BulletSoftBodyOpenCLSolvers_SRCS} 
 	${BulletSoftBodyOpenCLSolvers_HDRS} 
-	${BulletSoftBodyOpenCLSolvers_OpenCLC}
 )
 
 SET_TARGET_PROPERTIES(BulletSoftBodySolvers_OpenCL_AMD PROPERTIES VERSION ${BULLET_VERSION})
@@ -69,7 +49,10 @@ IF (INSTALL_LIBS)
 			IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_AMD DESTINATION .)
 			ELSE (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
-				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_AMD DESTINATION lib${LIB_SUFFIX})
+				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_AMD
+					RUNTIME DESTINATION bin
+					LIBRARY DESTINATION lib${LIB_SUFFIX}
+					ARCHIVE DESTINATION lib${LIB_SUFFIX})
 #headers are already installed by BulletMultiThreaded library
 			ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 		ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)

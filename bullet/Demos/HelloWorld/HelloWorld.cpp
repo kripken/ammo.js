@@ -13,7 +13,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-
+///-----includes_start-----
 #include "btBulletDynamicsCommon.h"
 #include <stdio.h>
 
@@ -21,8 +21,10 @@ subject to the following restrictions:
 
 int main(int argc, char** argv)
 {
+	///-----includes_end-----
 
 	int i;
+	///-----initialization_start-----
 
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -39,6 +41,8 @@ int main(int argc, char** argv)
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,overlappingPairCache,solver,collisionConfiguration);
 
 	dynamicsWorld->setGravity(btVector3(0,-10,0));
+
+	///-----initialization_end-----
 
 	///create a few basic rigid bodies
 	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.),btScalar(50.),btScalar(50.)));
@@ -108,8 +112,8 @@ int main(int argc, char** argv)
 /// Do some simulation
 
 
-
-	for (i=0;i<135;i++) // XXX Emscripten
+	///-----stepsimulation_start-----
+	for (i=0;i<100;i++)
 	{
 		dynamicsWorld->stepSimulation(1.f/60.f,10);
 		
@@ -122,13 +126,16 @@ int main(int argc, char** argv)
 			{
 				btTransform trans;
 				body->getMotionState()->getWorldTransform(trans);
-				printf("world pos = %.2f,%.2f,%.2f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ())); // XXX Emscripten
+				printf("world pos = %f,%f,%f\n",float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ()));
 			}
 		}
 	}
 
+	///-----stepsimulation_end-----
 
 	//cleanup in the reverse order of creation/initialization
+	
+	///-----cleanup_start-----
 
 	//remove the rigidbodies from the dynamics world and delete them
 	for (i=dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
@@ -168,5 +175,6 @@ int main(int argc, char** argv)
 	//next line is optional: it will be cleared by the destructor when the array goes out of scope
 	collisionShapes.clear();
 
+	///-----cleanup_end-----
 }
 

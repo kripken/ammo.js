@@ -13,7 +13,7 @@ SET(BulletSoftBodyOpenCLSolvers_SRCS
 
 SET(BulletSoftBodyOpenCLSolvers_HDRS
 	../btSoftBodySolver_OpenCL.h
-	../../CPU/btSoftBodySolverData.h
+	../../Shared/btSoftBodySolverData.h
 	../btSoftBodySolverVertexData_OpenCL.h
 	../btSoftBodySolverTriangleData_OpenCL.h
 	../btSoftBodySolverLinkData_OpenCL.h
@@ -64,7 +64,10 @@ IF (INSTALL_LIBS)
 			IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_Apple  DESTINATION .)
 			ELSE (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
-				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_Apple  DESTINATION lib${LIB_SUFFIX})
+				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_Apple
+					RUNTIME DESTINATION bin
+					LIBRARY DESTINATION lib${LIB_SUFFIX}
+					ARCHIVE DESTINATION lib${LIB_SUFFIX})
 #headers are already installed by BulletMultiThreaded library
 			ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 		ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)

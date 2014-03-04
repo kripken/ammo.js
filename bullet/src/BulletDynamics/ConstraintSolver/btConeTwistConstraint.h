@@ -40,6 +40,15 @@ and swing 1 and 2 are along the z and y axes respectively.
 #include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
+#ifdef BT_USE_DOUBLE_PRECISION
+#define btConeTwistConstraintData2	btConeTwistConstraintDoubleData
+#define btConeTwistConstraintDataName	"btConeTwistConstraintDoubleData"
+#else
+#define btConeTwistConstraintData2	btConeTwistConstraintData 
+#define btConeTwistConstraintDataName	"btConeTwistConstraintData" 
+#endif //BT_USE_DOUBLE_PRECISION
+
+
 class btRigidBody;
 
 enum btConeTwistFlags
@@ -50,7 +59,7 @@ enum btConeTwistFlags
 };
 
 ///btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc)
-class btConeTwistConstraint : public btTypedConstraint
+ATTRIBUTE_ALIGNED16(class) btConeTwistConstraint : public btTypedConstraint
 {
 #ifdef IN_PARALLELL_SOLVER
 public:
@@ -126,6 +135,8 @@ protected:
 
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB,const btTransform& rbAFrame, const btTransform& rbBFrame);
 	
 	btConeTwistConstraint(btRigidBody& rbA,const btTransform& rbAFrame);
@@ -140,8 +151,9 @@ public:
 	
 	void	getInfo2NonVirtual(btConstraintInfo2* info,const btTransform& transA,const btTransform& transB,const btMatrix3x3& invInertiaWorldA,const btMatrix3x3& invInertiaWorldB);
 
-	virtual	void	solveConstraintObsolete(btRigidBody& bodyA,btRigidBody& bodyB,btScalar	timeStep);
+	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
+    
 	void	updateRHS(btScalar	timeStep);
 
 
@@ -292,7 +304,30 @@ public:
 
 };
 
-///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+
+	
+struct	btConeTwistConstraintDoubleData
+{
+	btTypedConstraintDoubleData	m_typeConstraintData;
+	btTransformDoubleData m_rbAFrame;
+	btTransformDoubleData m_rbBFrame;
+
+	//limits
+	double	m_swingSpan1;
+	double	m_swingSpan2;
+	double	m_twistSpan;
+	double	m_limitSoftness;
+	double	m_biasFactor;
+	double	m_relaxationFactor;
+
+	double	m_damping;
+		
+	
+
+};
+
+#ifdef BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+///this structure is not used, except for loading pre-2.82 .bullet files
 struct	btConeTwistConstraintData
 {
 	btTypedConstraintData	m_typeConstraintData;
@@ -312,12 +347,12 @@ struct	btConeTwistConstraintData
 	char m_pad[4];
 
 };
-	
-
+#endif //BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+//
 
 SIMD_FORCE_INLINE int	btConeTwistConstraint::calculateSerializeBufferSize() const
 {
-	return sizeof(btConeTwistConstraintData);
+	return sizeof(btConeTwistConstraintData2);
 
 }
 
@@ -325,21 +360,21 @@ SIMD_FORCE_INLINE int	btConeTwistConstraint::calculateSerializeBufferSize() cons
 	///fills the dataBuffer and returns the struct name (and 0 on failure)
 SIMD_FORCE_INLINE const char*	btConeTwistConstraint::serialize(void* dataBuffer, btSerializer* serializer) const
 {
-	btConeTwistConstraintData* cone = (btConeTwistConstraintData*) dataBuffer;
+	btConeTwistConstraintData2* cone = (btConeTwistConstraintData2*) dataBuffer;
 	btTypedConstraint::serialize(&cone->m_typeConstraintData,serializer);
 
-	m_rbAFrame.serializeFloat(cone->m_rbAFrame);
-	m_rbBFrame.serializeFloat(cone->m_rbBFrame);
+	m_rbAFrame.serialize(cone->m_rbAFrame);
+	m_rbBFrame.serialize(cone->m_rbBFrame);
 	
-	cone->m_swingSpan1 = float(m_swingSpan1);
-	cone->m_swingSpan2 = float(m_swingSpan2);
-	cone->m_twistSpan = float(m_twistSpan);
-	cone->m_limitSoftness = float(m_limitSoftness);
-	cone->m_biasFactor = float(m_biasFactor);
-	cone->m_relaxationFactor = float(m_relaxationFactor);
-	cone->m_damping = float(m_damping);
+	cone->m_swingSpan1 = m_swingSpan1;
+	cone->m_swingSpan2 = m_swingSpan2;
+	cone->m_twistSpan = m_twistSpan;
+	cone->m_limitSoftness = m_limitSoftness;
+	cone->m_biasFactor = m_biasFactor;
+	cone->m_relaxationFactor = m_relaxationFactor;
+	cone->m_damping = m_damping;
 
-	return "btConeTwistConstraintData";
+	return btConeTwistConstraintDataName;
 }
 
 

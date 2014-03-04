@@ -20,6 +20,7 @@ subject to the following restrictions:
 #include "vectormath/vmInclude.h"
 
 #include "BulletSoftBody/btSoftBodySolvers.h"
+#include "BulletSoftBody/btSoftBody.h"
 #include "btSoftBodySolverBuffer_OpenCL.h"
 #include "btSoftBodySolverLinkData_OpenCL.h"
 #include "btSoftBodySolverVertexData_OpenCL.h"
@@ -30,19 +31,32 @@ class CLFunctions
 protected:
 	cl_command_queue	m_cqCommandQue;
 	cl_context			m_cxMainContext;
-	
+
+	int	m_kernelCompilationFailures;
+
+
 public:
 	CLFunctions(cl_command_queue cqCommandQue, cl_context cxMainContext) :
 		m_cqCommandQue( cqCommandQue ),
-		m_cxMainContext( cxMainContext )
+		m_cxMainContext( cxMainContext ),
+		m_kernelCompilationFailures(0)
 	{
 	}
 
+	int getKernelCompilationFailures() const
+	{
+		return m_kernelCompilationFailures;
+	}
 
 	/**
 	 * Compile a compute shader kernel from a string and return the appropriate cl_kernel object.
 	 */	
-	cl_kernel compileCLKernelFromString( const char* kernelSource, const char* kernelName, const char* additionalMacros = "" );
+	virtual cl_kernel compileCLKernelFromString( const char* kernelSource, const char* kernelName, const char* additionalMacros, const char* srcFileNameForCaching);
+
+	void	clearKernelCompilationFailures()
+	{
+		m_kernelCompilationFailures=0;
+	}
 };
 
 /**
@@ -273,7 +287,8 @@ public:
 
 protected:
 
-	CLFunctions clFunctions;
+	CLFunctions m_defaultCLFunctions;
+	CLFunctions* m_currentCLFunctions;
 
 	/** Variable to define whether we need to update solver constants on the next iteration */
 	bool m_updateSolverConstants;
@@ -338,24 +353,38 @@ protected:
 	btAlignedObjectArray< float >	m_perClothFriction;
 	btOpenCLBuffer< float >			m_clPerClothFriction;
 
+	// anchor node info
+	struct AnchorNodeInfoCL
+	{
+		int clVertexIndex;
+		btSoftBody::Node* pNode;
+	};
 
+	btAlignedObjectArray<AnchorNodeInfoCL> m_anchorNodeInfoArray;
+	btAlignedObjectArray<Vectormath::Aos::Point3> m_anchorPosition;
+	btOpenCLBuffer<Vectormath::Aos::Point3>		  m_clAnchorPosition;
+	btAlignedObjectArray<int> m_anchorIndex;
+	btOpenCLBuffer<int>		  m_clAnchorIndex;
 
-	cl_kernel		prepareLinksKernel;
-	cl_kernel		solvePositionsFromLinksKernel;
-	cl_kernel		updateConstantsKernel;
-	cl_kernel		integrateKernel;
-	cl_kernel		addVelocityKernel;
-	cl_kernel		updatePositionsFromVelocitiesKernel;
-	cl_kernel		updateVelocitiesFromPositionsWithoutVelocitiesKernel;
-	cl_kernel		updateVelocitiesFromPositionsWithVelocitiesKernel;
-	cl_kernel		vSolveLinksKernel;
-	cl_kernel		solveCollisionsAndUpdateVelocitiesKernel;
-	cl_kernel		resetNormalsAndAreasKernel;
-	cl_kernel		normalizeNormalsAndAreasKernel;
-	cl_kernel		updateSoftBodiesKernel;
+	bool m_bUpdateAnchoredNodePos;
 
-	cl_kernel		outputToVertexArrayKernel;
-	cl_kernel		applyForcesKernel;
+	cl_kernel		m_prepareLinksKernel;
+	cl_kernel		m_solvePositionsFromLinksKernel;
+	cl_kernel		m_updateConstantsKernel;
+	cl_kernel		m_integrateKernel;
+	cl_kernel		m_addVelocityKernel;
+	cl_kernel		m_updatePositionsFromVelocitiesKernel;
+	cl_kernel		m_updateVelocitiesFromPositionsWithoutVelocitiesKernel;
+	cl_kernel		m_updateVelocitiesFromPositionsWithVelocitiesKernel;
+	cl_kernel		m_vSolveLinksKernel;
+	cl_kernel		m_solveCollisionsAndUpdateVelocitiesKernel;
+	cl_kernel		m_resetNormalsAndAreasKernel;
+	cl_kernel		m_normalizeNormalsAndAreasKernel;
+	cl_kernel		m_updateSoftBodiesKernel;
+
+	cl_kernel		m_outputToVertexArrayKernel;
+	cl_kernel		m_applyForcesKernel;
+	cl_kernel       m_updateFixedVertexPositionsKernel;	
 
 	cl_command_queue	m_cqCommandQue;
 	cl_context			m_cxMainContext;
@@ -381,6 +410,8 @@ protected:
 	int findSoftBodyIndex( const btSoftBody* const softBody );
 
 	virtual void applyForces( float solverdt );
+
+	void updateFixedVertexPositions();
 
 	/**
 	 * Integrate motion on the solver.
@@ -418,7 +449,7 @@ protected:
 	void releaseKernels();
 
 public:
-	btOpenCLSoftBodySolver(cl_command_queue queue,cl_context	ctx);
+	btOpenCLSoftBodySolver(cl_command_queue queue,cl_context	ctx, bool bUpdateAchchoredNodePos = false);
 
 	virtual ~btOpenCLSoftBodySolver();
 
@@ -444,13 +475,13 @@ public:
 
 	virtual void optimize( btAlignedObjectArray< btSoftBody * > &softBodies , bool forceUpdate=false);
 
-	virtual void copyBackToSoftBodies();
+	virtual void copyBackToSoftBodies(bool bMove = true);
 
 	virtual void solveConstraints( float solverdt );
 
 	virtual void predictMotion( float solverdt );
 
-	virtual void processCollision( btSoftBody *, btCollisionObject* );
+	virtual void processCollision( btSoftBody *, const btCollisionObjectWrapper* );
 
 	virtual void processCollision( btSoftBody*, btSoftBody* );
 
@@ -462,7 +493,15 @@ public:
 	{
 		return m_defaultWorkGroupSize;
 	}
-	
+
+	void	setCLFunctions(CLFunctions* funcs)
+	{
+		if (funcs)
+			m_currentCLFunctions = funcs;
+		else
+			m_currentCLFunctions  = &m_defaultCLFunctions;
+	}
+
 }; // btOpenCLSoftBodySolver
 
 
