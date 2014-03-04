@@ -710,13 +710,10 @@ struct btTypedObject
 template <typename T>T* btAlignPointer(T* unalignedPtr, size_t alignment)
 {
 		
-	struct btConvertPointerSizeT
+	union btConvertPointerSizeT
 	{
-		union 
-		{
-				T* ptr;
-				size_t integer;
-		};
+		T* ptr;
+		size_t integer;
 	};
     btConvertPointerSizeT converter;
     
