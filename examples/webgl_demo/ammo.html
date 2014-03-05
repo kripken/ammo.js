@@ -16,8 +16,6 @@
 
         var boxes = [];
 
-        var quaternion = new CubicVR.Quaternion;
-
         var lastFPS = 0;
         var outElement = null;
         var currFPS = 0, allFPS = 0;
@@ -51,12 +49,14 @@
           canvas.width = screen.width*0.75;
           canvas.height = screen.height*0.50;
 
-          var gl = CubicVR.GLCore.init(canvas);
+          var gl = CubicVR.init(canvas);
 
           if (!gl) {
             alert("Sorry, no WebGL support :(");
             return;
           };
+
+          var quaternion = new CubicVR.Quaternion;
 
           var scene = new CubicVR.Scene(canvas.width, canvas.height, 70);
 
