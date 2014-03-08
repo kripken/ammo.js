@@ -95,6 +95,8 @@ libLinearMath_la_SOURCES	= \
 		LinearMath/btAlignedAllocator.cpp \
 		LinearMath/btSerializer.cpp \
 		LinearMath/btConvexHull.cpp \
+		LinearMath/btPolarDecomposition.cpp \
+		LinearMath/btVector3.cpp \
 		LinearMath/btConvexHullComputer.cpp \
 		LinearMath/btHashMap.h \
 		LinearMath/btConvexHull.h \
@@ -102,6 +104,7 @@ libLinearMath_la_SOURCES	= \
 		LinearMath/btGeometryUtil.h \
 		LinearMath/btQuadWord.h \
 		LinearMath/btPoolAllocator.h \
+		LinearMath/btPolarDecomposition.h \
 		LinearMath/btScalar.h \
 		LinearMath/btMinMax.h \
 		LinearMath/btVector3.h \
@@ -157,6 +160,8 @@ libBulletCollision_la_SOURCES = \
 		BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp \
 		BulletCollision/CollisionDispatch/btUnionFind.cpp \
 		BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp \
+		BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp \
+		BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp \
 		BulletCollision/CollisionShapes/btTetrahedronShape.cpp \
 		BulletCollision/CollisionShapes/btShapeHull.cpp \
 		BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp \
@@ -220,6 +225,7 @@ libBulletCollision_la_SOURCES = \
 		BulletCollision/NarrowPhaseCollision/btManifoldPoint.h \
 		BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h \
 		BulletCollision/CollisionDispatch/btCollisionObject.h \
+		BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
 		BulletCollision/CollisionDispatch/btGhostObject.h \
 		BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.h \
 		BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.h \
@@ -235,6 +241,8 @@ libBulletCollision_la_SOURCES = \
 		BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.h \
 		BulletCollision/CollisionDispatch/btUnionFind.h \
 		BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h \
+		BulletCollision/CollisionDispatch/btHashedSimplePairCache.h \
+		BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.h \
 		BulletCollision/CollisionDispatch/btSimulationIslandManager.h \
 		BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
 		BulletCollision/CollisionDispatch/btCollisionWorld.h \
@@ -305,11 +313,12 @@ libBulletCollision_la_SOURCES = \
                 BulletCollision/Gimpact/gim_tri_collision.cpp
 
 libBulletDynamics_la_SOURCES = \
-		BulletDynamics/Dynamics/btContinuousDynamicsWorld.cpp \
 		BulletDynamics/Dynamics/btRigidBody.cpp \
 		BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp \
 		BulletDynamics/Dynamics/Bullet-C-API.cpp \
 		BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp \
+		BulletDynamics/ConstraintSolver/btFixedConstraint.cpp \
+		BulletDynamics/ConstraintSolver/btGearConstraint.cpp \
 		BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp \
 		BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp \
 		BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp \
@@ -328,7 +337,6 @@ libBulletDynamics_la_SOURCES = \
 		BulletDynamics/Character/btKinematicCharacterController.h \
 		BulletDynamics/Character/btCharacterControllerInterface.h \
 		BulletDynamics/Dynamics/btActionInterface.h \
-		BulletDynamics/Dynamics/btContinuousDynamicsWorld.h \
 		BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
 		BulletDynamics/Dynamics/btRigidBody.h \
 		BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
@@ -343,6 +351,7 @@ libBulletDynamics_la_SOURCES = \
 		BulletDynamics/ConstraintSolver/btJacobianEntry.h \
 		BulletDynamics/ConstraintSolver/btSolverConstraint.h \
 		BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h \
+		BulletDynamics/ConstraintSolver/btGearConstraint.h \
 		BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
 		BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
 		BulletDynamics/ConstraintSolver/btSliderConstraint.h \
@@ -352,7 +361,35 @@ libBulletDynamics_la_SOURCES = \
 		BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h \
 		BulletDynamics/Vehicle/btVehicleRaycaster.h \
 		BulletDynamics/Vehicle/btRaycastVehicle.h \
-		BulletDynamics/Vehicle/btWheelInfo.h
+		BulletDynamics/Vehicle/btWheelInfo.h \
+		BulletDynamics/Featherstone/btMultiBody.cpp \
+		BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp \
+		BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.cpp \
+		BulletDynamics/Featherstone/btMultiBodyJointMotor.cpp \
+		BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp \
+		BulletDynamics/Featherstone/btMultiBodyJointMotor.h \
+                BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h \
+		BulletDynamics/Featherstone/btMultiBody.h \
+		BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h \
+		BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h \
+		BulletDynamics/Featherstone/btMultiBodyLink.h \
+		BulletDynamics/Featherstone/btMultiBodyLinkCollider.h \
+		BulletDynamics/Featherstone/btMultiBodySolverConstraint.h \
+		BulletDynamics/Featherstone/btMultiBodyConstraint.h \
+		BulletDynamics/Featherstone/btMultiBodyPoint2Point.h \
+		BulletDynamics/Featherstone/btMultiBodyConstraint.cpp \
+		BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp \
+		BulletDynamics/MLCPSolvers/btDantzigLCP.cpp \
+                BulletDynamics/MLCPSolvers/btMLCPSolver.cpp \
+		BulletDynamics/MLCPSolvers/btDantzigLCP.h \
+        	BulletDynamics/MLCPSolvers/btDantzigSolver.h \
+        	BulletDynamics/MLCPSolvers/btMLCPSolver.h \
+        	BulletDynamics/MLCPSolvers/btMLCPSolverInterface.h \
+        	BulletDynamics/MLCPSolvers/btPATHSolver.h \
+        	BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h
+
+
+
 
 libBulletSoftBody_la_SOURCES = \
 		BulletSoftBody/btDefaultSoftBodySolver.cpp \
@@ -389,7 +426,6 @@ nobase_bullet_include_HEADERS += \
 	BulletDynamics/Vehicle/btWheelInfo.h \
 	BulletDynamics/Vehicle/btVehicleRaycaster.h \
 	BulletDynamics/Dynamics/btActionInterface.h \
-	BulletDynamics/Dynamics/btContinuousDynamicsWorld.h \
 	BulletDynamics/Dynamics/btRigidBody.h \
 	BulletDynamics/Dynamics/btDynamicsWorld.h \
 	BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
@@ -402,6 +438,7 @@ nobase_bullet_include_HEADERS += \
 	BulletDynamics/ConstraintSolver/btConstraintSolver.h \
 	BulletDynamics/ConstraintSolver/btContactConstraint.h \
 	BulletDynamics/ConstraintSolver/btContactSolverInfo.h \
+	BulletDynamics/ConstraintSolver/btGearConstraint.h \
 	BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h \
 	BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h \
 	BulletDynamics/ConstraintSolver/btJacobianEntry.h \
@@ -413,6 +450,20 @@ nobase_bullet_include_HEADERS += \
 	BulletDynamics/ConstraintSolver/btSolverBody.h \
 	BulletDynamics/Character/btCharacterControllerInterface.h \
 	BulletDynamics/Character/btKinematicCharacterController.h \
+	BulletDynamics/Featherstone/btMultiBody.h \
+	BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h \
+	BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h \
+	BulletDynamics/Featherstone/btMultiBodyLink.h \
+	BulletDynamics/Featherstone/btMultiBodyLinkCollider.h \
+	BulletDynamics/Featherstone/btMultiBodySolverConstraint.h \
+	BulletDynamics/Featherstone/btMultiBodyConstraint.h \
+	BulletDynamics/Featherstone/btMultiBodyPoint2Point.h \
+	BulletDynamics/MLCPSolvers/btDantzigLCP.h \
+        BulletDynamics/MLCPSolvers/btDantzigSolver.h \
+        BulletDynamics/MLCPSolvers/btMLCPSolver.h \
+        BulletDynamics/MLCPSolvers/btMLCPSolverInterface.h \
+        BulletDynamics/MLCPSolvers/btPATHSolver.h \
+        BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h \
 	BulletCollision/CollisionShapes/btShapeHull.h \
 	BulletCollision/CollisionShapes/btConcaveShape.h \
 	BulletCollision/CollisionShapes/btCollisionMargin.h \
@@ -491,11 +542,14 @@ nobase_bullet_include_HEADERS += \
 	BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h \
 	BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h \
 	BulletCollision/CollisionDispatch/btCollisionObject.h \
+    BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h \
 	BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.h \
 	BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.h \
 	BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.h \
 	BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h \
 	BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h \
+	BulletCollision/CollisionDispatch/btHashedSimplePairCache.h \
+	BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.h \
 	BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h \
 	BulletCollision/CollisionDispatch/btGhostObject.h \
 	BulletCollision/CollisionDispatch/btSimulationIslandManager.h \
@@ -538,6 +592,7 @@ nobase_bullet_include_HEADERS += \
 	LinearMath/btMatrix3x3.h \
 	LinearMath/btVector3.h \
 	LinearMath/btPoolAllocator.h \
+	LinearMath/btPolarDecomposition.h \
 	LinearMath/btScalar.h \
 	LinearMath/btDefaultMotionState.h \
 	LinearMath/btTransform.h \

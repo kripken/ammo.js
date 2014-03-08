@@ -28,8 +28,8 @@ subject to the following restrictions:
 class btRigidBody;
 
 #ifdef BT_USE_DOUBLE_PRECISION
-#define btHingeConstraintData	btHingeConstraintDoubleData
-#define btHingeConstraintDataName	"btHingeConstraintDoubleData"
+#define btHingeConstraintData	btHingeConstraintDoubleData2 //rename to 2 for backwards compatibility, so we can still load the 'btHingeConstraintDoubleData' version
+#define btHingeConstraintDataName	"btHingeConstraintDoubleData2" 
 #else
 #define btHingeConstraintData	btHingeConstraintFloatData
 #define btHingeConstraintDataName	"btHingeConstraintFloatData"
@@ -100,6 +100,8 @@ public:
 	
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB, const btVector3& axisInA,const btVector3& axisInB, bool useReferenceFrameA = false);
 
 	btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,const btVector3& axisInA, bool useReferenceFrameA = false);
@@ -300,7 +302,10 @@ public:
 
 };
 
-///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+
+//only for backward compatibility
+#ifdef BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+///this structure is not used, except for loading pre-2.82 .bullet files
 struct	btHingeConstraintDoubleData
 {
 	btTypedConstraintData	m_typeConstraintData;
@@ -319,7 +324,9 @@ struct	btHingeConstraintDoubleData
 	float	m_relaxationFactor;
 
 };
-///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+#endif //BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+
+
 struct	btHingeConstraintFloatData
 {
 	btTypedConstraintData	m_typeConstraintData;
@@ -339,6 +346,30 @@ struct	btHingeConstraintFloatData
 	float	m_relaxationFactor;
 
 };
+
+
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btHingeConstraintDoubleData2
+{
+	btTypedConstraintDoubleData	m_typeConstraintData;
+	btTransformDoubleData m_rbAFrame; // constraint axii. Assumes z is hinge axis.
+	btTransformDoubleData m_rbBFrame;
+	int			m_useReferenceFrameA;
+	int			m_angularOnly;
+	int			m_enableAngularMotor;
+	double		m_motorTargetVelocity;
+	double		m_maxMotorImpulse;
+
+	double		m_lowerLimit;
+	double		m_upperLimit;
+	double		m_limitSoftness;
+	double		m_biasFactor;
+	double		m_relaxationFactor;
+	char	m_padding1[4];
+
+};
+
 
 
 

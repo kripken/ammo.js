@@ -1,4 +1,7 @@
 
+ADD_DEFINITIONS(-DUSE_NVIDIA_OPENCL)
+ADD_DEFINITIONS(-DCL_PLATFORM_NVIDIA)
+
 INCLUDE_DIRECTORIES(
 	${BULLET_PHYSICS_SOURCE_DIR}/src
 	${NVIDIA_OPENCL_INCLUDES}
@@ -14,7 +17,7 @@ SET(BulletSoftBodyOpenCLSolvers_SRCS
 
 SET(BulletSoftBodyOpenCLSolvers_HDRS
 	../btSoftBodySolver_OpenCL.h
-	../../CPU/btSoftBodySolverData.h
+	../../Shared/btSoftBodySolverData.h
 	../btSoftBodySolverVertexData_OpenCL.h
 	../btSoftBodySolverTriangleData_OpenCL.h
 	../btSoftBodySolverLinkData_OpenCL.h
@@ -41,7 +44,7 @@ SET(BulletSoftBodyOpenCLSolvers_Shaders
 )
 
 foreach(f ${BulletSoftBodyOpenCLSolvers_Shaders})
-    LIST(APPEND BulletSoftBodyOpenCLSolvers_OpenCLC "../OpenCLC/${f}.cl")
+    LIST(APPEND BulletSoftBodyOpenCLSolvers_OpenCLC "../OpenCLC10/${f}.cl")
 endforeach(f) 
 
 
@@ -65,7 +68,10 @@ IF (INSTALL_LIBS)
 			IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_NVidia DESTINATION .)
 			ELSE (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
-				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_NVidia DESTINATION lib${LIB_SUFFIX})
+				INSTALL(TARGETS BulletSoftBodySolvers_OpenCL_NVidia
+					RUNTIME DESTINATION bin
+					LIBRARY DESTINATION lib${LIB_SUFFIX}
+					ARCHIVE DESTINATION lib${LIB_SUFFIX})
 #headers are already installed by BulletMultiThreaded library
 			ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 		ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)

@@ -37,15 +37,15 @@ subject to the following restrictions:
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB,
 									 const btVector3& axisInA,const btVector3& axisInB, bool useReferenceFrameA)
 									 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA,rbB),
+#ifdef _BT_USE_CENTER_LIMIT_
+									 m_limit(),
+#endif
 									 m_angularOnly(false),
 									 m_enableAngularMotor(false),
 									 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 									 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 									 m_useReferenceFrameA(useReferenceFrameA),
 									 m_flags(0)
-#ifdef _BT_USE_CENTER_LIMIT_
-									,m_limit()
-#endif
 {
 	m_rbAFrame.getOrigin() = pivotInA;
 	
@@ -93,14 +93,15 @@ btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const bt
 
 
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,const btVector3& axisInA, bool useReferenceFrameA)
-:btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA), m_angularOnly(false), m_enableAngularMotor(false), 
+:btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
+m_angularOnly(false), m_enableAngularMotor(false), 
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 
 	// since no frame is given, assume this to be zero angle and just pick rb transform axis
@@ -142,15 +143,15 @@ m_flags(0)
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, 
 								     const btTransform& rbAFrame, const btTransform& rbBFrame, bool useReferenceFrameA)
 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
 m_angularOnly(false),
 m_enableAngularMotor(false),
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 #ifndef	_BT_USE_CENTER_LIMIT_
 	//start with free
@@ -168,15 +169,15 @@ m_flags(0)
 
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA, const btTransform& rbAFrame, bool useReferenceFrameA)
 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA),m_rbAFrame(rbAFrame),m_rbBFrame(rbAFrame),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
 m_angularOnly(false),
 m_enableAngularMotor(false),
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 	///not providing rigidbody B means implicitly using worldspace for body B
 
@@ -368,6 +369,10 @@ void btHingeConstraint::getInfo2Internal(btConstraintInfo2* info, const btTransf
 			info->m_J1angularAxis[i*skip+1]=0;
 			info->m_J1angularAxis[i*skip+2]=0;
 
+			info->m_J2linearAxis[i*skip]=0;
+			info->m_J2linearAxis[i*skip+1]=0;
+			info->m_J2linearAxis[i*skip+2]=0;
+
 			info->m_J2angularAxis[i*skip]=0;
 			info->m_J2angularAxis[i*skip+1]=0;
 			info->m_J2angularAxis[i*skip+2]=0;
@@ -383,6 +388,10 @@ void btHingeConstraint::getInfo2Internal(btConstraintInfo2* info, const btTransf
 		info->m_J1linearAxis[0] = 1;
 		info->m_J1linearAxis[skip + 1] = 1;
 		info->m_J1linearAxis[2 * skip + 2] = 1;
+
+		info->m_J2linearAxis[0] = -1;
+		info->m_J2linearAxis[skip + 1] = -1;
+		info->m_J2linearAxis[2 * skip + 2] = -1;
 	}	
 
 
@@ -663,7 +672,7 @@ void btHingeConstraint::setMotorTarget(const btQuaternion& qAinB, btScalar dt)
 	btScalar targetAngle = qHinge.getAngle();
 	if (targetAngle > SIMD_PI) // long way around. flip quat and recalculate.
 	{
-		qHinge = operator-(qHinge);
+		qHinge = -(qHinge);
 		targetAngle = qHinge.getAngle();
 	}
 	if (qHinge.getZ() < 0)
@@ -701,8 +710,8 @@ void btHingeConstraint::getInfo2InternalUsingFrameOffset(btConstraintInfo2* info
 	btTransform trA = transA*m_rbAFrame;
 	btTransform trB = transB*m_rbBFrame;
 	// pivot point
-	btVector3 pivotAInW = trA.getOrigin();
-	btVector3 pivotBInW = trB.getOrigin();
+//	btVector3 pivotAInW = trA.getOrigin();
+//	btVector3 pivotBInW = trB.getOrigin();
 #if 1
 	// difference between frames in WCS
 	btVector3 ofs = trB.getOrigin() - trA.getOrigin();
@@ -796,7 +805,11 @@ void btHingeConstraint::getInfo2InternalUsingFrameOffset(btConstraintInfo2* info
 		for (i=0; i<3; i++) info->m_J1linearAxis[s0+i] = p[i];
 		for (i=0; i<3; i++) info->m_J1linearAxis[s1+i] = q[i];
 		for (i=0; i<3; i++) info->m_J1linearAxis[s2+i] = ax1[i];
-	
+
+		for (i=0; i<3; i++) info->m_J2linearAxis[s0+i] = -p[i];
+		for (i=0; i<3; i++) info->m_J2linearAxis[s1+i] = -q[i];
+		for (i=0; i<3; i++) info->m_J2linearAxis[s2+i] = -ax1[i];
+
 	// compute three elements of right hand side
 	
 		btScalar rhs = k * p.dot(ofs);

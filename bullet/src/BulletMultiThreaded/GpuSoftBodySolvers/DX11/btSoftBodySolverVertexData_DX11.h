@@ -14,7 +14,7 @@ subject to the following restrictions:
 */
 
 
-#include "BulletMultiThreaded/GpuSoftBodySolvers/CPU/btSoftBodySolverData.h"
+#include "BulletMultiThreaded/GpuSoftBodySolvers/Shared/btSoftBodySolverData.h"
 #include "btSoftBodySolverBuffer_DX11.h"
 
 
@@ -55,7 +55,7 @@ public:
 	virtual bool onAccelerator();
 	virtual bool moveToAccelerator();
 
-	virtual bool moveFromAccelerator();
+	virtual bool moveFromAccelerator(bool bCopy = false, bool bCopyMinimum = true);
 };
 
 

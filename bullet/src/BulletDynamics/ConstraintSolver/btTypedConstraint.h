@@ -16,9 +16,19 @@ subject to the following restrictions:
 #ifndef BT_TYPED_CONSTRAINT_H
 #define BT_TYPED_CONSTRAINT_H
 
-class btRigidBody;
+
 #include "LinearMath/btScalar.h"
 #include "btSolverConstraint.h"
+#include "BulletDynamics/Dynamics/btRigidBody.h"
+
+#ifdef BT_USE_DOUBLE_PRECISION
+#define btTypedConstraintData2		btTypedConstraintDoubleData
+#define btTypedConstraintDataName	"btTypedConstraintDoubleData"
+#else
+#define btTypedConstraintData2 		btTypedConstraintFloatData
+#define btTypedConstraintDataName  "btTypedConstraintFloatData" 
+#endif //BT_USE_DOUBLE_PRECISION
+
 
 class btSerializer;
 
@@ -32,6 +42,8 @@ enum btTypedConstraintType
 	SLIDER_CONSTRAINT_TYPE,
 	CONTACT_CONSTRAINT_TYPE,
 	D6_SPRING_CONSTRAINT_TYPE,
+	GEAR_CONSTRAINT_TYPE,
+	FIXED_CONSTRAINT_TYPE,
 	MAX_CONSTRAINT_TYPE
 };
 
@@ -51,8 +63,17 @@ enum btConstraintParams
 #endif
 
 
+ATTRIBUTE_ALIGNED16(struct)	btJointFeedback
+{
+	btVector3	m_appliedForceBodyA;
+	btVector3	m_appliedTorqueBodyA;
+	btVector3	m_appliedForceBodyB;
+	btVector3	m_appliedTorqueBodyB;
+};
+
+
 ///TypedConstraint is the baseclass for Bullet constraints and vehicles
-class btTypedConstraint : public btTypedObject
+ATTRIBUTE_ALIGNED16(class) btTypedConstraint : public btTypedObject
 {
 	int	m_userConstraintType;
 
@@ -64,9 +85,9 @@ class btTypedConstraint : public btTypedObject
 
 	btScalar	m_breakingImpulseThreshold;
 	bool		m_isEnabled;
+	bool		m_needsFeedback;
+	int			m_overrideNumSolverIterations;
 
-
-	bool m_needsFeedback;
 
 	btTypedConstraint&	operator=(btTypedConstraint&	other)
 	{
@@ -80,13 +101,15 @@ protected:
 	btRigidBody&	m_rbB;
 	btScalar	m_appliedImpulse;
 	btScalar	m_dbgDrawSize;
+	btJointFeedback*	m_jointFeedback;
 
 	///internal method used by the constraint solver, don't use them directly
 	btScalar getMotorFactor(btScalar pos, btScalar lowLim, btScalar uppLim, btScalar vel, btScalar timeFact);
 	
-	static btRigidBody& getFixedBody();
 
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	virtual ~btTypedConstraint() {};
 	btTypedConstraint(btTypedConstraintType type, btRigidBody& rbA);
@@ -95,6 +118,8 @@ public:
 	struct btConstraintInfo1 {
 		int m_numConstraintRows,nub;
 	};
+
+	static btRigidBody& getFixedBody();
 
 	struct btConstraintInfo2 {
 		// integrator parameters: frames per second (1/stepsize), default error
@@ -129,6 +154,18 @@ public:
 		//damping of the velocity
 		btScalar	m_damping;
 	};
+
+	int	getOverrideNumSolverIterations() const
+	{
+		return m_overrideNumSolverIterations;
+	}
+
+	///override the number of constraint solver iterations used to solve this constraint
+	///-1 will use the default number of iterations, as specified in SolverInfo.m_numIterations
+	void setOverrideNumSolverIterations(int overideNumIterations)
+	{
+		m_overrideNumSolverIterations = overideNumIterations;
+	}
 
 	///internal method used by the constraint solver, don't use them directly
 	virtual void	buildJacobian() {};
@@ -182,7 +219,7 @@ public:
 
 
 	///internal method used by the constraint solver, don't use them directly
-	virtual	void	solveConstraintObsolete(btRigidBody& /*bodyA*/,btRigidBody& /*bodyB*/,btScalar	/*timeStep*/) {};
+	virtual	void	solveConstraintObsolete(btSolverBody& /*bodyA*/,btSolverBody& /*bodyB*/,btScalar	/*timeStep*/) {};
 
 	
 	const btRigidBody& getRigidBodyA() const
@@ -232,6 +269,22 @@ public:
 	{
 		return m_userConstraintPtr;
 	}
+
+	void	setJointFeedback(btJointFeedback* jointFeedback)
+	{
+		m_jointFeedback = jointFeedback;
+	}
+
+	const btJointFeedback* getJointFeedback() const
+	{
+		return m_jointFeedback;
+	}
+
+	btJointFeedback* getJointFeedback()
+	{
+		return m_jointFeedback;
+	}
+
 
 	int getUid() const
 	{
@@ -313,6 +366,33 @@ SIMD_FORCE_INLINE btScalar btAdjustAngleToLimits(btScalar angleInRadians, btScal
 }
 
 ///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btTypedConstraintFloatData
+{
+	btRigidBodyFloatData		*m_rbA;
+	btRigidBodyFloatData		*m_rbB;
+	char	*m_name;
+
+	int	m_objectType;
+	int	m_userConstraintType;
+	int	m_userConstraintId;
+	int	m_needsFeedback;
+
+	float	m_appliedImpulse;
+	float	m_dbgDrawSize;
+
+	int	m_disableCollisionsBetweenLinkedBodies;
+	int	m_overrideNumSolverIterations;
+
+	float	m_breakingImpulseThreshold;
+	int		m_isEnabled;
+	
+};
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+
+#define BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+#ifdef BT_BACKWARDS_COMPATIBLE_SERIALIZATION
+///this structure is not used, except for loading pre-2.82 .bullet files
 struct	btTypedConstraintData
 {
 	btRigidBodyData		*m_rbA;
@@ -328,13 +408,41 @@ struct	btTypedConstraintData
 	float	m_dbgDrawSize;
 
 	int	m_disableCollisionsBetweenLinkedBodies;
-	char	m_pad4[4];
+	int	m_overrideNumSolverIterations;
+
+	float	m_breakingImpulseThreshold;
+	int		m_isEnabled;
+	
+};
+#endif //BACKWARDS_COMPATIBLE
+
+struct	btTypedConstraintDoubleData
+{
+	btRigidBodyDoubleData		*m_rbA;
+	btRigidBodyDoubleData		*m_rbB;
+	char	*m_name;
+
+	int	m_objectType;
+	int	m_userConstraintType;
+	int	m_userConstraintId;
+	int	m_needsFeedback;
+
+	double	m_appliedImpulse;
+	double	m_dbgDrawSize;
+
+	int	m_disableCollisionsBetweenLinkedBodies;
+	int	m_overrideNumSolverIterations;
+
+	double	m_breakingImpulseThreshold;
+	int		m_isEnabled;
+	char	padding[4];
 	
 };
 
+
 SIMD_FORCE_INLINE	int	btTypedConstraint::calculateSerializeBufferSize() const
 {
-	return sizeof(btTypedConstraintData);
+	return sizeof(btTypedConstraintData2);
 }
 
 

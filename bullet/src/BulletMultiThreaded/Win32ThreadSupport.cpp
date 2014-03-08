@@ -299,6 +299,7 @@ void Win32ThreadSupport::stopSPU()
 		CloseHandle(spuStatus.m_eventCompletetHandle);
 		CloseHandle(spuStatus.m_eventStartHandle);
 		CloseHandle(spuStatus.m_threadHandle);
+
 	}
 
 	m_activeSpuStatus.clear();
@@ -439,6 +440,17 @@ btCriticalSection* Win32ThreadSupport::createCriticalSection()
 	return cs;
 }
 
+void Win32ThreadSupport::deleteBarrier(btBarrier* barrier)
+{
+	barrier->~btBarrier();
+	btAlignedFree(barrier);
+}
+
+void Win32ThreadSupport::deleteCriticalSection(btCriticalSection* criticalSection)
+{
+	criticalSection->~btCriticalSection();
+	btAlignedFree(criticalSection);
+}
 
 
 #endif //USE_WIN32_THREADING

@@ -1,5 +1,5 @@
 if CONDITIONAL_BUILD_DEMOS
-SUBDIRS=src Extras
+SUBDIRS=src Extras Demos
 else
 SUBDIRS=src 
 endif

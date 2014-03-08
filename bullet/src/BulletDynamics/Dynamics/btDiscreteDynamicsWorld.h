@@ -25,16 +25,21 @@ class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
 class btActionInterface;
-
+class btPersistentManifold;
 class btIDebugDraw;
+struct InplaceSolverIslandCallback;
+
 #include "LinearMath/btAlignedObjectArray.h"
 
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
 ///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController
-class btDiscreteDynamicsWorld : public btDynamicsWorld
+ATTRIBUTE_ALIGNED16(class) btDiscreteDynamicsWorld : public btDynamicsWorld
 {
 protected:
+	
+    btAlignedObjectArray<btTypedConstraint*>	m_sortedConstraints;
+	InplaceSolverIslandCallback* 	m_solverIslandCallback;
 
 	btConstraintSolver*	m_constraintSolver;
 
@@ -48,27 +53,31 @@ protected:
 
 	//for variable timesteps
 	btScalar	m_localTime;
+	btScalar	m_fixedTimeStep;
 	//for variable timesteps
 
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
 	bool	m_synchronizeAllMotionStates;
+	bool	m_applySpeculativeContactRestitution;
 
 	btAlignedObjectArray<btActionInterface*>	m_actions;
 	
 	int	m_profileTimings;
 
+	bool	m_latencyMotionStateInterpolation;
+
+	btAlignedObjectArray<btPersistentManifold*>	m_predictiveManifolds;
+
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
 	
 	virtual void	integrateTransforms(btScalar timeStep);
 		
-	virtual void	addSpeculativeContacts(btScalar timeStep);
-
 	virtual void	calculateSimulationIslands();
 
 	virtual void	solveConstraints(btContactSolverInfo& solverInfo);
 	
-	void	updateActivationState(btScalar timeStep);
+	virtual void	updateActivationState(btScalar timeStep);
 
 	void	updateActions(btScalar timeStep);
 
@@ -76,13 +85,18 @@ protected:
 
 	virtual void	internalSingleStepSimulation( btScalar timeStep);
 
+	void	createPredictiveContacts(btScalar timeStep);
 
 	virtual void	saveKinematicState(btScalar timeStep);
 
 	void	serializeRigidBodies(btSerializer* serializer);
 
+	void	serializeDynamicsWorldInfo(btSerializer* serializer);
+
 public:
 
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	///this btDiscreteDynamicsWorld constructor gets created objects from the user, and will not delete those
 	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
@@ -192,9 +206,29 @@ public:
 		return m_synchronizeAllMotionStates;
 	}
 
+	void setApplySpeculativeContactRestitution(bool enable)
+	{
+		m_applySpeculativeContactRestitution = enable;
+	}
+	
+	bool getApplySpeculativeContactRestitution() const
+	{
+		return m_applySpeculativeContactRestitution;
+	}
+
 	///Preliminary serialization test for Bullet 2.76. Loading those files requires a separate parser (see Bullet/Demos/SerializeDemo)
 	virtual	void	serialize(btSerializer* serializer);
 
+	///Interpolate motion state between previous and current transform, instead of current and next transform.
+	///This can relieve discontinuities in the rendering, due to penetrations
+	void setLatencyMotionStateInterpolation(bool latencyInterpolation )
+	{
+		m_latencyMotionStateInterpolation = latencyInterpolation;
+	}
+	bool getLatencyMotionStateInterpolation() const
+	{
+		return m_latencyMotionStateInterpolation;
+	}
 };
 
 #endif //BT_DISCRETE_DYNAMICS_WORLD_H

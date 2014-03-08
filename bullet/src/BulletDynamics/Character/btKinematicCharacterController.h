@@ -25,6 +25,7 @@ subject to the following restrictions:
 
 
 class btCollisionShape;
+class btConvexShape;
 class btRigidBody;
 class btCollisionWorld;
 class btCollisionDispatcher;
@@ -33,7 +34,7 @@ class btPairCachingGhostObject;
 ///btKinematicCharacterController is an object that supports a sliding motion in a world.
 ///It uses a ghost object and convex sweep test to test for upcoming collisions. This is combined with discrete collision detection to recover from penetrations.
 ///Interaction between btKinematicCharacterController and dynamic rigid bodies needs to be explicity implemented by the user.
-class btKinematicCharacterController : public btCharacterControllerInterface
+ATTRIBUTE_ALIGNED16(class) btKinematicCharacterController : public btCharacterControllerInterface
 {
 protected:
 
@@ -80,6 +81,9 @@ protected:
 	int m_upAxis;
 
 	static btVector3* getUpAxisDirections();
+	bool  m_interpolateUp;
+	bool  full_drop;
+	bool  bounce_fix;
 
 	btVector3 computeReflectionDirection (const btVector3& direction, const btVector3& normal);
 	btVector3 parallelComponent (const btVector3& direction, const btVector3& normal);
@@ -91,6 +95,9 @@ protected:
 	void stepForwardAndStrafe (btCollisionWorld* collisionWorld, const btVector3& walkMove);
 	void stepDown (btCollisionWorld* collisionWorld, btScalar dt);
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btKinematicCharacterController (btPairCachingGhostObject* ghostObject,btConvexShape* convexShape,btScalar stepHeight, int upAxis = 1);
 	~btKinematicCharacterController ();
 	
@@ -129,7 +136,7 @@ public:
 	virtual void setVelocityForTimeInterval(const btVector3& velocity,
 				btScalar timeInterval);
 
-	void reset ();
+	void reset ( btCollisionWorld* collisionWorld );
 	void warp (const btVector3& origin);
 
 	void preStep (  btCollisionWorld* collisionWorld);
@@ -157,6 +164,7 @@ public:
 	}
 
 	bool onGround () const;
+	void setUpInterpolate (bool value);
 };
 
 #endif // BT_KINEMATIC_CHARACTER_CONTROLLER_H
