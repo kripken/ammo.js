@@ -1,5 +1,5 @@
 
-[Constructor(float x, float y, float z)] 
+[Constructor(float x, float y, float z)] // need to be optional, also below
 interface btVector3 {
   float x();
   float y();
@@ -9,9 +9,17 @@ interface btVector3 {
 
 [Constructor(float x, float y, float z, float w)] 
 interface btVector4 {
-  float x();
-  float y();
-  float z();
   float w();
+};
+btVector4 implements btVector3;
+
+interface btQuaternion {};
+btQuaternion implements btVector4; // this seems wrong? btQuadWord?
+
+[Constructor(optional btQuaternion q, optional btVector3 v)]
+interface btTransform {
+  void setIdentity();
+  btVector3 getOrigin();
+  btQuaternion getRotation();
 };
 
