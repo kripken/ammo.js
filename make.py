@@ -81,22 +81,20 @@ try:
   assert os.path.exists('glue.js')
   assert os.path.exists('glue.cpp')
 
-  #1/0.
-
   stage('Build bindings')
 
   emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', 'btBulletDynamicsCommon.h', 'glue.cpp', '-c', '-o', 'glue.bc'])
-
-  1/0.
 
   if not os.path.exists('config.h'):
     stage('Configure')
 
     emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
+  1/0.
+
   stage('Make')
 
-  emscripten.Building.make(['make', '-j', '2'])
+  emscripten.Building.make(['make', '-j'])
 
   assert(os.path.exists('bindings.bc'))
 
