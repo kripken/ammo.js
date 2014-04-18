@@ -104,9 +104,7 @@ try:
                             os.path.join('src', '.libs', 'libLinearMath.a')
                            ],
                            'libbullet.bc')
-  assert os.path.exists('libbullet.bc'), 'Failed to create client'
-
-  1/0
+  assert os.path.exists('libbullet.bc')
 
   stage('emcc: ' + ' '.join(emcc_args))
 
