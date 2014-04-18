@@ -77,11 +77,11 @@ try:
 
   stage('Generate bindings')
 
-  Popen([os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
+  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
   assert os.path.exists('glue.js')
   assert os.path.exists('glue.cpp')
 
-  #1/0.
+  1/0.
 
   stage('Build bindings')
 
