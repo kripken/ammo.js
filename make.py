@@ -86,7 +86,7 @@ try:
   emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', 'btBulletDynamicsCommon.h', 'glue.cpp', '-c', '-o', 'glue.bc'])
 
   if not os.path.exists('config.h'):
-    stage('Configure')
+    stage('Configure (if this fails, run autogen.sh in bullet/ first)')
 
     emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
