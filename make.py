@@ -27,7 +27,7 @@ import tools.shared as emscripten
           Settings.CORRECT_ROUNDINGS = 0
 '''
 #emcc_args = sys.argv[1:] or '-O3 --closure 0 -s DOUBLE_MODE=1 -s CORRECT_SIGNS=1 -s INLINING_LIMIT=0'.split(' ')
-emcc_args = sys.argv[1:] or '-O2 --llvm-lto 1 -s DOUBLE_MODE=0 -s PRECISE_I64_MATH=0 -s ASM_JS=1 -s EXPORT_BINDINGS=1 -s RESERVED_FUNCTION_POINTERS=20 -s DEAD_FUNCTIONS=["__ZSt9terminatev","__ZN20btAxisSweep3InternalItE26processAllOverlappingPairsEP17btOverlapCallback","__ZN20btAxisSweep3InternalIjE26processAllOverlappingPairsEP17btOverlapCallback"]'.split(' ')
+emcc_args = sys.argv[1:] or '-O2 --llvm-lto 1 -s DOUBLE_MODE=0 -s PRECISE_I64_MATH=0 -s ASM_JS=1'.split(' ')
 
 emcc_args += ['-s', 'TOTAL_MEMORY=%d' % (64*1024*1024)] # default 64MB. Compile with ALLOW_MEMORY_GROWTH if you want a growable heap (slower though).
 
@@ -77,55 +77,9 @@ try:
 
   stage('Generate bindings')
 
-  print 'Preprocessing...'
-
-  Popen(['cpp', '-x', 'c++', '-I../src', '../../root.h'], stdout=open('headers.pre.h', 'w')).communicate()
-
-  print 'Cleaning...'
-
-  header_data = open('headers.pre.h', 'r').read()
-  header_data = header_data.replace(' = btVector3(btScalar(0), btScalar(0), btScalar(0))', '') \
-                           .replace('const btVehicleTuning& tuning', 'const btRaycastVehicle::btVehicleTuning& tuning') \
-                           .replace('( void )', '()') \
-                           .replace('(void)', '()') \
-                           .replace('btTraversalMode', 'btQuantizedBvh::btTraversalMode') \
-                           .replace('btConstraintInfo1*', 'btTypedConstraint::btConstraintInfo1*') \
-                           .replace('btConstraintInfo2*', 'btTypedConstraint::btConstraintInfo2*') \
-                           .replace('btConstraintInfo2 *', 'btTypedConstraint::btConstraintInfo2*') \
-                           .replace('btVehicleRaycasterResult&', 'btVehicleRaycaster::btVehicleRaycasterResult&') \
-                           .replace('btRigidBodyConstructionInfo&', 'btRigidBody::btRigidBodyConstructionInfo&') \
-                           .replace('RayResultCallback&', 'btCollisionWorld::RayResultCallback&') \
-                           .replace('ContactResultCallback&', 'btCollisionWorld::ContactResultCallback&') \
-                           .replace('ConvexResultCallback&', 'btCollisionWorld::ConvexResultCallback&') \
-                           .replace('LocalShapeInfo*', 'btCollisionWorld::LocalShapeInfo*') \
-                           .replace('IWriter*', 'btDbvt::IWriter*') \
-                           .replace('=btVector3(0,0,0)', '=btVector3') \
-                           .replace('RaycastInfo&', 'btWheelInfo::RaycastInfo') \
-                           .replace('btScalar', 'float') \
-                           .replace('typedef float float;', '') \
-                           .replace('STAGECOUNT+1', '17') \
-                           .replace('BP_FP_INT_TYPE', 'double') \
-                           .replace('Handle*', 'btAxisSweep3Internal<double>::Handle*') \
-                           .replace(' = btTransform::getIdentity()', ' = btTransform::getIdentity') # This will not compile, but can be headerparsed
-                           #.replace('BP_FP_INT_TYPE', 'int') \
-  header_data = re.sub(r'struct ([\w\d :\n]+){', r'class \1 { public: ', header_data)
-
-  h = open('headers.clean.h', 'w')
-  h.write(header_data)
-  h.close()
-
-  print 'Processing...'
-
-  Popen([emscripten.BINDINGS_GENERATOR, 'bindings', 'headers.clean.h', '--',
-         # Ignore some things that CppHeaderParser has problems
-         '{ "ignored": "btMatrix3x3::setFromOpenGLSubMatrix,btMatrix3x3::getOpenGLSubMatrix,btAlignedAllocator,btHashKey,btHashKeyPtr,'
-         'btSortedOverlappingPairCache,btSimpleBroadphase::resetPool,btHashKeyPtr,btOptimizedBvh::setTraversalMode,btAlignedObjectArray,'
-         'btDbvt,btMultiSapBroadphase,std,btHashedOverlappingPairCache,btDefaultSerializer,btWheelInfo::m_raycastInfo,btAABB,'
-         'btContactArray,btPairCachingGhostObject::getOverlappingPairs,btGhostObject::getOverlappingPairs,Edge,Handle,'
-         'btDbvtAabbMm::NotEqual,btDbvtAabbMm::Merge,btDbvtAabbMm::Select,btDbvtAabbMm::Proximity,btDbvtAabbMm::Intersect",'
-         ''' "type_processor": "lambda t: t.replace('const float', 'float').replace('float &', 'float').replace('float&', 'float')",''' # Make our bindings use float and not float&
-         ''' "export": 1 }'''],
-        stdout=open('o', 'w'), stderr=STDOUT).communicate()
+  Popen([os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
+  assert os.path.exists('glue.js')
+  assert os.path.exists('glue.cpp')
 
   #1/0.
 

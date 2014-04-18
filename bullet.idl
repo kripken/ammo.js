@@ -1,0 +1,8 @@
+
+[Constructor(float x, float y, float z)] 
+interface btVector3 {
+  float x();
+  float y();
+  float z();
+};
+
