@@ -77,17 +77,17 @@ try:
 
   stage('Generate bindings')
 
-  Popen(['python', os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
+  Popen([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
   assert os.path.exists('glue.js')
   assert os.path.exists('glue.cpp')
 
-  1/0.
+  #1/0.
 
   stage('Build bindings')
 
-  emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', '../../root.h', 'bindings.cpp', '-c', '-o', 'bindings.bc'])
+  emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', 'btBulletDynamicsCommon.h', 'glue.cpp', '-c', '-o', 'glue.bc'])
 
-  #1/0.
+  1/0.
 
   if not os.path.exists('config.h'):
     stage('Configure')
