@@ -6,3 +6,12 @@ interface btVector3 {
   float z();
 };
 
+
+[Constructor(float x, float y, float z, float w)] 
+interface btVector4 {
+  float x();
+  float y();
+  float z();
+  float w();
+};
+
