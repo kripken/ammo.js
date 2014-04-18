@@ -77,7 +77,7 @@ try:
 
   stage('Generate bindings')
 
-  Popen([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'bullet.idl'), 'glue']).communicate()
+  Popen([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'tools', 'webidl_binder.py'), os.path.join(this_dir, 'ammo.idl'), 'glue']).communicate()
   assert os.path.exists('glue.js')
   assert os.path.exists('glue.cpp')
 
@@ -95,19 +95,18 @@ try:
 
   emscripten.Building.make(['make', '-j'])
 
-  1/0
-
   stage('Link')
 
   emscripten.Building.link([
-                            'bindings.bc',
+                            'glue.bc',
                             os.path.join('src', '.libs', 'libBulletDynamics.a'),
                             os.path.join('src', '.libs', 'libBulletCollision.a'),
                             os.path.join('src', '.libs', 'libLinearMath.a')
                            ],
                            'libbullet.bc')
-
   assert os.path.exists('libbullet.bc'), 'Failed to create client'
+
+  1/0
 
   stage('emcc: ' + ' '.join(emcc_args))
 
