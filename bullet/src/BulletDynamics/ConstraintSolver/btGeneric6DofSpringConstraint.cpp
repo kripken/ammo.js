@@ -21,6 +21,19 @@ subject to the following restrictions:
 btGeneric6DofSpringConstraint::btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA)
 	: btGeneric6DofConstraint(rbA, rbB, frameInA, frameInB, useLinearReferenceFrameA)
 {
+    init();
+}
+
+
+btGeneric6DofSpringConstraint::btGeneric6DofSpringConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameB)
+        : btGeneric6DofConstraint(rbB, frameInB, useLinearReferenceFrameB)
+{
+    init();
+}
+
+
+void btGeneric6DofSpringConstraint::init()
+{
 	m_objectType = D6_SPRING_CONSTRAINT_TYPE;
 
 	for(int i = 0; i < 6; i++)
@@ -105,7 +118,7 @@ void btGeneric6DofSpringConstraint::internalUpdateSprings(btConstraintInfo2* inf
 {
 	// it is assumed that calculateTransforms() have been called before this call
 	int i;
-	btVector3 relVel = m_rbB.getLinearVelocity() - m_rbA.getLinearVelocity();
+	//btVector3 relVel = m_rbB.getLinearVelocity() - m_rbA.getLinearVelocity();
 	for(i = 0; i < 3; i++)
 	{
 		if(m_springEnabled[i])

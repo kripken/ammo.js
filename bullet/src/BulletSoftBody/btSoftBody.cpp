@@ -19,9 +19,10 @@ subject to the following restrictions:
 #include "btSoftBodyData.h"
 #include "LinearMath/btSerializer.h"
 
+
 //
 btSoftBody::btSoftBody(btSoftBodyWorldInfo*	worldInfo,int node_count,  const btVector3* x,  const btScalar* m)
-:m_worldInfo(worldInfo),m_softBodySolver(0)
+:m_softBodySolver(0),m_worldInfo(worldInfo)
 {	
 	/* Init		*/ 
 	initDefaults();
@@ -104,12 +105,12 @@ void	btSoftBody::initDefaults()
 	/* Collision shape	*/ 
 	///for now, create a collision shape internally
 	m_collisionShape = new btSoftBodyCollisionShape(this);
-	m_collisionShape->setMargin(0.25);
+	m_collisionShape->setMargin(0.25f);
 	
 	m_initialWorldTransform.setIdentity();
 
 	m_windVelocity = btVector3(0,0,0);
-
+	m_restLengthScale = btScalar(1.0);
 }
 
 //
@@ -452,6 +453,191 @@ void			btSoftBody::addForce(const btVector3& force,int node)
 	}
 }
 
+void			btSoftBody::addAeroForceToNode(const btVector3& windVelocity,int nodeIndex)
+{
+	btAssert(nodeIndex >= 0 && nodeIndex < m_nodes.size());
+
+	const btScalar dt = m_sst.sdt;
+	const btScalar kLF = m_cfg.kLF;
+	const btScalar kDG = m_cfg.kDG;
+	//const btScalar kPR = m_cfg.kPR;
+	//const btScalar kVC = m_cfg.kVC;
+	const bool as_lift = kLF>0;
+	const bool as_drag = kDG>0;
+	const bool as_aero = as_lift || as_drag;
+	const bool as_vaero = as_aero && (m_cfg.aeromodel < btSoftBody::eAeroModel::F_TwoSided);
+
+	Node& n = m_nodes[nodeIndex];
+
+	if( n.m_im>0 )
+	{
+		btSoftBody::sMedium	medium;
+
+		EvaluateMedium(m_worldInfo, n.m_x, medium);
+		medium.m_velocity = windVelocity;
+		medium.m_density = m_worldInfo->air_density;
+
+		/* Aerodynamics			*/ 
+		if(as_vaero)
+		{				
+			const btVector3	rel_v = n.m_v - medium.m_velocity;					
+			const btScalar rel_v_len = rel_v.length();
+			const btScalar	rel_v2 = rel_v.length2();
+
+			if(rel_v2>SIMD_EPSILON)
+			{
+				const btVector3 rel_v_nrm = rel_v.normalized();
+				btVector3	nrm = n.m_n;						
+
+				if (m_cfg.aeromodel == btSoftBody::eAeroModel::V_TwoSidedLiftDrag)
+				{
+					nrm *= (btScalar)( (btDot(nrm,rel_v) < 0) ? -1 : +1);
+					btVector3 fDrag(0, 0, 0);
+					btVector3 fLift(0, 0, 0);
+
+					btScalar n_dot_v = nrm.dot(rel_v_nrm);
+					btScalar tri_area = 0.5f * n.m_area;
+							
+					fDrag = 0.5f * kDG * medium.m_density * rel_v2 * tri_area * n_dot_v * (-rel_v_nrm);
+							
+					// Check angle of attack
+					// cos(10º) = 0.98480
+					if ( 0 < n_dot_v && n_dot_v < 0.98480f)
+						fLift = 0.5f * kLF * medium.m_density * rel_v_len * tri_area * btSqrt(1.0f-n_dot_v*n_dot_v) * (nrm.cross(rel_v_nrm).cross(rel_v_nrm));
+
+					// Check if the velocity change resulted by aero drag force exceeds the current velocity of the node.
+					btVector3 del_v_by_fDrag = fDrag*n.m_im*m_sst.sdt;										
+					btScalar del_v_by_fDrag_len2 = del_v_by_fDrag.length2();
+					btScalar v_len2 = n.m_v.length2();
+
+					if (del_v_by_fDrag_len2 >= v_len2 && del_v_by_fDrag_len2 > 0)
+					{
+						btScalar del_v_by_fDrag_len = del_v_by_fDrag.length();
+						btScalar v_len = n.m_v.length();
+						fDrag *= btScalar(0.8)*(v_len / del_v_by_fDrag_len);
+					}
+
+					n.m_f += fDrag;
+					n.m_f += fLift;
+				}
+				else if (m_cfg.aeromodel == btSoftBody::eAeroModel::V_Point || m_cfg.aeromodel == btSoftBody::eAeroModel::V_OneSided || m_cfg.aeromodel == btSoftBody::eAeroModel::V_TwoSided)
+				{
+					if (btSoftBody::eAeroModel::V_TwoSided)
+						nrm *= (btScalar)( (btDot(nrm,rel_v) < 0) ? -1 : +1);
+
+					const btScalar dvn = btDot(rel_v,nrm);
+					/* Compute forces	*/ 
+					if(dvn>0)
+					{
+						btVector3		force(0,0,0);
+						const btScalar	c0	=	n.m_area * dvn * rel_v2/2;
+						const btScalar	c1	=	c0 * medium.m_density;
+						force	+=	nrm*(-c1*kLF);
+						force	+=	rel_v.normalized() * (-c1 * kDG);
+						ApplyClampedForce(n, force, dt);
+					}
+				}	
+			}
+		}
+	}
+}
+
+void			btSoftBody::addAeroForceToFace(const btVector3& windVelocity,int faceIndex)
+{
+	const btScalar dt = m_sst.sdt;
+	const btScalar kLF = m_cfg.kLF;
+	const btScalar kDG = m_cfg.kDG;
+//	const btScalar kPR = m_cfg.kPR;
+//	const btScalar kVC = m_cfg.kVC;
+	const bool as_lift = kLF>0;
+	const bool as_drag = kDG>0;
+	const bool as_aero = as_lift || as_drag;
+	const bool as_faero = as_aero && (m_cfg.aeromodel >= btSoftBody::eAeroModel::F_TwoSided);
+
+	if(as_faero)
+	{
+		btSoftBody::Face&	f=m_faces[faceIndex];
+
+		btSoftBody::sMedium	medium;
+		
+		const btVector3	v=(f.m_n[0]->m_v+f.m_n[1]->m_v+f.m_n[2]->m_v)/3;
+		const btVector3	x=(f.m_n[0]->m_x+f.m_n[1]->m_x+f.m_n[2]->m_x)/3;
+		EvaluateMedium(m_worldInfo,x,medium);
+		medium.m_velocity = windVelocity;
+		medium.m_density = m_worldInfo->air_density;
+		const btVector3	rel_v=v-medium.m_velocity;
+		const btScalar rel_v_len = rel_v.length();
+		const btScalar	rel_v2=rel_v.length2();
+
+		if(rel_v2>SIMD_EPSILON)
+		{
+			const btVector3 rel_v_nrm = rel_v.normalized();
+			btVector3	nrm = f.m_normal;
+
+			if (m_cfg.aeromodel == btSoftBody::eAeroModel::F_TwoSidedLiftDrag)
+			{
+				nrm *= (btScalar)( (btDot(nrm,rel_v) < 0) ? -1 : +1);
+
+				btVector3 fDrag(0, 0, 0);
+				btVector3 fLift(0, 0, 0);
+
+				btScalar n_dot_v = nrm.dot(rel_v_nrm);
+				btScalar tri_area = 0.5f * f.m_ra;
+					
+				fDrag = 0.5f * kDG * medium.m_density * rel_v2 * tri_area * n_dot_v * (-rel_v_nrm);
+
+				// Check angle of attack
+				// cos(10º) = 0.98480
+				if ( 0 < n_dot_v && n_dot_v < 0.98480f)
+					fLift = 0.5f * kLF * medium.m_density * rel_v_len * tri_area * btSqrt(1.0f-n_dot_v*n_dot_v) * (nrm.cross(rel_v_nrm).cross(rel_v_nrm));
+
+				fDrag /= 3;
+				fLift /= 3;
+
+				for(int j=0;j<3;++j) 
+				{
+					if (f.m_n[j]->m_im>0)
+					{
+						// Check if the velocity change resulted by aero drag force exceeds the current velocity of the node.
+						btVector3 del_v_by_fDrag = fDrag*f.m_n[j]->m_im*m_sst.sdt;										
+						btScalar del_v_by_fDrag_len2 = del_v_by_fDrag.length2();
+						btScalar v_len2 = f.m_n[j]->m_v.length2();
+
+						if (del_v_by_fDrag_len2 >= v_len2 && del_v_by_fDrag_len2 > 0)
+						{
+							btScalar del_v_by_fDrag_len = del_v_by_fDrag.length();
+							btScalar v_len = f.m_n[j]->m_v.length();
+							fDrag *= btScalar(0.8)*(v_len / del_v_by_fDrag_len);
+						}
+
+						f.m_n[j]->m_f += fDrag; 
+						f.m_n[j]->m_f += fLift;
+					}
+				}
+			}
+			else if (m_cfg.aeromodel == btSoftBody::eAeroModel::F_OneSided || m_cfg.aeromodel == btSoftBody::eAeroModel::F_TwoSided)
+			{
+				if (btSoftBody::eAeroModel::F_TwoSided)
+					nrm *= (btScalar)( (btDot(nrm,rel_v) < 0) ? -1 : +1);
+
+				const btScalar	dvn=btDot(rel_v,nrm);
+				/* Compute forces	*/ 
+				if(dvn>0)
+				{
+					btVector3		force(0,0,0);
+					const btScalar	c0	=	f.m_ra*dvn*rel_v2;
+					const btScalar	c1	=	c0*medium.m_density;
+					force	+=	nrm*(-c1*kLF);
+					force	+=	rel_v.normalized()*(-c1*kDG);
+					force	/=	3;
+					for(int j=0;j<3;++j) ApplyClampedForce(*f.m_n[j],force,dt);
+				}
+			}
+		}
+	}
+
+}
+
 //
 void			btSoftBody::addVelocity(const btVector3& velocity)
 {
@@ -655,6 +841,27 @@ void			btSoftBody::scale(const btVector3& scl)
 }
 
 //
+btScalar btSoftBody::getRestLengthScale()
+{
+	return m_restLengthScale;
+}
+
+//
+void btSoftBody::setRestLengthScale(btScalar restLengthScale)
+{
+	for(int i=0, ni=m_links.size(); i<ni; ++i)
+	{
+		Link&		l=m_links[i];
+		l.m_rl	=	l.m_rl / m_restLengthScale * restLengthScale;
+		l.m_c1	=	l.m_rl*l.m_rl;
+	}
+	m_restLengthScale = restLengthScale;
+	
+	if (getActivationState() == ISLAND_SLEEPING)
+		activate();
+}
+
+//
 void			btSoftBody::setPose(bool bvolume,bool bframe)
 {
 	m_pose.m_bvolume	=	bvolume;
@@ -701,7 +908,18 @@ void			btSoftBody::setPose(bool bvolume,bool bframe)
 		m_pose.m_aqq[2]+=mq.z()*q;
 	}
 	m_pose.m_aqq=m_pose.m_aqq.inverse();
+	
 	updateConstants();
+}
+
+void				btSoftBody::resetLinkRestLengths()
+{
+	for(int i=0, ni=m_links.size();i<ni;++i)
+	{
+		Link& l =	m_links[i];
+		l.m_rl	=	(l.m_n[0]->m_x-l.m_n[1]->m_x).length();
+		l.m_c1	=	l.m_rl*l.m_rl;
+	}
 }
 
 //
@@ -1226,12 +1444,12 @@ void			btSoftBody::refine(ImplicitFn* ifn,btScalar accurary,bool cut)
 							m=mc*f;
 						}
 						else
-						{ a.m_im/=0.5;m=1/a.m_im; }
+						{ a.m_im/=0.5f;m=1/a.m_im; }
 					}
 					else
 					{
 						if(b.m_im>0)
-						{ b.m_im/=0.5;m=1/b.m_im; }
+						{ b.m_im/=0.5f;m=1/b.m_im; }
 						else
 							m=0;
 					}
@@ -1311,7 +1529,7 @@ void			btSoftBody::refine(ImplicitFn* ifn,btScalar accurary,bool cut)
 			{
 				const btVector3	v=m_nodes[i].m_v;
 				btScalar		m=getMass(i);
-				if(m>0) { m*=0.5;m_nodes[i].m_im/=0.5; }
+				if(m>0) { m*=0.5f;m_nodes[i].m_im/=0.5f; }
 				appendNode(x,m);
 				cnodes[i]=m_nodes.size()-1;
 				m_nodes[cnodes[i]].m_v=v;
@@ -1425,7 +1643,7 @@ bool			btSoftBody::cutLink(int node0,int node1,btScalar position)
 {
 	bool			done=false;
 	int i,ni;
-	const btVector3	d=m_nodes[node0].m_x-m_nodes[node1].m_x;
+//	const btVector3	d=m_nodes[node0].m_x-m_nodes[node1].m_x;
 	const btVector3	x=Lerp(m_nodes[node0].m_x,m_nodes[node1].m_x,position);
 	const btVector3	v=Lerp(m_nodes[node0].m_v,m_nodes[node1].m_v,position);
 	const btScalar	m=1;
@@ -1549,7 +1767,23 @@ void			btSoftBody::predictMotion(btScalar dt)
 	{
 		Node&	n=m_nodes[i];
 		n.m_q	=	n.m_x;
-		n.m_v	+=	n.m_f*n.m_im*m_sst.sdt;
+		btVector3 deltaV = n.m_f*n.m_im*m_sst.sdt;
+		{
+			btScalar maxDisplacement = m_worldInfo->m_maxDisplacement;
+			btScalar clampDeltaV = maxDisplacement/m_sst.sdt;
+			for (int c=0;c<3;c++)
+			{
+				if (deltaV[c]>clampDeltaV)
+				{
+					deltaV[c] = clampDeltaV;
+				}
+				if (deltaV[c]<-clampDeltaV)
+				{
+					deltaV[c]=-clampDeltaV;
+				}
+			}
+		}
+		n.m_v	+=	deltaV;
 		n.m_x	+=	n.m_v*m_sst.sdt;
 		n.m_f	=	btVector3(0,0,0);
 	}
@@ -1821,7 +2055,7 @@ btScalar			btSoftBody::RayFromToCaster::rayFromToTriangle(	const btVector3& rayF
 void				btSoftBody::pointersToIndices()
 {
 #define	PTR2IDX(_p_,_b_)	reinterpret_cast<btSoftBody::Node*>((_p_)-(_b_))
-	btSoftBody::Node*	base=&m_nodes[0];
+	btSoftBody::Node*	base=m_nodes.size() ? &m_nodes[0] : 0;
 	int i,ni;
 
 	for(i=0,ni=m_nodes.size();i<ni;++i)
@@ -1865,7 +2099,7 @@ void				btSoftBody::indicesToPointers(const int* map)
 {
 #define	IDX2PTR(_p_,_b_)	map?(&(_b_)[map[(((char*)_p_)-(char*)0)]]):	\
 	(&(_b_)[(((char*)_p_)-(char*)0)])
-	btSoftBody::Node*	base=&m_nodes[0];
+	btSoftBody::Node*	base=m_nodes.size() ? &m_nodes[0]:0;
 	int i,ni;
 
 	for(i=0,ni=m_nodes.size();i<ni;++i)
@@ -1909,11 +2143,12 @@ int					btSoftBody::rayTest(const btVector3& rayFrom,const btVector3& rayTo,
 										btScalar& mint,eFeature::_& feature,int& index,bool bcountonly) const
 {
 	int	cnt=0;
+	btVector3 dir = rayTo-rayFrom;
+	
+
 	if(bcountonly||m_fdbvt.empty())
 	{/* Full search	*/ 
-		btVector3 dir = rayTo-rayFrom;
-		dir.normalize();
-
+		
 		for(int i=0,ni=m_faces.size();i<ni;++i)
 		{
 			const btSoftBody::Face&	f=m_faces[i];
@@ -1948,6 +2183,37 @@ int					btSoftBody::rayTest(const btVector3& rayFrom,const btVector3& rayTo,
 			cnt=1;
 		}
 	}
+
+	for (int i=0;i<m_tetras.size();i++)
+	{
+		const btSoftBody::Tetra& tet = m_tetras[i];
+		int tetfaces[4][3] = {{0,1,2},{0,1,3},{1,2,3},{0,2,3}};
+		for (int f=0;f<4;f++)
+		{
+
+			int index0=tetfaces[f][0];
+			int index1=tetfaces[f][1];
+			int index2=tetfaces[f][2];
+			btVector3 v0=tet.m_n[index0]->m_x;
+			btVector3 v1=tet.m_n[index1]->m_x;
+			btVector3 v2=tet.m_n[index2]->m_x;
+
+
+		const btScalar			t=RayFromToCaster::rayFromToTriangle(	rayFrom,rayTo,dir,
+			v0,v1,v2,
+				mint);
+		if(t>0)
+			{
+				++cnt;
+				if(!bcountonly)
+				{
+					feature=btSoftBody::eFeature::Tetra;
+					index=i;
+					mint=t;
+				}
+			}
+		}
+	}
 	return(cnt);
 }
 
@@ -1977,15 +2243,18 @@ btVector3		btSoftBody::evaluateCom() const
 }
 
 //
-bool				btSoftBody::checkContact(	btCollisionObject* colObj,
+bool				btSoftBody::checkContact(	const btCollisionObjectWrapper* colObjWrap,
 											 const btVector3& x,
 											 btScalar margin,
 											 btSoftBody::sCti& cti) const
 {
 	btVector3 nrm;
-	btCollisionShape *shp = colObj->getCollisionShape();
-	btRigidBody *tmpRigid = btRigidBody::upcast(colObj);
-	const btTransform &wtr = tmpRigid ? tmpRigid->getWorldTransform() : colObj->getWorldTransform();
+	const btCollisionShape *shp = colObjWrap->getCollisionShape();
+//	const btRigidBody *tmpRigid = btRigidBody::upcast(colObjWrap->getCollisionObject());
+	//const btTransform &wtr = tmpRigid ? tmpRigid->getWorldTransform() : colObjWrap->getWorldTransform();
+	const btTransform &wtr = colObjWrap->getWorldTransform();
+	//todo: check which transform is needed here
+
 	btScalar dst = 
 		m_worldInfo->m_sparsesdf.Evaluate(	
 			wtr.invXform(x),
@@ -1994,7 +2263,7 @@ bool				btSoftBody::checkContact(	btCollisionObject* colObj,
 			margin);
 	if(dst<0)
 	{
-		cti.m_colObj = colObj;
+		cti.m_colObj = colObjWrap->getCollisionObject();
 		cti.m_normal = wtr.getBasis()*nrm;
 		cti.m_offset = -btDot( cti.m_normal, x - cti.m_normal * dst );
 		return(true);
@@ -2110,8 +2379,73 @@ void					btSoftBody::updatePose()
 }
 
 //
-void				btSoftBody::updateConstants()
+void				btSoftBody::updateArea(bool averageArea)
 {
+	int i,ni;
+
+	/* Face area		*/ 
+	for(i=0,ni=m_faces.size();i<ni;++i)
+	{
+		Face&		f=m_faces[i];
+		f.m_ra	=	AreaOf(f.m_n[0]->m_x,f.m_n[1]->m_x,f.m_n[2]->m_x);
+	}
+	
+	/* Node area		*/ 
+
+	if (averageArea)
+	{
+		btAlignedObjectArray<int>	counts;
+		counts.resize(m_nodes.size(),0);
+		for(i=0,ni=m_nodes.size();i<ni;++i)
+		{
+			m_nodes[i].m_area	=	0;
+		}
+		for(i=0,ni=m_faces.size();i<ni;++i)
+		{
+			btSoftBody::Face&	f=m_faces[i];
+			for(int j=0;j<3;++j)
+			{
+				const int index=(int)(f.m_n[j]-&m_nodes[0]);
+				counts[index]++;
+				f.m_n[j]->m_area+=btFabs(f.m_ra);
+			}
+		}
+		for(i=0,ni=m_nodes.size();i<ni;++i)
+		{
+			if(counts[i]>0)
+				m_nodes[i].m_area/=(btScalar)counts[i];
+			else
+				m_nodes[i].m_area=0;
+		}
+	}
+	else
+	{
+		// initialize node area as zero
+		for(i=0,ni=m_nodes.size();i<ni;++i)
+		{
+			m_nodes[i].m_area=0;	
+		}
+
+		for(i=0,ni=m_faces.size();i<ni;++i)
+		{
+			btSoftBody::Face&	f=m_faces[i];
+
+			for(int j=0;j<3;++j)
+			{
+				f.m_n[j]->m_area += f.m_ra;
+			}
+		}
+
+		for(i=0,ni=m_nodes.size();i<ni;++i)
+		{
+			m_nodes[i].m_area *= 0.3333333f;
+		}
+	}
+}
+
+
+void				btSoftBody::updateLinkConstants()
+{	
 	int i,ni;
 
 	/* Links		*/ 
@@ -2119,41 +2453,18 @@ void				btSoftBody::updateConstants()
 	{
 		Link&		l=m_links[i];
 		Material&	m=*l.m_material;
-		l.m_rl	=	(l.m_n[0]->m_x-l.m_n[1]->m_x).length();
 		l.m_c0	=	(l.m_n[0]->m_im+l.m_n[1]->m_im)/m.m_kLST;
-		l.m_c1	=	l.m_rl*l.m_rl;
-	}
-	/* Faces		*/ 
-	for(i=0,ni=m_faces.size();i<ni;++i)
-	{
-		Face&		f=m_faces[i];
-		f.m_ra	=	AreaOf(f.m_n[0]->m_x,f.m_n[1]->m_x,f.m_n[2]->m_x);
-	}
-	/* Area's		*/ 
-	btAlignedObjectArray<int>	counts;
-	counts.resize(m_nodes.size(),0);
-	for(i=0,ni=m_nodes.size();i<ni;++i)
-	{
-		m_nodes[i].m_area	=	0;
-	}
-	for(i=0,ni=m_faces.size();i<ni;++i)
-	{
-		btSoftBody::Face&	f=m_faces[i];
-		for(int j=0;j<3;++j)
-		{
-			const int index=(int)(f.m_n[j]-&m_nodes[0]);
-			counts[index]++;
-			f.m_n[j]->m_area+=btFabs(f.m_ra);
-		}
-	}
-	for(i=0,ni=m_nodes.size();i<ni;++i)
-	{
-		if(counts[i]>0)
-			m_nodes[i].m_area/=(btScalar)counts[i];
-		else
-			m_nodes[i].m_area=0;
 	}
 }
+
+void				btSoftBody::updateConstants()
+{
+	resetLinkRestLengths();
+	updateLinkConstants();
+	updateArea();
+}
+
+
 
 //
 void					btSoftBody::initializeClusters()
@@ -2623,7 +2934,7 @@ void				btSoftBody::applyForces()
 {
 
 	BT_PROFILE("SoftBody applyForces");
-	const btScalar					dt =			m_sst.sdt;
+//	const btScalar					dt =			m_sst.sdt;
 	const btScalar					kLF =			m_cfg.kLF;
 	const btScalar					kDG =			m_cfg.kDG;
 	const btScalar					kPR =			m_cfg.kPR;
@@ -2634,10 +2945,10 @@ void				btSoftBody::applyForces()
 	const bool						as_volume =		kVC>0;
 	const bool						as_aero =		as_lift	||
 													as_drag		;
-	const bool						as_vaero =		as_aero	&&
-													(m_cfg.aeromodel < btSoftBody::eAeroModel::F_TwoSided);
-	const bool						as_faero =		as_aero	&&
-													(m_cfg.aeromodel >= btSoftBody::eAeroModel::F_TwoSided);
+	//const bool						as_vaero =		as_aero	&&
+	//												(m_cfg.aeromodel < btSoftBody::eAeroModel::F_TwoSided);
+	//const bool						as_faero =		as_aero	&&
+	//												(m_cfg.aeromodel >= btSoftBody::eAeroModel::F_TwoSided);
 	const bool						use_medium =	as_aero;
 	const bool						use_volume =	as_pressure	||
 		as_volume	;
@@ -2661,44 +2972,8 @@ void				btSoftBody::applyForces()
 		{
 			if(use_medium)
 			{
-				EvaluateMedium(m_worldInfo, n.m_x, medium);
-				medium.m_velocity = m_windVelocity;
-				medium.m_density = m_worldInfo->air_density;
-
 				/* Aerodynamics			*/ 
-				if(as_vaero)
-				{				
-					const btVector3	rel_v = n.m_v - medium.m_velocity;
-					const btScalar	rel_v2 = rel_v.length2();
-					if(rel_v2>SIMD_EPSILON)
-					{
-						btVector3	nrm = n.m_n;
-						/* Setup normal		*/ 
-						switch(m_cfg.aeromodel)
-						{
-						case	btSoftBody::eAeroModel::V_Point:
-							nrm = NormalizeAny(rel_v);
-							break;
-						case	btSoftBody::eAeroModel::V_TwoSided:
-							nrm *= (btScalar)( (btDot(nrm,rel_v) < 0) ? -1 : +1);
-							break;							
-						default:
-							{
-							}
-						}
-						const btScalar dvn = btDot(rel_v,nrm);
-						/* Compute forces	*/ 
-						if(dvn>0)
-						{
-							btVector3		force(0,0,0);
-							const btScalar	c0	=	n.m_area * dvn * rel_v2/2;
-							const btScalar	c1	=	c0 * medium.m_density;
-							force	+=	nrm*(-c1*kLF);
-							force	+=	rel_v.normalized() * (-c1 * kDG);
-							ApplyClampedForce(n, force, dt);
-						}
-					}
-				}
+				addAeroForceToNode(m_windVelocity, i);
 			}
 			/* Pressure				*/ 
 			if(as_pressure)
@@ -2712,43 +2987,14 @@ void				btSoftBody::applyForces()
 			}
 		}
 	}
+
 	/* Per face forces				*/ 
 	for(i=0,ni=m_faces.size();i<ni;++i)
 	{
-		btSoftBody::Face&	f=m_faces[i];
-		if(as_faero)
-		{
-			const btVector3	v=(f.m_n[0]->m_v+f.m_n[1]->m_v+f.m_n[2]->m_v)/3;
-			const btVector3	x=(f.m_n[0]->m_x+f.m_n[1]->m_x+f.m_n[2]->m_x)/3;
-			EvaluateMedium(m_worldInfo,x,medium);
-			const btVector3	rel_v=v-medium.m_velocity;
-			const btScalar	rel_v2=rel_v.length2();
-			if(rel_v2>SIMD_EPSILON)
-			{
-				btVector3	nrm=f.m_normal;
-				/* Setup normal		*/ 
-				switch(m_cfg.aeromodel)
-				{
-				case	btSoftBody::eAeroModel::F_TwoSided:
-					nrm*=(btScalar)(btDot(nrm,rel_v)<0?-1:+1);break;
-					default:
-					{
-					}
-				}
-				const btScalar	dvn=btDot(rel_v,nrm);
-				/* Compute forces	*/ 
-				if(dvn>0)
-				{
-					btVector3		force(0,0,0);
-					const btScalar	c0	=	f.m_ra*dvn*rel_v2;
-					const btScalar	c1	=	c0*medium.m_density;
-					force	+=	nrm*(-c1*kLF);
-					force	+=	rel_v.normalized()*(-c1*kDG);
-					force	/=	3;
-					for(int j=0;j<3;++j) ApplyClampedForce(*f.m_n[j],force,dt);
-				}
-			}
-		}
+	//	btSoftBody::Face&	f=m_faces[i];
+
+		/* Aerodynamics			*/ 
+		addAeroForceToFace(m_windVelocity, i);	
 	}
 }
 
@@ -2781,7 +3027,7 @@ void btSoftBody::PSolve_RContacts(btSoftBody* psb, btScalar kst, btScalar ti)
 	{
 		const RContact&		c = psb->m_rcontacts[i];
 		const sCti&			cti = c.m_cti;	
-		btRigidBody* tmpRigid = btRigidBody::upcast(cti.m_colObj);
+		btRigidBody* tmpRigid = (btRigidBody*)btRigidBody::upcast(cti.m_colObj);
 
 		const btVector3		va = tmpRigid ? tmpRigid->getVelocityInLocalPoint(c.m_c1)*dt : btVector3(0,0,0);
 		const btVector3		vb = c.m_node->m_x-c.m_node->m_q;	
@@ -2902,7 +3148,7 @@ btSoftBody::vsolver_t	btSoftBody::getSolver(eVSolver::_ solver)
 }
 
 //
-void			btSoftBody::defaultCollisionHandler(btCollisionObject* pco)
+void			btSoftBody::defaultCollisionHandler(const btCollisionObjectWrapper* pcoWrap)
 {
 
 	switch(m_cfg.collisions&fCollision::RVSmask)
@@ -2910,22 +3156,22 @@ void			btSoftBody::defaultCollisionHandler(btCollisionObject* pco)
 	case	fCollision::SDF_RS:
 		{
 			btSoftColliders::CollideSDF_RS	docollide;		
-			btRigidBody*		prb1=btRigidBody::upcast(pco);
-			btTransform	wtr=pco->getWorldTransform();
+			btRigidBody*		prb1=(btRigidBody*) btRigidBody::upcast(pcoWrap->getCollisionObject());
+			btTransform	wtr=pcoWrap->getWorldTransform();
 
-			const btTransform	ctr=pco->getWorldTransform();
+			const btTransform	ctr=pcoWrap->getWorldTransform();
 			const btScalar		timemargin=(wtr.getOrigin()-ctr.getOrigin()).length();
 			const btScalar		basemargin=getCollisionShape()->getMargin();
 			btVector3			mins;
 			btVector3			maxs;
 			ATTRIBUTE_ALIGNED16(btDbvtVolume)		volume;
-			pco->getCollisionShape()->getAabb(	pco->getWorldTransform(),
+			pcoWrap->getCollisionShape()->getAabb(	pcoWrap->getWorldTransform(),
 				mins,
 				maxs);
 			volume=btDbvtVolume::FromMM(mins,maxs);
 			volume.Expand(btVector3(basemargin,basemargin,basemargin));		
 			docollide.psb		=	this;
-			docollide.m_colObj1 = pco;
+			docollide.m_colObj1Wrap = pcoWrap;
 			docollide.m_rigidBody = prb1;
 
 			docollide.dynmargin	=	basemargin+timemargin;
@@ -2936,7 +3182,7 @@ void			btSoftBody::defaultCollisionHandler(btCollisionObject* pco)
 	case	fCollision::CL_RS:
 		{
 			btSoftColliders::CollideCL_RS	collider;
-			collider.Process(this,pco);
+			collider.ProcessColObj(this,pcoWrap);
 		}
 		break;
 	}
@@ -2955,7 +3201,7 @@ void			btSoftBody::defaultCollisionHandler(btSoftBody* psb)
 			if (this!=psb || psb->m_cfg.collisions&fCollision::CL_SELF)
 			{
 				btSoftColliders::CollideCL_SS	docollide;
-				docollide.Process(this,psb);
+				docollide.ProcessSoftSoft(this,psb);
 			}
 			
 		}
@@ -3195,7 +3441,7 @@ const char*	btSoftBody::serialize(void* dataBuffer, class btSerializer* serializ
 	sbd->m_config.m_softRigidClusterImpulseSplit = m_cfg.kSR_SPLT_CL;
 	sbd->m_config.m_softKineticClusterImpulseSplit = m_cfg.kSK_SPLT_CL;
 	sbd->m_config.m_softSoftClusterImpulseSplit = m_cfg.kSS_SPLT_CL;
-		
+
 	//pose for shape matching
 	{
 		sbd->m_pose = (SoftBodyPoseData*)serializer->getUniquePointer((void*)&m_pose);

@@ -111,10 +111,10 @@ int	btTriangleMesh::findOrAddVertex(const btVector3& vertex, bool removeDuplicat
 					return i/3;
 				}
 			}
-	}
-		m_3componentVertices.push_back((float)vertex.getX());
-		m_3componentVertices.push_back((float)vertex.getY());
-		m_3componentVertices.push_back((float)vertex.getZ());
+		}
+		m_3componentVertices.push_back(vertex.getX());
+		m_3componentVertices.push_back(vertex.getY());
+		m_3componentVertices.push_back(vertex.getZ());
 		m_indexedMeshes[0].m_numVertices++;
 		m_indexedMeshes[0].m_vertexBase = (unsigned char*)&m_3componentVertices[0];
 		return (m_3componentVertices.size()/3)-1;
@@ -137,4 +137,26 @@ int btTriangleMesh::getNumTriangles() const
 		return m_32bitIndices.size() / 3;
 	}
 	return m_16bitIndices.size() / 3;
+}
+
+void btTriangleMesh::preallocateVertices(int numverts)
+{
+	if (m_use4componentVertices)
+	{
+		m_4componentVertices.reserve(numverts);
+	} else
+	{
+		m_3componentVertices.reserve(numverts);
+	}
+}
+
+void btTriangleMesh::preallocateIndices(int numindices)
+{
+	if (m_use32bitIndices)
+	{
+		m_32bitIndices.reserve(numindices);
+	} else
+	{
+		m_16bitIndices.reserve(numindices);
+	}
 }

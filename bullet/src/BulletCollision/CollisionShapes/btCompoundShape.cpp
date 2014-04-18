@@ -182,9 +182,7 @@ void btCompoundShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVect
 
 	btVector3 center = trans(localCenter);
 
-	btVector3 extent = btVector3(abs_b[0].dot(localHalfExtents),
-		abs_b[1].dot(localHalfExtents),
-		abs_b[2].dot(localHalfExtents));
+    btVector3 extent = localHalfExtents.dot3(abs_b[0], abs_b[1], abs_b[2]);
 	aabbMin = center-extent;
 	aabbMax = center+extent;
 	
@@ -275,6 +273,8 @@ void btCompoundShape::calculatePrincipalAxisTransform(btScalar* masses, btTransf
 
 
 
+
+
 void btCompoundShape::setLocalScaling(const btVector3& scaling)
 {
 
@@ -285,7 +285,7 @@ void btCompoundShape::setLocalScaling(const btVector3& scaling)
 //		childScale = childScale * (childTrans.getBasis() * scaling);
 		childScale = childScale * scaling / m_localScaling;
 		m_children[i].m_childShape->setLocalScaling(childScale);
-		childTrans.setOrigin((childTrans.getOrigin())*scaling);
+		childTrans.setOrigin((childTrans.getOrigin()) * scaling / m_localScaling);
 		updateChildTransform(i, childTrans,false);
 	}
 	

@@ -242,7 +242,7 @@ const char*	btStridingMeshInterface::serialize(void* dataBuffer, btSerializer* s
 		int gfxindex;
 	//	btVector3 triangle[3];
 
-		btVector3 meshScaling = getScaling();
+	//	btVector3 meshScaling = getScaling();
 
 		///if the number of parts is big, the performance might drop due to the innerloop switch on indextype
 		for (part=0;part<graphicssubparts ;part++,memPtr++)
@@ -253,8 +253,10 @@ const char*	btStridingMeshInterface::serialize(void* dataBuffer, btSerializer* s
 			memPtr->m_indices16 = 0;
 			memPtr->m_indices32 = 0;
 			memPtr->m_3indices16 = 0;
+			memPtr->m_3indices8 = 0;
 			memPtr->m_vertices3f = 0;
 			memPtr->m_vertices3d = 0;
+
 
 			switch (gfxindextype)
 			{

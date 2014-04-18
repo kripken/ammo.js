@@ -267,10 +267,8 @@ following steps:
     ok.
 
 
-TODO
-====
+Upstream Version
+================
 
-  * The HEAP memory space may not be implemented as a flat object in
-    all JS engines, especially when we use a lot of memory. Need to
-    investigate this.
+Bullet 2.82
 
