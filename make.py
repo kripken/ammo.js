@@ -84,19 +84,18 @@ try:
   stage('Build bindings')
 
   emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', 'btBulletDynamicsCommon.h', 'glue.cpp', '-c', '-o', 'glue.bc'])
+  assert(os.path.exists('glue.bc'))
 
   if not os.path.exists('config.h'):
     stage('Configure (if this fails, run autogen.sh in bullet/ first)')
 
     emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
-  1/0.
-
   stage('Make')
 
   emscripten.Building.make(['make', '-j'])
 
-  assert(os.path.exists('bindings.bc'))
+  1/0
 
   stage('Link')
 
