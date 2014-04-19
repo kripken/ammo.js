@@ -1,14 +1,16 @@
 
-[Constructor(float x, float y, float z)] // need to be optional, also below
 interface btVector3 {
+  void btVector3();
+  void btVector3(float x, float y, float z);
   float x();
   float y();
   float z();
 };
 
 
-[Constructor(float x, float y, float z, float w)] 
 interface btVector4 {
+  void btVector4();
+  void btVector4(float x, float y, float z, float w);
   float w();
 };
 btVector4 implements btVector3;
@@ -16,10 +18,12 @@ btVector4 implements btVector3;
 interface btQuaternion {};
 btQuaternion implements btVector4; // this seems wrong? btQuadWord?
 
-[Constructor(optional btQuaternion q, optional btVector3 v)]
 interface btTransform {
+  void btTransform();
+  void btTransform([NonPointer] btQuaternion q, [NonPointer] btVector3 v);
+
   void setIdentity();
-  btVector3 getOrigin();
-  btQuaternion getRotation();
+  [NonPointer] btVector3 getOrigin();
+  [NonPointer] btQuaternion getRotation();
 };
 
