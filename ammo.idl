@@ -15,7 +15,9 @@ interface btVector4 {
 };
 btVector4 implements btVector3;
 
-interface btQuaternion {};
+interface btQuaternion {
+  void btQuaternion(float x, float y, float z, float w);
+};
 btQuaternion implements btVector4; // this seems wrong? btQuadWord?
 
 interface btTransform {
@@ -24,6 +26,6 @@ interface btTransform {
 
   void setIdentity();
   [NonPointer] btVector3 getOrigin();
-  [NonPointer] btQuaternion getRotation();
+  [Copy] btQuaternion getRotation();
 };
 
