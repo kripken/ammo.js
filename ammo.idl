@@ -1,4 +1,6 @@
 
+// Linear Math
+
 interface btVector3 {
   void btVector3();
   void btVector3(float x, float y, float z);
@@ -28,4 +30,20 @@ interface btTransform {
   [NonPointer] btVector3 getOrigin();
   [Copy] btQuaternion getRotation();
 };
+
+// Collision
+
+[Prefix="btCollisionWorld::"]
+interface RayResultCallback {
+};
+
+[Prefix="btCollisionWorld::"]
+interface ClosestRayResultCallback {
+  void ClosestRayResultCallback([NonPointer] btVector3 from, [NonPointer] btVector3 to);
+};
+
+ClosestRayResultCallback implements RayResultCallback;
+
+// Dynamics
+
 
