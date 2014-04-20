@@ -64,6 +64,10 @@ interface btRigidBodyConstructionInfo {
   void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [NonPointer] optional btVector3 localInertia);
 };
 
+interface btRigidBody {
+  void btRigidBody([NonPointer] btRigidBodyConstructionInfo constructionInfo);
+};
+
 // Dynamics
 
 
