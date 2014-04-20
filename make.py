@@ -109,9 +109,9 @@ try:
   stage('emcc: ' + ' '.join(emcc_args))
 
   emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
-                           os.path.join('..', '..', 'builds', 'ammo.js'))
+                           os.path.join('..', '..', 'builds', 'temp.js'))
 
-  assert os.path.exists(os.path.join('..', '..', 'builds', 'ammo.js')), 'Failed to create script code'
+  assert os.path.exists(os.path.join('..', '..', 'builds', 'temp.js')), 'Failed to create script code'
 
 finally:
   os.chdir(this_dir);
