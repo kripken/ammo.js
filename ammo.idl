@@ -70,4 +70,8 @@ interface btRigidBody {
 
 // Dynamics
 
+interface btPoint2PointConstraint {
+  void btPoint2PointConstraint([NonPointer] btRigidBody rbA, [NonPointer] btRigidBody rbB, [NonPointer] btVector3 pivotInA, [NonPointer] btVector3 pivotInB);
+  void btPoint2PointConstraint([NonPointer] btRigidBody rbA, [NonPointer] btVector3 pivotInA);
+};
 
