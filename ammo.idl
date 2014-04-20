@@ -49,8 +49,19 @@ interface ClosestRayResultCallback {
 
 ClosestRayResultCallback implements RayResultCallback;
 
+interface btCollisionShape {
+};
+
 interface btBoxShape {
   void btBoxShape([NonPointer] btVector3 boxHalfExtents);
+};
+
+interface btMotionState {
+};
+
+[Prefix="btRigidBody::"]
+interface btRigidBodyConstructionInfo {
+  void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [NonPointer] optional btVector3 localInertia);
 };
 
 // Dynamics
