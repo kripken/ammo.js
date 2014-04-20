@@ -31,10 +31,15 @@ interface btTransform {
   [Copy] btQuaternion getRotation();
 };
 
+interface btDefaultMotionState {
+  void btDefaultMotionState([NonPointer] optional btTransform startTrans, [NonPointer] optional btTransform centerOfMassOffset);
+};
+
 // Collision
 
 [Prefix="btCollisionWorld::"]
 interface RayResultCallback {
+  // abstract base class, no constructor
 };
 
 [Prefix="btCollisionWorld::"]
@@ -43,6 +48,10 @@ interface ClosestRayResultCallback {
 };
 
 ClosestRayResultCallback implements RayResultCallback;
+
+interface btBoxShape {
+  void btBoxShape([NonPointer] btVector3 boxHalfExtents);
+};
 
 // Dynamics
 
