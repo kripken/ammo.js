@@ -24,15 +24,15 @@ btQuaternion implements btVector4; // this seems wrong? btQuadWord?
 
 interface btTransform {
   void btTransform();
-  void btTransform([NonPointer] btQuaternion q, [NonPointer] btVector3 v);
+  void btTransform([Ref] btQuaternion q, [Ref] btVector3 v);
 
   void setIdentity();
-  [NonPointer] btVector3 getOrigin();
-  [Copy] btQuaternion getRotation();
+  [Ref] btVector3 getOrigin();
+  [Value] btQuaternion getRotation();
 };
 
 interface btDefaultMotionState {
-  void btDefaultMotionState([NonPointer] optional btTransform startTrans, [NonPointer] optional btTransform centerOfMassOffset);
+  void btDefaultMotionState([Ref] optional btTransform startTrans, [Ref] optional btTransform centerOfMassOffset);
 };
 
 // Collision
@@ -44,7 +44,7 @@ interface RayResultCallback {
 
 [Prefix="btCollisionWorld::"]
 interface ClosestRayResultCallback {
-  void ClosestRayResultCallback([NonPointer] btVector3 from, [NonPointer] btVector3 to);
+  void ClosestRayResultCallback([Ref] btVector3 from, [Ref] btVector3 to);
 };
 
 ClosestRayResultCallback implements RayResultCallback;
@@ -53,7 +53,7 @@ interface btCollisionShape {
 };
 
 interface btBoxShape {
-  void btBoxShape([NonPointer] btVector3 boxHalfExtents);
+  void btBoxShape([Ref] btVector3 boxHalfExtents);
 };
 
 interface btMotionState {
@@ -61,7 +61,7 @@ interface btMotionState {
 
 [Prefix="btRigidBody::"]
 interface btRigidBodyConstructionInfo {
-  void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [NonPointer] optional btVector3 localInertia);
+  void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [Ref] optional btVector3 localInertia);
 };
 
 interface btRigidBody {
