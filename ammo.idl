@@ -65,13 +65,13 @@ interface btRigidBodyConstructionInfo {
 };
 
 interface btRigidBody {
-  void btRigidBody([NonPointer] btRigidBodyConstructionInfo constructionInfo);
+  void btRigidBody([Ref] btRigidBodyConstructionInfo constructionInfo);
 };
 
 // Dynamics
 
 interface btPoint2PointConstraint {
-  void btPoint2PointConstraint([NonPointer] btRigidBody rbA, [NonPointer] btRigidBody rbB, [NonPointer] btVector3 pivotInA, [NonPointer] btVector3 pivotInB);
-  void btPoint2PointConstraint([NonPointer] btRigidBody rbA, [NonPointer] btVector3 pivotInA);
+  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB);
+  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btVector3 pivotInA);
 };
 
