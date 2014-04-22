@@ -7,9 +7,8 @@ interface btVector3 {
   float x();
   float y();
   float z();
-  [Operator="*", Value] btVector3 op_mul([Ref] btVector3 other);
+  [Operator="*=", Ref] btVector3 op_mul(float x);
 };
-
 
 interface btVector4 {
   void btVector4();
@@ -18,10 +17,17 @@ interface btVector4 {
 };
 btVector4 implements btVector3;
 
+interface btQuadWord {
+  float x();
+  float y();
+  float z();
+  float w();
+};
+
 interface btQuaternion {
   void btQuaternion(float x, float y, float z, float w);
 };
-btQuaternion implements btVector4; // this seems wrong? btQuadWord?
+btQuaternion implements btQuadWord;
 
 interface btTransform {
   void btTransform();
