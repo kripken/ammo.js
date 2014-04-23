@@ -67,12 +67,9 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
 (function() {
   var calledBack = false;
   var callback = new Ammo.ConcreteContactResultCallback();
-  Ammo.customizeVTable(callback, [{
-    original: Ammo.ConcreteContactResultCallback.prototype.addSingleResult,
-    replacement: function(cp, etc) {
-      calledBack = true;
-    }
-  }]);
+  callback.addSingleResult = function(cp, etc) {
+    calledBack = true;
+  };
   assert(!calledBack);
   callback.addSingleResult(Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL, Ammo.NULL);
   assert(calledBack);

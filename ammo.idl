@@ -58,6 +58,22 @@ interface ClosestRayResultCallback {
 
 ClosestRayResultCallback implements RayResultCallback;
 
+interface btManifoldPoint {
+};
+
+interface btCollisionObjectWrapper {
+};
+
+[Prefix="btCollisionWorld::"]
+interface ContactResultCallback {
+  float addSingleResult([Ref] btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
+};
+
+[JSImplementation="ContactResultCallback"]
+interface ConcreteContactResultCallback {
+  float addSingleResult([Ref] btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
+};
+
 interface btCollisionObject {
 };
 
