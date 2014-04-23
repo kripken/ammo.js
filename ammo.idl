@@ -110,7 +110,10 @@ interface btDefaultCollisionConfiguration {
   void btDefaultCollisionConfiguration([Ref] optional btDefaultCollisionConstructionInfo info);
 };
 
-interface btCollisionDispatcher {
+interface btDispatcher {
+};
+
+interface btCollisionDispatcher : btDispatcher {
   void btCollisionDispatcher(btDefaultCollisionConfiguration conf);
 };
 
@@ -121,10 +124,33 @@ interface btAxisSweep3 {
   void btAxisSweep3([Ref] btVector3 worldAabbMin, [Ref] btVector3 worldAabbMax, optional long maxHandles, optional btOverlappingPairCache pairCache, optional boolean disableRaycastAccelerator);
 };
 
+interface btBroadphaseInterface {
+};
+
+interface btCollisionConfiguration {
+};
+
 // Dynamics
 
 interface btPoint2PointConstraint {
   void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB);
   void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btVector3 pivotInA);
+};
+
+interface btSequentialImpulseConstraintSolver {
+  void btSequentialImpulseConstraintSolver();
+};
+
+interface btConstraintSolver {
+};
+
+interface btDiscreteDynamicsWorld {
+  void btDiscreteDynamicsWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btConstraintSolver constraintSolver, btCollisionConfiguration collisionConfiguration);
+
+  void setGravity([Ref] btVector3 gravity);
+  [Value] btVector3 getGravity();
+
+  void addRigidBody(btRigidBody body);
+  void addRigidBody(btRigidBody body, short group, short mask);
 };
 
