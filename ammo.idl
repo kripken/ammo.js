@@ -34,6 +34,8 @@ interface btTransform {
   void btTransform([Ref] btQuaternion q, [Ref] btVector3 v);
 
   void setIdentity();
+  void setOrigin([Ref] btVector3 origin);
+  void setRotation([Ref] btQuaternion rotation);
   [Ref] btVector3 getOrigin();
   [Value] btQuaternion getRotation();
 };
