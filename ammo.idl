@@ -49,6 +49,7 @@ interface btDefaultMotionState {
 [Prefix="btCollisionWorld::"]
 interface RayResultCallback {
   // abstract base class, no constructor
+  boolean hasHit();
 };
 
 [Prefix="btCollisionWorld::"]
