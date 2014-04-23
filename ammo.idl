@@ -84,11 +84,20 @@ interface btCollisionObject {
 };
 
 interface btCollisionShape {
+  void calculateLocalInertia(float mass, [Ref] btVector3 inertia);
 };
 
 interface btBoxShape {
   void btBoxShape([Ref] btVector3 boxHalfExtents);
 };
+
+btBoxShape implements btCollisionShape;
+
+interface btCapsuleShape {
+  void btCapsuleShape(float radius, float height);
+};
+
+btCapsuleShape implements btCollisionShape;
 
 interface btMotionState {
 };
@@ -128,6 +137,9 @@ interface btBroadphaseInterface {
 };
 
 interface btCollisionConfiguration {
+};
+
+interface btDbvtBroadphase {
 };
 
 // Dynamics
