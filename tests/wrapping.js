@@ -56,7 +56,7 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
   assertNeq(body, asCollision, 'Not the same yet - different class');
   assert(Ammo.compare(body, asCollision), 'But has the same pointer');
 
-  var upcasted = Ammo.btRigidBody.prototype.upcast(asCollision);
+  var upcasted = Ammo.castObject(asCollision, Ammo.btRigidBody);
   assertEq(body, upcasted, 'Must be the exactly same object now, as the class is the same');
   assertEq(upcasted.info, 1230);
 })();
