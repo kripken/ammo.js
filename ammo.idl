@@ -72,12 +72,13 @@ interface btCollisionObjectWrapper {
 
 [Prefix="btCollisionWorld::"]
 interface ContactResultCallback {
-  float addSingleResult([Ref] btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
+  float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
 };
 
 [JSImplementation="ContactResultCallback"]
 interface ConcreteContactResultCallback {
-  float addSingleResult([Ref] btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
+  void ConcreteContactResultCallback();
+  float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
 };
 
 interface btCollisionObject {
@@ -140,6 +141,7 @@ interface btCollisionConfiguration {
 };
 
 interface btDbvtBroadphase {
+  void btDbvtBroadphase();
 };
 
 // Dynamics
