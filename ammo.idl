@@ -29,6 +29,10 @@ interface btQuaternion {
 };
 btQuaternion implements btQuadWord;
 
+interface btMatrix3x3 {
+  void setEulerZYX(float ex, float ey, float ez);
+};
+
 interface btTransform {
   void btTransform();
   void btTransform([Ref] btQuaternion q, [Ref] btVector3 v);
@@ -38,6 +42,7 @@ interface btTransform {
   void setRotation([Ref] btQuaternion rotation);
   [Ref] btVector3 getOrigin();
   [Value] btQuaternion getRotation();
+  [Ref] btMatrix3x3 getBasis();
 };
 
 interface btDefaultMotionState {
@@ -60,7 +65,6 @@ interface ClosestRayResultCallback {
 
   [Value] attribute btVector3 m_rayToWorld;
 };
-
 ClosestRayResultCallback implements RayResultCallback;
 
 interface btManifoldPoint {
@@ -91,13 +95,11 @@ interface btCollisionShape {
 interface btBoxShape {
   void btBoxShape([Ref] btVector3 boxHalfExtents);
 };
-
 btBoxShape implements btCollisionShape;
 
 interface btCapsuleShape {
   void btCapsuleShape(float radius, float height);
 };
-
 btCapsuleShape implements btCollisionShape;
 
 interface btMotionState {
@@ -155,6 +157,17 @@ interface btSequentialImpulseConstraintSolver {
   void btSequentialImpulseConstraintSolver();
 };
 
+interface btTypedConstraint {
+};
+
+interface btConeTwistConstraint {
+  void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame);
+  void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame);
+
+  void setLimit(long limitIndex, float limitValue);
+};
+btConeTwistConstraint implements btTypedConstraint;
+
 interface btConstraintSolver {
 };
 
@@ -166,5 +179,8 @@ interface btDiscreteDynamicsWorld {
 
   void addRigidBody(btRigidBody body);
   void addRigidBody(btRigidBody body, short group, short mask);
+
+  void addConstraint(btTypedConstraint constraint, optional boolean disableCollisionsBetweenLinkedBodies);
+  void removeConstraint(btTypedConstraint constraint);
 };
 
