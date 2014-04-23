@@ -45,9 +45,15 @@ interface btTransform {
   [Ref] btMatrix3x3 getBasis();
 };
 
+interface btMotionState {
+  void getWorldTransform([Ref] btTransform worldTrans);
+  void setWorldTransform([Ref] btTransform worldTrans);
+};
+
 interface btDefaultMotionState {
   void btDefaultMotionState([Ref] optional btTransform startTrans, [Ref] optional btTransform centerOfMassOffset);
 };
+btDefaultMotionState implements btMotionState;
 
 // Collision
 
@@ -102,18 +108,6 @@ interface btCapsuleShape {
 };
 btCapsuleShape implements btCollisionShape;
 
-interface btMotionState {
-};
-
-[Prefix="btRigidBody::"]
-interface btRigidBodyConstructionInfo {
-  void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [Ref] optional btVector3 localInertia);
-};
-
-interface btRigidBody {
-  void btRigidBody([Ref] btRigidBodyConstructionInfo constructionInfo);
-};
-
 interface btDefaultCollisionConstructionInfo {
   void btDefaultCollisionConstructionInfo();
 };
@@ -147,6 +141,17 @@ interface btDbvtBroadphase {
 };
 
 // Dynamics
+
+[Prefix="btRigidBody::"]
+interface btRigidBodyConstructionInfo {
+  void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [Ref] optional btVector3 localInertia);
+};
+
+interface btRigidBody {
+  void btRigidBody([Ref] btRigidBodyConstructionInfo constructionInfo);
+
+  btMotionState getMotionState();
+};
 
 interface btPoint2PointConstraint {
   void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB);
@@ -182,5 +187,7 @@ interface btDiscreteDynamicsWorld {
 
   void addConstraint(btTypedConstraint constraint, optional boolean disableCollisionsBetweenLinkedBodies);
   void removeConstraint(btTypedConstraint constraint);
+
+  long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
 };
 
