@@ -102,6 +102,14 @@ interface btRigidBody {
   void btRigidBody([Ref] btRigidBodyConstructionInfo constructionInfo);
 };
 
+interface btDefaultCollisionConstructionInfo {
+  void btDefaultCollisionConstructionInfo();
+};
+
+interface btDefaultCollisionConfiguration {
+  void btDefaultCollisionConfiguration([Ref] optional btDefaultCollisionConstructionInfo info);
+};
+
 // Dynamics
 
 interface btPoint2PointConstraint {
