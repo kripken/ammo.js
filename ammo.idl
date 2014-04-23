@@ -50,11 +50,15 @@ interface btDefaultMotionState {
 interface RayResultCallback {
   // abstract base class, no constructor
   boolean hasHit();
+
+  [Const] attribute btCollisionObject m_collisionObject;
 };
 
 [Prefix="btCollisionWorld::"]
 interface ClosestRayResultCallback {
   void ClosestRayResultCallback([Ref] btVector3 from, [Ref] btVector3 to);
+
+  [Value] attribute btVector3 m_rayToWorld;
 };
 
 ClosestRayResultCallback implements RayResultCallback;
