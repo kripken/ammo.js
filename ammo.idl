@@ -58,6 +58,9 @@ interface ClosestRayResultCallback {
 
 ClosestRayResultCallback implements RayResultCallback;
 
+interface btCollisionObject {
+};
+
 interface btCollisionShape {
 };
 
