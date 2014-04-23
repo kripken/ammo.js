@@ -110,6 +110,10 @@ interface btDefaultCollisionConfiguration {
   void btDefaultCollisionConfiguration([Ref] optional btDefaultCollisionConstructionInfo info);
 };
 
+interface btCollisionDispatcher {
+  void btCollisionDispatcher(btDefaultCollisionConfiguration conf);
+};
+
 // Dynamics
 
 interface btPoint2PointConstraint {
