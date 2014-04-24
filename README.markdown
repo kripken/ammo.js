@@ -68,6 +68,10 @@ ammo.js autogenerates its API from the Bullet source code, so it should
 be basically identical. There are however some differences and things
 to be aware of:
 
+  * See https://github.com/kripken/emscripten/wiki/WebIDL-Binder
+    for a description of the bindings tool we use here, which includes
+    instructions for how to use the wrapped objects.
+
   * All ammo.js elements should be accessed through `Ammo.*`. For example,
     `Ammo.btVector3`, etc., as you can see in the example code.
 
@@ -88,78 +92,9 @@ to be aware of:
     you can do `|new btVector3(5, 6, 7)|` and it will work as expected. If
     you find a case where you need the float& method, please file an issue.
 
-  * Not all classes are exposed, for various reasons. Please file an issue
-    if you find that something you need is missing.
-
-  * Each call to `|new X()|` allocates a new object, sort of like how C++
-    |new| works. You need to manually free such objects, which can be done
-    in JS using
-
-      `destroy(OBJECT)`
-
-    `|delete|` would have been a better parallel to C++, however `|delete|`
-    is a reserved work in JS.
-
-    Note that there is no way to allocate objects other than with `|new X()|`,
-    unlike in C++ where you can define an object and it is held on the stack,
-    and free'd automatically. (That might be possible with WeakMaps, but
-    not enough browsers support it yet.) So in practice you need to remember
-    to |destroy| the objects you create. However, you can let a lot of objects
-    leak, in many cases, for example when you are done with using Ammo, there
-    is really no need to free all the singleton objects you used. But, if
-    you do create a lot of new objects while running Ammo during a long
-    session, you should probably free those objects when possible.
-
-    Note that currently destroying a `btDiscreteDynamicsWorld` fails for some
-    reason (but normally you create a singleton of that, so you shouldn't
-    really need to destroy it anyhow).
-
-  * Functions that return an entire object, like `|btQuaternion someFunc()|`,
-    will return a reference to a static object held inside the binding
-    function. That means that you cannot call the binding function multiple
-    times and still use the values - you must copy them.
-
-  * All the bindings functions expect to receive wrapper objects, that
-    contain the raw pointer inside them, and not a raw pointer (which is
-    just a memory address - an integer). You should normally not need
-    to deal with raw pointers, but if you do, the following functions can
-    help:
-
-      `wrapPointer(ptr, Class)`   - Given a raw pointer (an integer), returns a
-                                  wrapped object. Note that if you do not pass
-                                  Class, it will be assumed to be
-                                  |Object| - this is likely not what you want!
-      `getPointer(object)`        - Returns a raw pointer
-      `castObject(object, Class)` - Returns a wrapping of the same pointer but to
-                                  another class
-      `compare(object1, object2)` - Compares two objects' pointers
-
-    Note that there is always a *single* wrapped object for a certain pointer.
-    This allows you to add data on that object and use it elsewhere, by using
-    normal JavaScript syntax (`object.attribute = someData` etc.). Note that
-    this almost means that `compare()` is not needed - since you can compare two
-    objects of the same class, and if they have the same pointer they must be
-    the same object - but not quite: The tricky case is where one is a subclass
-    of the other, in which case the wrapped objects are different while the
-    pointer is the same. So, the correct way to compare two objects is to call
-    `compare()`.
-
-  * All the bindings functions that return pointers/references/objects
-    will return wrapped pointers. The only potentially confusing case is
-    when they are returning a null pointer. In that case, you will get
-    NULL (a global singleton with a wrapped pointer of 0) instead of null
-    (the JavaScript builtin object) or 0. The reason is that by always
-    returning a wrapper, you can always take the output and pass it back
-    to another binding function, without that function needing to check
-    the type of the argument.
-
-    If you want to pass a null pointer, use that NULL object. The reason is that
-    the bindings code is faster if it does not need to check each argument
-    for its type and convert them on the fly. In practice this should not be
-    an inconvenience, and you shouldn't need to think about it, because
-    bindings functions return wrapped objects, so you can just pass those
-    back into other bindings functions. In other words, you should normally
-    never have to see a raw pointer.
+  * Not all classes are exposed, as only what is described in ammo.idl is
+    wrapped. Please submit pull requests with extra stuff that you need
+    and add.
 
   * There is experimental support for binding operator functions. The following
     might work:
@@ -173,26 +108,6 @@ to be aware of:
     | `/`  | `op_div`  |
     | `[]`  | `op_get`  |
     | `==`  | `op_eq`  |
-
-  * There is experimental support for callbacks from C++ back into JS. See
-    `tests/wrapping.js`'s use of `ConcreteContactResultCallback`. Basically you
-    need to create an object of a particular (concrete, not abstract) class,
-    and you can then customize it's vtable, replacing some virtual functions
-    with others. Note that we do not have the type signature for functions at
-    runtime (we can add it, but it would bloat the library), which means you
-    will need to convert types manually, so if a parameter is a pointer or
-    a reference to say a `btVector3`, you should do
-
-      `obj = Ammo.wrapPointer(arg, Ammo.btVector3)`
-
-    and for your return value, if it is a pointer or a reference, return
-
-      `obj.ptr`
-
-    Other types (ints, doubles) can be left as-is. Note also that as mentioned
-    above this approach only works for concrete classes, not abstract ones.
-    That is the purpose of `ConcreteContactResultCallback`. You can add similar
-    things to root.h as needed.
 
 
 Troubleshooting
