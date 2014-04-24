@@ -67,6 +67,7 @@ btDefaultMotionState implements btMotionState;
 interface btCollisionObject {
   [Ref] btTransform getWorldTransform();
   void activate(optional boolean forceActivation);
+  boolean isActive();
 };
 
 [NoDelete]
