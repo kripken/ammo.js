@@ -108,6 +108,11 @@ interface btCapsuleShape {
 };
 btCapsuleShape implements btCollisionShape;
 
+interface btSphereShape {
+  void btSphereShape(float radius);
+};
+btSphereShape implements btCollisionShape;
+
 interface btDefaultCollisionConstructionInfo {
   void btDefaultCollisionConstructionInfo();
 };
