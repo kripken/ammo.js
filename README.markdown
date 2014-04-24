@@ -71,32 +71,6 @@ to be aware of:
   * All ammo.js elements should be accessed through `Ammo.*`. For example,
     `Ammo.btVector3`, etc., as you can see in the example code.
 
-    Note however that by default ammo.js does *not* wrap builds in a
-    closure - Ammo is just another name for `|this|`. The reason is that
-    closure wrapping, while it keeps the global namespace clean, has
-    significant performance downsides (currently 50% in the top engines).
-    If you must, use a closure, but otherwise it is better not to. Note
-    that it is a good idea to run ammo.js in a worker thread anyhow, in
-    which case the global namespace is kept clean, and there is
-    definitely no need for a closure (however, you must still be careful
-    if you compile with the closure compiler, to avoid stepping on the
-    minified names it generates).
-
-    Accessing elements in ammo.js through Ammo.* is not strictly
-    necessary in a normal (non-wrapped) build, but is recommended since
-    it makes it easy to use a wrapped build without changing your code.
-
-    If you do want to wrap a build in a closure, you can use wrap.py
-    which is a little tool for that.
-
-    Note that non-wrapped builds can lead to problems if the rest of
-    your code uses global variables that collide with ammo.js's! You
-    can run your code in JavaScript strict mode to see if that might be
-    the problem, it will warn about your functions writing to global
-    variables (but it won't notice your actual global variables accessed
-    outside of functions). You can also check if this is the problem by
-    wrapping an ammo.js build using wrap.py.
-
   * Member variables of structs and classes can be accessed through
     setter and getter functions, that are prefixed with `|get_|` or `|set_|`.
     For example,

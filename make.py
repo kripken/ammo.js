@@ -107,10 +107,26 @@ try:
 
   stage('emcc: ' + ' '.join(emcc_args))
 
+  temp = os.path.join('..', '..', 'builds', 'temp.js')
   emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
-                           os.path.join('..', '..', 'builds', 'temp.js'))
+                           temp)
 
-  assert os.path.exists(os.path.join('..', '..', 'builds', 'temp.js')), 'Failed to create script code'
+  assert os.path.exists(temp), 'Failed to create script code'
+
+  stage('wrap')
+
+  wrapped = '''
+// This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed.
+var Ammo = (function() {
+  var Module = this;
+
+''' + open(temp).read() + '''
+
+  return this;
+}).call({});
+'''
+
+  open(temp, 'w').write(wrapped)
 
 finally:
   os.chdir(this_dir);
