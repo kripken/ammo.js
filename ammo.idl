@@ -7,6 +7,9 @@ interface btVector3 {
   float x();
   float y();
   float z();
+  void setX(float x);
+  void setY(float y);
+  void setZ(float z);
   [Operator="*=", Ref] btVector3 op_mul(float x);
 };
 
@@ -22,6 +25,10 @@ interface btQuadWord {
   float y();
   float z();
   float w();
+  void setX(float x);
+  void setY(float y);
+  void setZ(float z);
+  void setW(float w);
 };
 
 interface btQuaternion {
@@ -57,6 +64,15 @@ btDefaultMotionState implements btMotionState;
 
 // Collision
 
+interface btCollisionObject {
+  [Ref] btTransform getWorldTransform();
+  void activate(optional boolean forceActivation);
+};
+
+[NoDelete]
+interface btCollisionObjectWrapper {
+};
+
 [Prefix="btCollisionWorld::"]
 interface RayResultCallback {
   // abstract base class, no constructor
@@ -76,10 +92,6 @@ ClosestRayResultCallback implements RayResultCallback;
 interface btManifoldPoint {
 };
 
-[NoDelete]
-interface btCollisionObjectWrapper {
-};
-
 [Prefix="btCollisionWorld::"]
 interface ContactResultCallback {
   float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
@@ -89,9 +101,6 @@ interface ContactResultCallback {
 interface ConcreteContactResultCallback {
   void ConcreteContactResultCallback();
   float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
-};
-
-interface btCollisionObject {
 };
 
 interface btCollisionShape {
@@ -162,6 +171,7 @@ interface btRigidBody {
 
   btMotionState getMotionState();
 };
+btRigidBody implements btCollisionObject;
 
 interface btPoint2PointConstraint {
   void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB);

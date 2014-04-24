@@ -1,7 +1,7 @@
 
 var Module = { TOTAL_MEMORY: 256*1024*1024 };
 
-importScripts('../../builds/ammo.js');
+importScripts('../../builds/temp.js');
 
 var NUM = 0, NUMRANGE = [];
 
