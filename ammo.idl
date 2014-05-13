@@ -139,9 +139,10 @@ interface btDefaultCollisionConfiguration {
 interface btDispatcher {
 };
 
-interface btCollisionDispatcher : btDispatcher {
+interface btCollisionDispatcher {
   void btCollisionDispatcher(btDefaultCollisionConfiguration conf);
 };
+btCollisionDispatcher implements btDispatcher;
 
 interface btOverlappingPairCache {
 };
