@@ -265,7 +265,7 @@ interface btRigidBodyConstructionInfo {
 interface btRigidBody {
   void btRigidBody([Const, Ref] btRigidBodyConstructionInfo constructionInfo);
   
-  btTransform getCenterOfMassTransform();
+  [Const, Ref] btTransform getCenterOfMassTransform();
   void setCenterOfMassTransform([Const, Ref] btTransform xform);
   void setSleepingThresholds(float linear, float angular);
   void setDamping(float lin_damping, float ang_damping);
