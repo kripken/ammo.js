@@ -69,6 +69,7 @@ btDefaultMotionState implements btMotionState;
 
 interface btCollisionObject {
   btCollisionShape getCollisionShape();
+  void setActivationState(long newState);  
   void forceActivationState(long newState);
   void activate(optional boolean forceActivation);
   boolean isActive();
