@@ -4,6 +4,7 @@
 interface btVector3 {
   void btVector3();
   void btVector3(float x, float y, float z);
+  float length();
   float x();
   float y();
   float z();
@@ -69,6 +70,7 @@ btDefaultMotionState implements btMotionState;
 
 interface btCollisionObject {
   btCollisionShape getCollisionShape();
+  void setContactProcessingThreshold(float contactProcessingThreshold);
   void setActivationState(long newState);  
   void forceActivationState(long newState);
   void activate(optional boolean forceActivation);
@@ -277,6 +279,7 @@ interface btRigidBody {
   void applyTorqueImpulse([Const, Ref] btVector3 torque);
   void applyImpulse([Const, Ref] btVector3 impulse, [Const, Ref] btVector3 rel_pos);
   void updateInertiaTensor();
+  [Const, Ref] btVector3 getLinearVelocity();
   void setLinearVelocity([Const, Ref] btVector3 lin_vel);
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
@@ -326,6 +329,11 @@ interface btCollisionWorld {
   void rayTest([Const, Ref] btVector3 rayFromWorld, [Const, Ref] btVector3 rayToWorld, [Ref] RayResultCallback resultCallback);
 };
 
+interface btDynamicsWorld {
+  void addAction(btActionInterface action);
+};
+btDynamicsWorld implements btCollisionWorld;
+
 interface btDiscreteDynamicsWorld {
   void btDiscreteDynamicsWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btConstraintSolver constraintSolver, btCollisionConfiguration collisionConfiguration);
 
@@ -341,4 +349,43 @@ interface btDiscreteDynamicsWorld {
 
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
 };
-btDiscreteDynamicsWorld implements btCollisionWorld;
+btDiscreteDynamicsWorld implements btDynamicsWorld;
+
+[Prefix="btRaycastVehicle::", NoDelete]
+interface btVehicleTuning {
+  void btVehicleTuning();
+};
+
+interface btVehicleRaycaster {
+};
+
+interface btDefaultVehicleRaycaster {
+  void btDefaultVehicleRaycaster(btDynamicsWorld world);
+};
+btDefaultVehicleRaycaster implements btVehicleRaycaster;
+
+interface btWheelInfo {
+  attribute float m_suspensionStiffness;
+  attribute float m_wheelsDampingRelaxation;
+  attribute float m_wheelsDampingCompression;
+  attribute float m_frictionSlip;
+  attribute float m_rollInfluence;
+};
+
+interface btActionInterface {
+};
+
+interface btRaycastVehicle {
+  void btRaycastVehicle([Const, Ref] btVehicleTuning tuning, btRigidBody chassis, btVehicleRaycaster raycaster);
+  void applyEngineForce(float force, long wheel);
+  void setSteeringValue(float steering, long wheel);
+  [Const, Ref] btTransform getWheelTransformWS(long wheelIndex);
+  void updateWheelTransform(long wheelIndex, boolean interpolatedTransform);
+  [Ref] btWheelInfo addWheel([Const, Ref] btVector3 connectionPointCS0, [Const, Ref] btVector3 wheelDirectionCS0, [Const, Ref] btVector3 wheelAxleCS, float suspensionRestLength, float wheelRadius, [Const, Ref] btVehicleTuning tuning, boolean isFrontWheel);
+  long getNumWheels();
+  btRigidBody getRigidBody();
+  [Ref] btWheelInfo getWheelInfo(long index);
+  void setBrake(float brake, long wheelIndex);
+  void setCoordinateSystem(long rightIndex, long upIndex, long forwardIndex);
+};
+btRaycastVehicle implements btActionInterface;
