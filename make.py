@@ -82,7 +82,7 @@ try:
 
   stage('Build bindings')
 
-  emscripten.Building.make([emscripten.EMCC, '-I../src', '-include', 'btBulletDynamicsCommon.h', 'glue.cpp', '-c', '-o', 'glue.bc'])
+  emscripten.Building.emcc('glue.cpp', ['-I../src', '-include', 'btBulletDynamicsCommon.h', '-c'], 'glue.bc')
   assert(os.path.exists('glue.bc'))
 
   if not os.path.exists('config.h'):
