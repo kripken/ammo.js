@@ -59,6 +59,11 @@ assertEq(Ammo.wrapPointer(vec1ptr, Ammo.btVector3).something, undefined, 'Still 
   var upcasted = Ammo.castObject(asCollision, Ammo.btRigidBody);
   assertEq(body, upcasted, 'Must be the exactly same object now, as the class is the same');
   assertEq(upcasted.info, 1230);
+
+  var upcastUpcasted = Ammo.btRigidBody.prototype.upcast(asCollision);
+  assertEq(body, upcastUpcasted, 'Must be the exactly same object now, as the class is the same');
+  assertEq(upcastUpcasted.info, 1230);
+  assert(Ammo.getPointer(upcastUpcasted) !== 0);
 })();
 
 // Callbacks from C++ to JS
