@@ -292,6 +292,7 @@ interface btRigidBody {
   void applyImpulse([Const, Ref] btVector3 impulse, [Const, Ref] btVector3 rel_pos);
   void updateInertiaTensor();
   [Const, Ref] btVector3 getLinearVelocity();
+  [Const, Ref] btVector3 getAngularVelocity();
   void setLinearVelocity([Const, Ref] btVector3 lin_vel);
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
