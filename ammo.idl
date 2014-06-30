@@ -263,6 +263,18 @@ interface btDbvtBroadphase {
 [Prefix="btRigidBody::"]
 interface btRigidBodyConstructionInfo {
   void btRigidBodyConstructionInfo(float mass, btMotionState motionState, btCollisionShape collisionShape, [Ref] optional btVector3 localInertia);
+  attribute float m_linearDamping;
+  attribute float m_angularDamping;
+  attribute float m_friction;
+  attribute float m_rollingFriction;
+  attribute float m_restitution;
+  attribute float m_linearSleepingThreshold;
+  attribute float m_angularSleepingThreshold;
+  attribute boolean m_additionalDamping;
+  attribute float m_additionalDampingFactor;
+  attribute float m_additionalLinearDampingThresholdSqr;
+  attribute float m_additionalAngularDampingThresholdSqr;
+  attribute float m_additionalAngularDampingFactor;
 };
 
 interface btRigidBody {
@@ -280,6 +292,7 @@ interface btRigidBody {
   void applyImpulse([Const, Ref] btVector3 impulse, [Const, Ref] btVector3 rel_pos);
   void updateInertiaTensor();
   [Const, Ref] btVector3 getLinearVelocity();
+  [Const, Ref] btVector3 getAngularVelocity();
   void setLinearVelocity([Const, Ref] btVector3 lin_vel);
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
