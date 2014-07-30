@@ -3,6 +3,10 @@
 import os, sys, re, json, shutil
 from subprocess import Popen, PIPE, STDOUT
 
+# Definitions
+
+INCLUDES = ['btBulletDynamicsCommon.h', os.path.join('BulletCollision', 'CollisionShapes', 'btHeightfieldTerrainShape.h')]
+
 # Startup
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
@@ -82,7 +86,10 @@ try:
 
   stage('Build bindings')
 
-  emscripten.Building.emcc('glue.cpp', ['-I../src', '-include', 'btBulletDynamicsCommon.h', '-c'], 'glue.bc')
+  args = ['-I../src', '-c']
+  for include in INCLUDES:
+    args += ['-include', include]
+  emscripten.Building.emcc('glue.cpp', args, 'glue.bc')
   assert(os.path.exists('glue.bc'))
 
   if not os.path.exists('config.h'):
