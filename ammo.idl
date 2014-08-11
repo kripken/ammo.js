@@ -42,6 +42,7 @@ btQuaternion implements btQuadWord;
 
 interface btMatrix3x3 {
   void setEulerZYX(float ex, float ey, float ez);
+  void getRotation([Ref] btQuaternion q);
 };
 
 interface btTransform {
