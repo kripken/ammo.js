@@ -64,6 +64,7 @@ interface btMotionState {
 
 interface btDefaultMotionState {
   void btDefaultMotionState([Ref] optional btTransform startTrans, [Ref] optional btTransform centerOfMassOffset);
+  [Value] attribute btTransform m_graphicsWorldTrans;
 };
 btDefaultMotionState implements btMotionState;
 
@@ -94,7 +95,8 @@ interface btCollisionObjectWrapper {
 interface RayResultCallback {
   // abstract base class, no constructor
   boolean hasHit();
-
+  attribute short m_collisionFilterGroup;
+  attribute short m_collisionFilterMask;
   [Const] attribute btCollisionObject m_collisionObject;
 };
 
@@ -130,6 +132,42 @@ interface ConcreteContactResultCallback {
   void ConcreteContactResultCallback();
   float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
 };
+
+[Prefix="btCollisionWorld::"]
+interface LocalShapeInfo {
+    attribute long m_shapePart;
+    attribute long m_triangleIndex;
+ };
+
+[Prefix="btCollisionWorld::"]
+interface LocalConvexResult  {
+  void LocalConvexResult([Const] btCollisionObject hitCollisionObject, LocalShapeInfo localShapeInfo, [Const, Ref] btVector3 hitNormalLocal, [Const, Ref] btVector3 hitPointLocal, float hitFraction);
+  [Const] attribute btCollisionObject m_hitCollisionObject;
+  attribute LocalShapeInfo m_localShapeInfo;
+  [Value] attribute btVector3 m_hitNormalLocal;
+  [Value] attribute btVector3 m_hitPointLocal;
+  attribute float m_hitFraction;
+};
+
+[Prefix="btCollisionWorld::"]
+interface ConvexResultCallback {
+  // abstract base class, no constructor
+  boolean hasHit();
+  attribute short m_collisionFilterGroup;
+  attribute short m_collisionFilterMask;
+  attribute float m_closestHitFraction;
+};
+
+[Prefix="btCollisionWorld::"]
+interface ClosestConvexResultCallback {
+  void ClosestConvexResultCallback([Const, Ref] btVector3 convexFromWorld, [Const, Ref] btVector3 convexToWorld);
+    
+  [Value] attribute btVector3 m_convexFromWorld;
+  [Value] attribute btVector3 m_convexToWorld;
+  [Value] attribute btVector3 m_hitNormalWorld;
+  [Value] attribute btVector3 m_hitPointWorld;
+};
+ClosestConvexResultCallback implements ConvexResultCallback;
 
 interface btCollisionShape {
   void setLocalScaling([Const, Ref] btVector3 scaling);
@@ -418,6 +456,8 @@ interface btCollisionWorld {
   [Ref] btDispatcherInfo getDispatchInfo();
   void addCollisionObject(btCollisionObject collisionObject, optional short collisionFilterGroup, optional short collisionFilterMask);
   [Const] btBroadphaseInterface getBroadphase ();
+  void convexSweepTest([Const] btConvexShape castShape, [Const, Ref] btTransform from, [Const, Ref] btTransform to, [Ref] ConvexResultCallback resultCallback, float allowedCcdPenetration); 
+  void contactPairTest([Const] btCollisionObject colObjA, [Const] btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);  
 };
 
 interface btDynamicsWorld {
