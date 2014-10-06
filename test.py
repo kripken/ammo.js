@@ -12,6 +12,10 @@ exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 JS_ENGINE = SPIDERMONKEY_ENGINE
 #JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
 
+if type(JS_ENGINE) == str:
+  JS_ENGINE = [JS_ENGINE]
+
+
 print
 print '==================================='
 print
