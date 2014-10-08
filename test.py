@@ -21,7 +21,7 @@ print '==================================='
 print
 
 def run(filename):
-  if JS_ENGINE == SPIDERMONKEY_ENGINE:
+  if JS_ENGINE == [SPIDERMONKEY_ENGINE]:
     return Popen(JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + os.path.join('tests', 'testutils.js') + '")', filename], stdout=PIPE).communicate()[0]
   else:
     return Popen(JS_ENGINE + [build, os.path.join('tests', 'testutils.js'), filename], stdout=PIPE).communicate()[0]
