@@ -517,6 +517,7 @@ interface btWheelInfo {
   attribute float m_steering;
   attribute float m_maxSuspensionForce;
   attribute float m_maxSuspensionTravelCm;
+  attribute boolean m_bIsFrontWheel;
 };
 
 interface btActionInterface {
