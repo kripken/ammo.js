@@ -85,6 +85,8 @@ interface btCollisionObject {
   void setCollisionFlags(long flags);
   void setWorldTransform ([Const,Ref] btTransform worldTrans);
   void setCollisionShape (btCollisionShape collisionShape);
+  void setCcdMotionThreshold (float ccdMotionThreshold);
+  void setCcdSweptSphereRadius (float radius);
 };
 
 [NoDelete]
@@ -517,6 +519,7 @@ interface btWheelInfo {
   attribute float m_steering;
   attribute float m_maxSuspensionForce;
   attribute float m_maxSuspensionTravelCm;
+  attribute boolean m_bIsFrontWheel;
 };
 
 interface btActionInterface {
