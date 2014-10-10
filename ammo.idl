@@ -85,6 +85,8 @@ interface btCollisionObject {
   void setCollisionFlags(long flags);
   void setWorldTransform ([Const,Ref] btTransform worldTrans);
   void setCollisionShape (btCollisionShape collisionShape);
+  void setCcdMotionThreshold (float ccdMotionThreshold);
+  void setCcdSweptSphereRadius (float radius);
 };
 
 [NoDelete]
