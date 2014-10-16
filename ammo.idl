@@ -381,6 +381,8 @@ interface btConstraintSetting {
 
 interface btTypedConstraint {
   void enableFeedback(boolean needsFeedback);
+  [Const] float getBreakingImpulseThreshold();
+  void setBreakingImpulseThreshold([Const] float threshold);
 };
 
 interface btPoint2PointConstraint {
@@ -398,7 +400,21 @@ btPoint2PointConstraint implements btTypedConstraint;
 interface btGeneric6DofConstraint {
   void btGeneric6DofConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform frameInA, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
   void btGeneric6DofConstraint([Ref] btRigidBody rbB, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameB);
+  void setLinearLowerLimit([Const, Ref] btVector3 linearLower);
+  void setLinearUpperLimit([Const, Ref] btVector3 linearUpper);
+  void setAngularLowerLimit([Const, Ref] btVector3 angularLower);
+  void setAngularUpperLimit([Const, Ref] btVector3 angularUpper);  
 };
+btGeneric6DofConstraint implements btTypedConstraint;
+
+interface btGeneric6DofSpringConstraint {
+  void btGeneric6DofSpringConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform frameInA, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
+  void btGeneric6DofSpringConstraint([Ref] btRigidBody rbB, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameB);
+  void enableSpring(long index, boolean onOff);
+  void setStiffness(long index, float stiffness);
+  void setDamping(long index, float damping);
+};
+btGeneric6DofSpringConstraint implements btGeneric6DofConstraint;
 
 interface btSequentialImpulseConstraintSolver {
   void btSequentialImpulseConstraintSolver();
@@ -467,8 +483,14 @@ interface btCollisionWorld {
   void contactPairTest([Const] btCollisionObject colObjA, [Const] btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);  
 };
 
+interface btContactSolverInfo {
+  attribute boolean m_splitImpulse;
+  attribute long m_splitImpulsePenetrationThreshold;  
+};
+
 interface btDynamicsWorld {
   void addAction(btActionInterface action);
+  [Value] btContactSolverInfo getSolverInfo();
 };
 btDynamicsWorld implements btCollisionWorld;
 
@@ -519,7 +541,9 @@ interface btWheelInfo {
   attribute float m_steering;
   attribute float m_maxSuspensionForce;
   attribute float m_maxSuspensionTravelCm;
+  attribute float m_wheelsSuspensionForce;
   attribute boolean m_bIsFrontWheel;
+  [Value] attribute btVector3 m_chassisConnectionPointCS;
 };
 
 interface btActionInterface {
