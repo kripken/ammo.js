@@ -80,6 +80,7 @@ interface btCollisionObject {
   boolean isKinematicObject();
   void setRestitution(float rest);
   void setFriction(float frict);
+  void setRollingFriction(float frict);
   [Ref] btTransform getWorldTransform();
   long getCollisionFlags();
   void setCollisionFlags(long flags);
