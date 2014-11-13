@@ -71,6 +71,7 @@ btDefaultMotionState implements btMotionState;
 // Collision
 
 interface btCollisionObject {
+  void setAnisotropicFriction([Const, Ref] btVector3 anisotropicFriction, long frictionMode);
   btCollisionShape getCollisionShape();
   void setContactProcessingThreshold(float contactProcessingThreshold);
   void setActivationState(long newState);  
