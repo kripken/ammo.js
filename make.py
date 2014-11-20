@@ -93,24 +93,36 @@ try:
   emscripten.Building.emcc('glue.cpp', args, 'glue.bc')
   assert(os.path.exists('glue.bc'))
 
-  if not os.path.exists('config.h'):
-    stage('Configure (if this fails, run autogen.sh in bullet/ first)')
+  # Configure with CMake on Windows, and with configure on Unix.
+  cmake_build = emscripten.WINDOWS
 
-    emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
+  if cmake_build:
+    if not os.path.exists('CMakeCache.txt'):
+      emscripten.Building.configure([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'emcmake'), 'cmake', '..', '-DBUILD_DEMOS=OFF', '-DBUILD_EXTRAS=OFF', '-DBUILD_CPU_DEMOS=OFF', '-DUSE_GLUT=OFF', '-DCMAKE_BUILD_TYPE=Release'])
+  else:
+    if not os.path.exists('config.h'):
+      stage('Configure (if this fails, run autogen.sh in bullet/ first)')
+      emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
   stage('Make')
 
-  emscripten.Building.make(['make', '-j'])
+  if emscripten.WINDOWS:
+    emscripten.Building.make(['mingw32-make', '-j'])
+  else:
+    emscripten.Building.make(['make', '-j'])
 
   stage('Link')
 
-  emscripten.Building.link([
-                            'glue.bc',
-                            os.path.join('src', '.libs', 'libBulletDynamics.a'),
-                            os.path.join('src', '.libs', 'libBulletCollision.a'),
-                            os.path.join('src', '.libs', 'libLinearMath.a')
-                           ],
-                           'libbullet.bc')
+  if cmake_build:
+    bullet_libs = [os.path.join('src', 'BulletDynamics', 'libBulletDynamics.a'),
+                   os.path.join('src', 'BulletCollision', 'libBulletCollision.a'),
+                   os.path.join('src', 'LinearMath', 'libLinearMath.a')]
+  else:
+    bullet_libs = [os.path.join('src', '.libs', 'libBulletDynamics.a'),
+                   os.path.join('src', '.libs', 'libBulletCollision.a'),
+                   os.path.join('src', '.libs', 'libLinearMath.a')]
+
+  emscripten.Building.link(['glue.bc'] + bullet_libs, 'libbullet.bc')
   assert os.path.exists('libbullet.bc')
 
   stage('emcc: ' + ' '.join(emcc_args))
