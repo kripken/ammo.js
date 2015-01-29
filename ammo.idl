@@ -118,7 +118,7 @@ ClosestRayResultCallback implements RayResultCallback;
 interface btManifoldPoint {
   [Const, Ref] btVector3 getPositionWorldOnA();
   [Const, Ref] btVector3 getPositionWorldOnB();
-  [Const, Value] btScalar getDistance();
+  [Const] btScalar getDistance();
   [Value] attribute btVector3 m_localPointA;
   [Value] attribute btVector3 m_localPointB;
   [Value] attribute btVector3 m_positionWorldOnB;
