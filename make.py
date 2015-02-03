@@ -35,6 +35,8 @@ emcc_args = sys.argv[1:] or '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 -s AGGRESSIVE
 emcc_args += ['-s', 'TOTAL_MEMORY=%d' % (64*1024*1024)] # default 64MB. Compile with ALLOW_MEMORY_GROWTH if you want a growable heap (slower though).
 #emcc_args += ['-s', 'ALLOW_MEMORY_GROWTH=1'] # resizable heap, with some amount of slowness
 
+emcc_args += '-s EXPORT_NAME="AmmoLib" -s MODULARIZE=1'.split(' ')
+
 print
 print '--------------------------------------------------'
 print 'Building ammo.js, build type:', emcc_args
@@ -125,13 +127,8 @@ try:
 
   wrapped = '''
 // This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed.
-var Ammo = (function() {
-  var Module = this;
-
 ''' + open(temp).read() + '''
-
-  return this;
-}).call({});
+Ammo = AmmoLib();
 '''
 
   open(temp, 'w').write(wrapped)
