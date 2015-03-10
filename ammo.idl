@@ -443,7 +443,8 @@ interface btHingeConstraint {
   void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame, optional boolean useReferenceFrameA);
   void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame, optional boolean useReferenceFrameA);
 
-  void setLimit(float low, float hight, float softness, float biasFactor, optional float relaxationFactor);
+  void setLimit(float low, float high, float softness, float biasFactor, optional float relaxationFactor);
+  void enableAngularMotor(boolean enableMotor, float targetVelocity, float maxMotorImpulse);
 };
 btHingeConstraint implements btTypedConstraint;
 
