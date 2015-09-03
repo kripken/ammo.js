@@ -189,41 +189,49 @@ btConvexTriangleMeshShape implements btConvexShape;
 
 interface btBoxShape {
   void btBoxShape([Ref] btVector3 boxHalfExtents);
+  void setMargin(float margin);
 };
 btBoxShape implements btCollisionShape;
 
 interface btCapsuleShape {
   void btCapsuleShape(float radius, float height);
+  void setMargin(float margin);
 };
 btCapsuleShape implements btCollisionShape;
 
 interface btCapsuleShapeX {
   void btCapsuleShapeX(float radius, float height);
+  void setMargin(float margin);
 };
 btCapsuleShapeX implements btCapsuleShape;
 
 interface btCapsuleShapeZ {
   void btCapsuleShapeZ(float radius, float height);
+  void setMargin(float margin);
 };
 btCapsuleShapeZ implements btCapsuleShape;
 
 interface btCylinderShape {
   void btCylinderShape([Ref] btVector3 halfExtents);
+  void setMargin(float margin);
 };
 btCylinderShape implements btCollisionShape;
 
 interface btCylinderShapeX {
   void btCylinderShapeX([Ref] btVector3 halfExtents);
+  void setMargin(float margin);
 };
 btCylinderShapeX implements btCylinderShape;
 
 interface btCylinderShapeZ {
   void btCylinderShapeZ([Ref] btVector3 halfExtents);
+  void setMargin(float margin);
 };
 btCylinderShapeZ implements btCylinderShape;
 
 interface btSphereShape {
   void btSphereShape(float radius);
+  void setMargin(float margin);
 };
 btSphereShape implements btCollisionShape;
 
@@ -251,6 +259,7 @@ btConeShapeZ implements btConeShape;
 interface btCompoundShape {
   void btCompoundShape(optional boolean enableDynamicAabbTree);
   void addChildShape([Const, Ref] btTransform localTransform, btCollisionShape shape);
+  void setMargin(float margin);
 };
 btCompoundShape implements btCollisionShape;
 
@@ -369,6 +378,7 @@ interface btRigidBody {
   void setLinearVelocity([Const, Ref] btVector3 lin_vel);
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
+  void setMotionState(btMotionState motionState);
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast([Const] btCollisionObject colObj);
 };
