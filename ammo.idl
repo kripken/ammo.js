@@ -190,48 +190,56 @@ btConvexTriangleMeshShape implements btConvexShape;
 interface btBoxShape {
   void btBoxShape([Ref] btVector3 boxHalfExtents);
   void setMargin(float margin);
+  float getMargin();
 };
 btBoxShape implements btCollisionShape;
 
 interface btCapsuleShape {
   void btCapsuleShape(float radius, float height);
   void setMargin(float margin);
+  float getMargin();
 };
 btCapsuleShape implements btCollisionShape;
 
 interface btCapsuleShapeX {
   void btCapsuleShapeX(float radius, float height);
   void setMargin(float margin);
+  float getMargin();
 };
 btCapsuleShapeX implements btCapsuleShape;
 
 interface btCapsuleShapeZ {
   void btCapsuleShapeZ(float radius, float height);
   void setMargin(float margin);
+  float getMargin();
 };
 btCapsuleShapeZ implements btCapsuleShape;
 
 interface btCylinderShape {
   void btCylinderShape([Ref] btVector3 halfExtents);
   void setMargin(float margin);
+  float getMargin();
 };
 btCylinderShape implements btCollisionShape;
 
 interface btCylinderShapeX {
   void btCylinderShapeX([Ref] btVector3 halfExtents);
   void setMargin(float margin);
+  float getMargin();
 };
 btCylinderShapeX implements btCylinderShape;
 
 interface btCylinderShapeZ {
   void btCylinderShapeZ([Ref] btVector3 halfExtents);
   void setMargin(float margin);
+  float getMargin();
 };
 btCylinderShapeZ implements btCylinderShape;
 
 interface btSphereShape {
   void btSphereShape(float radius);
   void setMargin(float margin);
+  float getMargin();
 };
 btSphereShape implements btCollisionShape;
 
@@ -243,6 +251,8 @@ btConeShape implements btCollisionShape;
 interface btConvexHullShape {
   void btConvexHullShape();
   void addPoint([Const, Ref] btVector3 point, optional boolean recalculateLocalAABB);
+  void setMargin(float margin);
+  float getMargin();
 };
 btConvexHullShape implements btCollisionShape;
 
@@ -259,7 +269,11 @@ btConeShapeZ implements btConeShape;
 interface btCompoundShape {
   void btCompoundShape(optional boolean enableDynamicAabbTree);
   void addChildShape([Const, Ref] btTransform localTransform, btCollisionShape shape);
+  void removeChildShapeByIndex(long childShapeindex);
+  [Const] long getNumChildShapes();
+  btCollisionShape getChildShape(long index);
   void setMargin(float margin);
+  float getMargin();
 };
 btCompoundShape implements btCollisionShape;
 
