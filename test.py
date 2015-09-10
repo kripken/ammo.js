@@ -36,7 +36,7 @@ def stage(text):
 if len(sys.argv) != 3 or sys.argv[2] != 'benchmark':
   stage('regression tests')
 
-  for test in ['basics', 'wrapping', '2', '3', 'constraint']:
+  for test in ['basics', 'wrapping', '2', '3', 'constraint', 'compoundShape']:
     name = test + '.js'
     print '     ', name
     fullname = os.path.join('tests', name)
