@@ -286,6 +286,15 @@ interface btTriangleMesh {
 };
 btTriangleMesh implements btStridingMeshInterface;
 
+enum PHY_ScalarType {
+    "PHY_FLOAT",
+    "PHY_DOUBLE",
+    "PHY_INTEGER",
+    "PHY_SHORT",
+    "PHY_FIXEDPOINT88",
+    "PHY_UCHAR"
+};
+
 interface btConcaveShape {
 };
 btConcaveShape implements btCollisionShape;
@@ -303,6 +312,13 @@ interface btBvhTriangleMeshShape {
   void btBvhTriangleMeshShape(btStridingMeshInterface meshInterface, boolean useQuantizedAabbCompression, optional boolean buildBvh);
 };
 btBvhTriangleMeshShape implements btTriangleMeshShape;
+
+interface btHeightfieldTerrainShape {
+    void btHeightfieldTerrainShape(long heightStickWidth, long heightStickLength, VoidPtr heightfieldData, float heightScale, float minHeight, float maxHeight, long upAxis, PHY_ScalarType hdt, boolean flipQuadEdges);
+    void setMargin(float margin);
+    float getMargin();
+};
+btHeightfieldTerrainShape implements btConcaveShape;
 
 interface btDefaultCollisionConstructionInfo {
   void btDefaultCollisionConstructionInfo();
