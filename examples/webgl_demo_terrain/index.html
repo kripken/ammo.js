@@ -256,8 +256,8 @@
 				for ( var j = 0; j < terrainDepth; j ++ ) {
 					for ( var i = 0; i < terrainWidth; i ++ ) {
 
-						// setValue parameters: address, value, type. Value can be a javascript number.
-						Ammo.setValue( ammoHeightData + p2, heightData[ p ], 'float' );
+						// write 32-bit float data to memory
+						Ammo.HEAPF32[ammoHeightData + p2 >> 2] = heightData[ p ];
 
 						p ++;
 
