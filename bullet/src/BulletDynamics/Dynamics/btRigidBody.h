@@ -278,6 +278,12 @@ public:
 		m_totalForce += force*m_linearFactor;
 	}
 
+	// XXX AMMO local addition to bullet
+	void	applyCentralLocalForce(const btVector3& force)
+	{
+		m_totalForce += m_worldTransform.getBasis() * force * m_linearFactor;
+	}
+
 	const btVector3& getTotalForce() const
 	{
 		return m_totalForce;
@@ -307,6 +313,12 @@ public:
 	void	applyTorque(const btVector3& torque)
 	{
 		m_totalTorque += torque*m_angularFactor;
+	}
+
+	// XXX AMMO local addition to bullet
+	void	applyLocalTorque(const btVector3& torque)
+	{
+		m_totalTorque += m_worldTransform.getBasis() * torque * m_angularFactor;
 	}
 	
 	void	applyForce(const btVector3& force, const btVector3& rel_pos) 
