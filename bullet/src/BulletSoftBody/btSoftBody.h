@@ -881,6 +881,24 @@ public:
 	void				defaultCollisionHandler(const btCollisionObjectWrapper* pcoWrap);
 	void				defaultCollisionHandler(btSoftBody* psb);
 
+    
+    // XXX AMMO local addition to bullet
+    Node* getNode(int node)
+    {
+        return &m_nodes[node];
+    }
+
+    // XXX AMMO local addition to bullet
+    Config* get_m_cfg()
+    {
+        return &m_cfg;
+    }
+    
+    // XXX AMMO local addition to bullet
+    void set_m_cfg(Config* cfg)
+    {
+        m_cfg = *cfg;
+    }
 
 
 	//
