@@ -881,7 +881,25 @@ public:
 	void				defaultCollisionHandler(const btCollisionObjectWrapper* pcoWrap);
 	void				defaultCollisionHandler(btSoftBody* psb);
 
+    
+    // XXX AMMO local addition to bullet
+    Node* getNode(int node)
+    {
+        return &m_nodes[node];
+    }
 
+    // XXX AMMO local addition to bullet
+    Config& get_m_cfg()
+    {
+        return m_cfg;
+    }
+
+    // XXX AMMO local addition to bullet
+    void setIterations( int viterations, int piterations )
+    {
+        m_cfg.viterations = viterations;
+        m_cfg.piterations = piterations;
+    }
 
 	//
 	// Functionality to deal with new accelerated solvers.

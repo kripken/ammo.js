@@ -35,10 +35,10 @@
 
 		<script src="../../builds/temp.js"></script>
 
-        <script src="three/three.min.js"></script>
-        <script src="three/OrbitControls.js"></script>
-        <script src="three/Detector.js"></script>
-        <script src="three/stats.min.js"></script>
+        <script src="../js/three/three.min.js"></script>
+        <script src="../js/three/OrbitControls.js"></script>
+        <script src="../js/three/Detector.js"></script>
+        <script src="../js/three/stats.min.js"></script>
 
         <script>
 
@@ -132,7 +132,7 @@
                 scene.add( terrainMesh );
 
                 var textureLoader = new THREE.TextureLoader();
-				textureLoader.load( "grid.png", function( texture ) {
+				textureLoader.load( "../textures/grid.png", function( texture ) {
 					texture.wrapS = THREE.RepeatWrapping;
 					texture.wrapT = THREE.RepeatWrapping;
 					texture.repeat.set( terrainWidth - 1, terrainDepth - 1 );
