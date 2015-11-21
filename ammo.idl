@@ -757,8 +757,8 @@ interface btSoftBody {
   void scale(  [Const, Ref] btVector3 scl);
   btSoftBody upcast([Const] btCollisionObject colObj);
   Node getNode(long i);
-  Config get_m_cfg();
-  void set_m_cfg(Config cfg);
+  [Ref] Config get_m_cfg();
+  void setIterations( long viterations, long piterations );
 };
 btSoftBody implements btCollisionObject;
 

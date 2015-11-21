@@ -279,6 +279,7 @@
 				var ropeStart = new Ammo.btVector3( ropePos.x, ropePos.y, ropePos.z );
 				var ropeEnd = new Ammo.btVector3( ropePos.x, ropePos.y + ropeLength, ropePos.z );
 				var ropeSoftBody = softBodyHelpers.CreateRope( physicsWorld.getWorldInfo(), ropeStart, ropeEnd, ropeNumSegments - 1, 0 );
+				ropeSoftBody.setIterations( 10, 10 );
 				ropeSoftBody.setTotalMass( ropeMass, false )
 				physicsWorld.addSoftBody( ropeSoftBody );
 				rope.userData.physicsBody = ropeSoftBody;
