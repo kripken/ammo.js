@@ -5,7 +5,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 # Definitions
 
-INCLUDES = ['btBulletDynamicsCommon.h', os.path.join('BulletCollision', 'CollisionShapes', 'btHeightfieldTerrainShape.h'), os.path.join('BulletCollision', 'CollisionDispatch', 'btGhostObject.h'), os.path.join('BulletDynamics', 'Character', 'btKinematicCharacterController.h')]
+INCLUDES = ['btBulletDynamicsCommon.h', os.path.join('BulletCollision', 'CollisionShapes', 'btHeightfieldTerrainShape.h'), os.path.join('BulletCollision', 'CollisionDispatch', 'btGhostObject.h'), os.path.join('BulletDynamics', 'Character', 'btKinematicCharacterController.h'), os.path.join('BulletSoftBody', 'btSoftBody.h'), os.path.join('BulletSoftBody', 'btSoftRigidDynamicsWorld.h'), os.path.join('BulletSoftBody', 'btDefaultSoftBodySolver.h'), os.path.join('BulletSoftBody', 'btSoftBodyRigidBodyCollisionConfiguration.h'), os.path.join('BulletSoftBody', 'btSoftBodyHelpers.h')]
 
 # Startup
 
@@ -117,11 +117,13 @@ try:
   stage('Link')
 
   if cmake_build:
-    bullet_libs = [os.path.join('src', 'BulletDynamics', 'libBulletDynamics.a'),
+    bullet_libs = [os.path.join('src', 'BulletSoftBody', 'libBulletSoftBody.a'),
+                   os.path.join('src', 'BulletDynamics', 'libBulletDynamics.a'),
                    os.path.join('src', 'BulletCollision', 'libBulletCollision.a'),
                    os.path.join('src', 'LinearMath', 'libLinearMath.a')]
   else:
-    bullet_libs = [os.path.join('src', '.libs', 'libBulletDynamics.a'),
+    bullet_libs = [os.path.join('src', '.libs', 'libBulletSoftBody.a'),
+                   os.path.join('src', '.libs', 'libBulletDynamics.a'),
                    os.path.join('src', '.libs', 'libBulletCollision.a'),
                    os.path.join('src', '.libs', 'libLinearMath.a')]
 
