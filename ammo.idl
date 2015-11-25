@@ -691,14 +691,6 @@ interface btSoftBodyWorldInfo {
 };
 
 [Prefix="btSoftBody::"]
-interface Material {
-  attribute float m_kLST;
-  attribute float m_kAST;
-  attribute float m_kVST;
-  attribute long m_flags;
-};
-
-[Prefix="btSoftBody::"]
 interface Node {
   [Value] attribute btVector3 m_x;
 };
@@ -707,6 +699,20 @@ interface Node {
 interface tNodeArray {
   [Const] long size();
   [Const, Ref] Node at(long n);
+};
+
+[Prefix="btSoftBody::"]
+interface Material {
+  attribute float m_kLST;
+  attribute float m_kAST;
+  attribute float m_kVST;
+  attribute long m_flags;
+};
+
+[Prefix="btSoftBody::"]
+interface tMaterialArray {
+  [Const] long size();
+  Material at(long n);
 };
 
 [Prefix="btSoftBody::"]
@@ -742,6 +748,9 @@ interface btSoftBody {
   void btSoftBody(btSoftBodyWorldInfo worldInfo);//, long node_count, [Const] btVector3 x, [Const] long m);
 
   [Value] attribute Config m_cfg;
+  [Value] attribute tNodeArray m_nodes;
+  [Value] attribute tMaterialArray m_materials;
+
   [Const] boolean checkLink( long node0, long node1);
   [Const] boolean checkFace( long node0, long node1, long node2);
   Material appendMaterial();
@@ -752,14 +761,13 @@ interface btSoftBody {
   void appendAnchor( long node, btRigidBody body, boolean disableCollisionBetweenLinkedBodies, float influence);  
   [Const] float getTotalMass();
   void setTotalMass( float mass, boolean fromfaces);
+  void setMass(long node, float mass);
   void transform( [Const, Ref] btTransform trs);
   void translate( [Const, Ref] btVector3 trs);
   void rotate( [Const, Ref] btQuaternion rot);
   void scale(  [Const, Ref] btVector3 scl);
   long generateClusters(long k, optional long maxiterations);
   btSoftBody upcast([Const] btCollisionObject colObj);
-  Node getNode(long i);
-  void setIterations( long viterations, long piterations );
 };
 btSoftBody implements btCollisionObject;
 
