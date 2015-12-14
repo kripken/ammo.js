@@ -676,3 +676,136 @@ interface btGhostPairCallback {
 };
 
 
+// soft bodies
+
+interface btSoftBodyWorldInfo {
+  void btSoftBodyWorldInfo();
+  attribute float air_density;
+  attribute float water_density;
+  attribute float water_offset;
+  attribute float m_maxDisplacement;
+  [Value] attribute btVector3 water_normal;
+  attribute btBroadphaseInterface m_broadphase;
+  attribute btDispatcher m_dispatcher;
+  [Value] attribute btVector3 m_gravity;
+};
+
+[Prefix="btSoftBody::"]
+interface Node {
+  [Value] attribute btVector3 m_x;
+};
+
+[Prefix="btSoftBody::"]
+interface tNodeArray {
+  [Const] long size();
+  [Const, Ref] Node at(long n);
+};
+
+[Prefix="btSoftBody::"]
+interface Material {
+  attribute float m_kLST;
+  attribute float m_kAST;
+  attribute float m_kVST;
+  attribute long m_flags;
+};
+
+[Prefix="btSoftBody::"]
+interface tMaterialArray {
+  [Const] long size();
+  Material at(long n);
+};
+
+[Prefix="btSoftBody::"]
+interface Config {
+  attribute float kVCF;
+  attribute float kDP;
+  attribute float kDG;
+  attribute float kLF;
+  attribute float kPR;
+  attribute float kVC;
+  attribute float kDF;
+  attribute float kMT;
+  attribute float kCHR;
+  attribute float kKHR;
+  attribute float kSHR;
+  attribute float kAHR;
+  attribute float kSRHR_CL;
+  attribute float kSKHR_CL;
+  attribute float kSSHR_CL;
+  attribute float kSR_SPLT_CL;
+  attribute float kSK_SPLT_CL;
+  attribute float kSS_SPLT_CL;
+  attribute float maxvolume;
+  attribute float timescale;
+  attribute long viterations;
+  attribute long piterations;
+  attribute long diterations;
+  attribute long citerations;
+  attribute long collisions;
+};
+
+interface btSoftBody {
+  void btSoftBody(btSoftBodyWorldInfo worldInfo);//, long node_count, [Const] btVector3 x, [Const] long m);
+
+  [Value] attribute Config m_cfg;
+  [Value] attribute tNodeArray m_nodes;
+  [Value] attribute tMaterialArray m_materials;
+
+  [Const] boolean checkLink( long node0, long node1);
+  [Const] boolean checkFace( long node0, long node1, long node2);
+  Material appendMaterial();
+  void appendNode( [Const, Ref] btVector3 x, float m);
+  void appendLink( long node0, long node1, Material mat, boolean bcheckexist);
+  void appendFace( long node0, long node1, long node2, Material mat);
+  void appendTetra( long node0, long node1, long node2, long node3, Material mat);
+  void appendAnchor( long node, btRigidBody body, boolean disableCollisionBetweenLinkedBodies, float influence);
+  [Const] float getTotalMass();
+  void setTotalMass( float mass, boolean fromfaces);
+  void setMass(long node, float mass);
+  void transform( [Const, Ref] btTransform trs);
+  void translate( [Const, Ref] btVector3 trs);
+  void rotate( [Const, Ref] btQuaternion rot);
+  void scale(  [Const, Ref] btVector3 scl);
+  long generateClusters(long k, optional long maxiterations);
+  btSoftBody upcast([Const] btCollisionObject colObj);
+};
+btSoftBody implements btCollisionObject;
+
+interface btSoftBodyRigidBodyCollisionConfiguration {
+  void btSoftBodyRigidBodyCollisionConfiguration([Ref] optional btDefaultCollisionConstructionInfo info);
+};
+btSoftBodyRigidBodyCollisionConfiguration implements btDefaultCollisionConfiguration;
+
+interface btSoftBodySolver {
+};
+
+interface btDefaultSoftBodySolver {
+  void btDefaultSoftBodySolver ();
+};
+btDefaultSoftBodySolver implements btSoftBodySolver;
+
+interface btSoftBodyArray {
+  [Const] long size();
+  [Const] btSoftBody at(long n);
+};
+
+interface btSoftRigidDynamicsWorld {
+  void btSoftRigidDynamicsWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btConstraintSolver constraintSolver, btCollisionConfiguration collisionConfiguration, btSoftBodySolver softBodySolver);
+
+  void addSoftBody(btSoftBody body, short collisionFilterGroup, short collisionFilterMask);
+  void removeSoftBody(btSoftBody body);
+  void removeCollisionObject(btCollisionObject collisionObject);
+
+  [Ref] btSoftBodyWorldInfo getWorldInfo();
+  [Ref] btSoftBodyArray getSoftBodyArray();
+};
+btSoftRigidDynamicsWorld implements btDiscreteDynamicsWorld;
+
+interface btSoftBodyHelpers {
+  void btSoftBodyHelpers();
+
+  btSoftBody CreateRope([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 from, [Const, Ref] btVector3 to, long res, long fixeds);
+  btSoftBody CreatePatch([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags);
+  //btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, float* tex_coords);
+  btSoftBody CreateEllipsoid([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 center, [Const, Ref] btVector3 radius, long res);
+};
