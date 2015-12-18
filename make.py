@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os, sys, re, json, shutil
+import os, sys, re, json, shutil, multiprocessing
 from subprocess import Popen, PIPE, STDOUT
 
 # Definitions
@@ -109,10 +109,12 @@ try:
 
   stage('Make')
 
+  CORES = multiprocessing.cpu_count()
+
   if emscripten.WINDOWS:
-    emscripten.Building.make(['mingw32-make', '-j'])
+    emscripten.Building.make(['mingw32-make', '-j', str(CORES)])
   else:
-    emscripten.Building.make(['make', '-j'])
+    emscripten.Building.make(['make', '-j', str(CORES)])
 
   stage('Link')
 
