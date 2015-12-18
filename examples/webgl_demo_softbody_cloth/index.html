@@ -270,8 +270,9 @@
 				sbConfig.set_viterations( 10 );
 				sbConfig.set_piterations( 10 );
 
-				clothSoftBody.setTotalMass( 0.3, false )
-				physicsWorld.addSoftBody( clothSoftBody );
+				clothSoftBody.setTotalMass( 0.9, false )
+				Ammo.castObject( clothSoftBody, Ammo.btCollisionObject ).getCollisionShape().setMargin( margin * 3 );
+				physicsWorld.addSoftBody( clothSoftBody, 1, -1 );
 				cloth.userData.physicsBody = clothSoftBody;
 				// Disable deactivation
 				clothSoftBody.setActivationState( 4 );
