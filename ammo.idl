@@ -188,6 +188,8 @@ ClosestConvexResultCallback implements ConvexResultCallback;
 interface btCollisionShape {
   void setLocalScaling([Const, Ref] btVector3 scaling);
   void calculateLocalInertia(float mass, [Ref] btVector3 inertia);
+  void setMargin(float margin);
+  float getMargin();
 };
 
 interface btConvexShape {
