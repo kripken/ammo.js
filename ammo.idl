@@ -812,6 +812,8 @@ interface btSoftBodyHelpers {
 
   btSoftBody CreateRope([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 from, [Const, Ref] btVector3 to, long res, long fixeds);
   btSoftBody CreatePatch([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags);
-  //btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, float* tex_coords);
+  btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, float[] tex_coords);
   btSoftBody CreateEllipsoid([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 center, [Const, Ref] btVector3 radius, long res);
+  btSoftBody CreateFromTriMesh([Ref] btSoftBodyWorldInfo worldInfo, float[] vertices, long[] triangles, long ntriangles, boolean randomizeConstraints);
+  btSoftBody CreateFromConvexHull([Ref] btSoftBodyWorldInfo worldInfo, [Const] btVector3 vertices, long nvertices, boolean randomizeConstraints);
 };
