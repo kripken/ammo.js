@@ -1,6 +1,6 @@
 <html lang="en">
     <head>
-        <title>Ammo.js softbody volume demo</title>
+        <title>Ammo.js softbody volume demo 2</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <style>
@@ -29,7 +29,7 @@
         </style>
     </head>
     <body>
-		<div id="info">Ammo.js soft body volume demo<br>Click to throw a ball</div>
+		<div id="info">Ammo.js soft body volume demo 2<br>Click to throw a ball</div>
         <div id="container"><br /><br /><br /><br /><br />Loading...</div>
 
 		<script src="../../builds/temp.js"></script>
@@ -70,11 +70,8 @@
 			var rigidBodies = [];
 			var softBodies = [];
 			var margin = 0.05;
-			var hinge;
 			var transformAux1 = new Ammo.btTransform();
 			var softBodyHelpers = new Ammo.btSoftBodyHelpers();
-
-			var armMovement = 0;
 
 			// - Main code -
 
@@ -190,144 +187,246 @@
 
                 // Create soft volumes
                 var volumeMass = 15;
-                
-                var sphereGeometry = new THREE.SphereBufferGeometry( 1.5, 40, 25 );
-                sphereGeometry.translate( 5, 5, 0 );
-                createSoftVolume( sphereGeometry, volumeMass, 250 );
 
-                var boxGeometry = new THREE.BufferGeometry().fromGeometry( new THREE.BoxGeometry( 1, 1, 5, 4, 4, 20 ) );
-                boxGeometry.translate( -2, 5, 0 );
-                createSoftVolume( boxGeometry, volumeMass, 120 );
-                
-                // Ramp
-                pos.set( 3, 1, 0 );
-                quat.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), 30 * Math.PI / 180 );
-                var obstacle = createParalellepiped( 10, 1, 4, 0, pos, quat, new THREE.MeshPhongMaterial( { color: 0x606060 } ) );
+                var bx = 2;
+                var by = 1;
+                var bz = 3;
+                var nn = 5;
+                createSoftBox( bx, by, bz, nn * bx, nn * by, nn * bz, 0, 5, 0, volumeMass, 0 );
+
+
+                // Some obstacle
+                pos.set( 0, 0.5, 0 );
+                quat.set( 0, 0, 0, 1 );
+                var obstacle = createParalellepiped( 6, 1, 1, 0, pos, quat, new THREE.MeshPhongMaterial( { color: 0x606060 } ) );
                 obstacle.castShadow = true;
                 obstacle.receiveShadow = true;
 
-            }
-
-            function processGeometry( bufGeometry ) {
-
-                // Obtain a Geometry
-                var geometry = new THREE.Geometry().fromBufferGeometry( bufGeometry );
-                
-                // Merge the vertices so the triangle soup is converted to indexed triangles
-                var vertsDiff = geometry.mergeVertices();
-                
-                // Convert again to BufferGeometry, indexed
-                var indexedBufferGeom = createIndexedBufferGeometryFromGeometry( geometry );
-                
-                // Create index arrays mapping the indexed vertices to bufGeometry vertices
-                mapIndices( bufGeometry, indexedBufferGeom );
 
             }
+            
+            function createSoftBox( sizeX, sizeY, sizeZ, numPointsX, numPointsY, numPointsZ, tX, tY, tZ, mass, pressure ) {
+            
+                if ( numPointsX < 2 || numPointsY < 2 || numPointsZ < 2 ) {
+                    return;
+                }
 
-            function createIndexedBufferGeometryFromGeometry( geometry ) {
-
-                var numVertices = geometry.vertices.length;
-                var numFaces = geometry.faces.length;
+                // Offset is the numbers assigned to 8 vertices of the cube in ascending Z, Y, X in this order.
+                // indexFromOffset is the vertex index increase for a given offset.
+                var indexFromOffset = [];
+                for ( var offset = 0; offset < 8; offset++ ) {
+                    var a = offset & 1 ? 1 : 0;
+                    var b = offset & 2 ? 1 : 0;
+                    var c = offset & 4 ? 1 : 0;
+                    var index = a + b * numPointsX + c * numPointsX * numPointsY;
+                    indexFromOffset[ offset ] = index;
+                }
+                
+                // Construct BufferGeometry
+                
+                var numVertices = numPointsX * numPointsY * numPointsZ;
+                var numFaces = 4 * ( ( numPointsX - 1 ) * ( numPointsY - 1 ) + ( numPointsX - 1 ) * ( numPointsZ - 1 ) + ( numPointsY - 1 ) * ( numPointsZ - 1 ) );
 
                 var bufferGeom = new THREE.BufferGeometry();
                 var vertices = new Float32Array( numVertices * 3 );
+                var normals = new Float32Array( numVertices * 3 );
                 var indices = new ( numFaces * 3 > 65535 ? Uint32Array : Uint16Array )( numFaces * 3 );
 
-                for ( var i = 0; i < numVertices; i++ ) {
+                // Create vertices and faces
+                var sx = sizeX / ( numPointsX - 1 );
+                var sy = sizeY / ( numPointsY - 1 );
+                var sz = sizeZ / ( numPointsZ - 1 );
+                var numFacesAdded = 0;
+                for ( var p = 0, k = 0; k < numPointsZ; k++ ) {
+                    for ( var j = 0; j < numPointsY; j++ ) {
+                        for ( var i = 0; i < numPointsX; i++ ) {
+                        
+                            // Vertex and normal
+                            var p3 = p * 3;
+                            vertices[ p3 ] = i * sx - sizeX * 0.5;
+                            normals[ p3++ ] = 0;
+                            vertices[ p3 ] = j * sy - sizeY * 0.5;
+                            normals[ p3++ ] = 0;
+                            vertices[ p3 ] = k * sz - sizeZ * 0.5;
+                            normals[ p3 ] = 0;
 
-                    var p = geometry.vertices[ i ];
+                            // XY faces
+                            if ( k == 0 && i < numPointsX - 1 && j < numPointsY - 1 ) {
 
-                    var i3 = i * 3;
+                                var faceIndex = numFacesAdded * 3;
 
-                    vertices[ i3 ] = p.x;
-                    vertices[ i3 + 1 ] = p.y;
-                    vertices[ i3 + 2 ] = p.z;
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 1 ];
 
-                }
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 2 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
 
-                for ( var i = 0; i < numFaces; i++ ) {
+                                numFacesAdded += 2;
+                            }
+                            if ( k == numPointsZ - 2 && i < numPointsX - 1 && j < numPointsY - 1 ) {
 
-                    var f = geometry.faces[ i ];
+                                var faceIndex = numFacesAdded * 3;
 
-                    var i3 = i * 3;
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 7 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
 
-                    indices[ i3 ] = f.a;
-                    indices[ i3 + 1 ] = f.b;
-                    indices[ i3 + 2 ] = f.c;
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 4 ];
 
+                                numFacesAdded += 2;
+                            }
+
+                            // XZ faces
+                            if ( j == 0 && i < numPointsX - 1 && k < numPointsZ - 1 ) {
+
+                                var faceIndex = numFacesAdded * 3;
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 4 ];
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 1 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
+
+                                numFacesAdded += 2;
+                            }
+                            if ( j == numPointsY - 2 && i < numPointsX - 1 && k < numPointsZ - 1 ) {
+
+                                var faceIndex = numFacesAdded * 3;
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 2 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 7 ];
+
+                                numFacesAdded += 2;
+                            }
+
+                            // YZ faces
+                            if ( i == 0 && j < numPointsY - 1 && k < numPointsZ - 1 ) {
+
+                                var faceIndex = numFacesAdded * 3;
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 2 ];
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 0 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 4 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 6 ];
+
+                                numFacesAdded += 2;
+                            }
+                            if ( i == numPointsX - 2 && j < numPointsY - 1 && k < numPointsZ - 1 ) {
+
+                                var faceIndex = numFacesAdded * 3;
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 1 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
+
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 3 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 7 ];
+                                indices[ faceIndex++ ] = p + indexFromOffset[ 5 ];
+
+                                numFacesAdded += 2;
+                            }
+
+                            p++;
+                        }
+                    }
                 }
 
                 bufferGeom.setIndex( new THREE.BufferAttribute( indices, 1 ) );
                 bufferGeom.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+                bufferGeom.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
 
-                return bufferGeom;
-            }
-            
-            function isEqual( x1, y1, z1, x2, y2, z2 ) {
-                var delta = 0.000001;
-                return Math.abs( x2 - x1 ) < delta &&
-                        Math.abs( y2 - y1 ) < delta &&
-                        Math.abs( z2 - z1 ) < delta;
-            }
-            
-            function mapIndices( bufGeometry, indexedBufferGeom ) {
-            
-                // Creates ammoVertices, ammoIndices and ammoIndexAssociation in bufGeometry
-
-                var vertices = bufGeometry.attributes.position.array;
-                var idxVertices = indexedBufferGeom.attributes.position.array;
-                var indices = indexedBufferGeom.index.array;
+                bufferGeom.translate( tX, tY, tZ );
                 
-                var numIdxVertices = idxVertices.length / 3;
-                var numVertices = vertices.length / 3;
-
-                bufGeometry.ammoVertices = idxVertices;
-                bufGeometry.ammoIndices = indices;
-                bufGeometry.ammoIndexAssociation = [];
-
-                for ( var i = 0; i < numIdxVertices; i++ ) {
-                    
-                    var association = [];
-                    bufGeometry.ammoIndexAssociation.push( association );
-                    
-                    var i3 = i * 3;
-                    
-                    for ( var j = 0; j < numVertices; j++ ) {
-                        var j3 = j * 3;
-                        if ( isEqual( idxVertices[ i3 ], idxVertices[ i3 + 1 ],  idxVertices[ i3 + 2 ],
-                                      vertices[ j3 ], vertices[ j3 + 1 ], vertices[ j3 + 2 ] ) ) {
-                            association.push( j3 );
-                        }
-                    }
-                    
-                }
-                
-            }
-            
-            function createSoftVolume( bufferGeom, mass, pressure ) {
-
-                processGeometry( bufferGeom );
-            
-                var volume = new THREE.Mesh( bufferGeom, new THREE.MeshPhongMaterial( { color: 0xFFFFFF } ) );
+                // Create mesh from geometry
+                var volume = new THREE.Mesh( bufferGeom, new THREE.MeshPhongMaterial( { color: 0xFFFFFF, wireframe: true } ) );
                 volume.castShadow = true;
                 volume.receiveShadow = true;
                 volume.frustumCulled = false;
                 scene.add( volume );
                 
-                textureLoader.load( "../textures/colors.png", function( texture ) {
-                    volume.material.map = texture;
-                    volume.material.needsUpdate = true;
-                } );
+                // Create soft body
+                var vectorTemp = new Ammo.btVector3( 0, 0, 0 );
+                vectorTemp.setValue( vertices[ 0 ], vertices[ 1 ], vertices[ 2 ] );
                 
-                // Volume physic object
+                var volumeSoftBody = new Ammo.btSoftBody( physicsWorld.getWorldInfo(), 1, vectorTemp, [ 1.0 ] );
+                
+                var physMat0 = volumeSoftBody.get_m_materials().at( 0 );
+                
+                for ( var i = 1, il = vertices.length / 3; i < il; i++ ) {
+                    var i3 = i * 3;
+                    vectorTemp.setValue( vertices[ i3 ], vertices[ i3 + 1 ], vertices[ i3 + 2 ] );
+                    volumeSoftBody.appendNode( vectorTemp, 1.0 );
+                }
+                
+                for ( var i = 0, il = indices.length / 3; i < il; i++ ) {
+                    var i3 = i * 3;
+                    volumeSoftBody.appendFace( indices[ i3 ], indices[ i3 + 1 ], indices[ i3 + 2 ] );
+                }
 
-                var volumeSoftBody = softBodyHelpers.CreateFromTriMesh(
-                    physicsWorld.getWorldInfo(),
-                    bufferGeom.ammoVertices,
-                    bufferGeom.ammoIndices,
-                    bufferGeom.ammoIndices.length / 3,
-                    true );
+                // Create tetrahedrons
+                var p = 0;
+                
+                function newTetra( i0, i1, i2, i3, i4 ) {
 
+                    var v0 = p + indexFromOffset[ i0 ];
+                    var v1 = p + indexFromOffset[ i1 ];
+                    var v2 = p + indexFromOffset[ i2 ];
+                    var v3 = p + indexFromOffset[ i3 ];
+                    var v4 = p + indexFromOffset[ i4 ];
+
+                    volumeSoftBody.appendTetra( v0, v1, v2, v3, v4 );
+                    
+                    volumeSoftBody.appendLink( v0, v1, physMat0, true );
+                    volumeSoftBody.appendLink( v0, v2, physMat0, true );
+                    volumeSoftBody.appendLink( v0, v3, physMat0, true );
+                    volumeSoftBody.appendLink( v1, v2, physMat0, true );
+                    volumeSoftBody.appendLink( v2, v3, physMat0, true );
+                    volumeSoftBody.appendLink( v3, v1, physMat0, true );
+                
+                }
+                
+                for ( var k = 0; k < numPointsZ; k++ ) {
+                    for ( var j = 0; j < numPointsY; j++ ) {
+                        for ( var i = 0; i < numPointsX; i++ ) {
+                        
+                            if ( i < numPointsX - 1 && j < numPointsY - 1 && k < numPointsZ - 1 ) {
+
+                                // Creates 5 tetrahedrons for each cube
+                                newTetra( 0, 4, 5, 6 );
+                                newTetra( 0, 2, 3, 6 );
+                                newTetra( 0, 1, 3, 5 );
+                                newTetra( 3, 5, 6, 7 );
+                                newTetra( 0, 3, 5, 6 );
+                                /*
+                                volumeSoftBody.appendTetra( p + indexFromOffset[ 0 ], p + indexFromOffset[ 4 ], p + indexFromOffset[ 5 ], p + indexFromOffset[ 6 ] );
+                                volumeSoftBody.appendTetra( p + indexFromOffset[ 0 ], p + indexFromOffset[ 2 ], p + indexFromOffset[ 3 ], p + indexFromOffset[ 6 ] );
+                                volumeSoftBody.appendTetra( p + indexFromOffset[ 0 ], p + indexFromOffset[ 1 ], p + indexFromOffset[ 3 ], p + indexFromOffset[ 5 ] );
+                                volumeSoftBody.appendTetra( p + indexFromOffset[ 3 ], p + indexFromOffset[ 5 ], p + indexFromOffset[ 6 ], p + indexFromOffset[ 7 ] );
+                                volumeSoftBody.appendTetra( p + indexFromOffset[ 0 ], p + indexFromOffset[ 3 ], p + indexFromOffset[ 5 ], p + indexFromOffset[ 6 ] );
+                                */
+                            }
+
+                            p++;
+                        }
+                    }
+                }
+
+                // Config soft body
+                
                 var sbConfig = volumeSoftBody.get_m_cfg();
                 sbConfig.set_viterations( 40 );
                 sbConfig.set_piterations( 40 );
@@ -342,8 +441,10 @@
                 // Pressure
                 sbConfig.set_kPR( pressure );
                 // Stiffness
-                volumeSoftBody.get_m_materials().at( 0 ).set_m_kLST( 0.9 );
-                volumeSoftBody.get_m_materials().at( 0 ).set_m_kAST( 0.9 );
+                var stiffness = 0.05;
+                physMat0.set_m_kLST( stiffness );
+                physMat0.set_m_kAST( stiffness );
+                physMat0.set_m_kVST( stiffness );
 
                 volumeSoftBody.setTotalMass( mass, false )
                 Ammo.castObject( volumeSoftBody, Ammo.btCollisionObject ).getCollisionShape().setMargin( margin );
@@ -427,7 +528,7 @@
                     raycaster.setFromCamera( mouseCoords, camera );
                     
                     // Creates a ball
-                    var ballMass = 3;
+                    var ballMass = 0.7;
                     var ballRadius = 0.4;
 
                     var ball = new THREE.Mesh( new THREE.SphereGeometry( ballRadius, 18, 16 ), ballMaterial );
@@ -495,34 +596,21 @@
                     var softBody = volume.userData.physicsBody;
                     var volumePositions = geometry.attributes.position.array;
                     var volumeNormals = geometry.attributes.normal.array;
-                    var association = geometry.ammoIndexAssociation;
-                    var numVerts = association.length;
+                    var numVerts = volumePositions.length / 3;
                     var nodes = softBody.get_m_nodes();
+                    var p = 0;
                     for ( var j = 0; j < numVerts; j ++ ) {
-                        
                         var node = nodes.at( j );
                         var nodePos = node.get_m_x();
-                        var x = nodePos.x();
-                        var y = nodePos.y();
-                        var z = nodePos.z();
-                        var nodeNormal = node.get_m_n();
-                        var nx = nodeNormal.x();
-                        var ny = nodeNormal.y();
-                        var nz = nodeNormal.z();
+                        var nodeNormal = node.get_m_n();                        
+                        
+                        volumePositions[ p ] = nodePos.x();
+                        volumeNormals[ p++ ] = nodeNormal.x();
+                        volumePositions[ p ] = nodePos.y();
+                        volumeNormals[ p++ ] = nodeNormal.y();
+                        volumePositions[ p ] = nodePos.z();
+                        volumeNormals[ p++ ] = nodeNormal.z();
 
-                        var assocVertex = association[ j ];
-
-                        for ( var k = 0, kl = assocVertex.length; k < kl; k++ ) {
-                            var indexVertex = assocVertex[ k ];
-                            volumePositions[ indexVertex ] = x;
-                            volumeNormals[ indexVertex ] = nx;
-                            indexVertex++;
-                            volumePositions[ indexVertex ] = y;
-                            volumeNormals[ indexVertex ] = ny;
-                            indexVertex++;
-                            volumePositions[ indexVertex ] = z;
-                            volumeNormals[ indexVertex ] = nz;
-                        }
                     }
                     
                     geometry.attributes.position.needsUpdate = true;
