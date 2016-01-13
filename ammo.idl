@@ -62,6 +62,7 @@ interface btTransform {
   [Ref] btVector3 getOrigin();
   [Value] btQuaternion getRotation();
   [Ref] btMatrix3x3 getBasis();
+  void setFromOpenGLMatrix(float[] m);
 };
 
 interface btMotionState {
@@ -501,12 +502,18 @@ interface btHingeConstraint {
 
   void setLimit(float low, float high, float softness, float biasFactor, optional float relaxationFactor);
   void enableAngularMotor(boolean enableMotor, float targetVelocity, float maxMotorImpulse);
+  void setAngularOnly(boolean angularOnly);
+  
+  void enableMotor(boolean enableMotor);
+  void setMaxMotorImpulse(float maxMotorImpulse);
+  //void setMotorTarget([Const,Ref] btQuaternion qAinB, float dt);
+  void setMotorTarget(float targetAngle, float dt);
 };
 btHingeConstraint implements btTypedConstraint;
 
 interface btSliderConstraint {
   void btSliderConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btTransform frameInA, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
-  void btSliderConstraint([Ref] btRigidBody rbB, [Const,Ref] btTransform frameInB, boolean uesLinearReferenceFrameA);
+  void btSliderConstraint([Ref] btRigidBody rbB, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
   void setLowerLinLimit(float lowerLimit);
   void setUpperLinLimit(float upperLimit);
   void setLowerAngLimit(float lowerAngLimit);
@@ -699,6 +706,7 @@ interface btSoftBodyWorldInfo {
 [Prefix="btSoftBody::"]
 interface Node {
   [Value] attribute btVector3 m_x;
+  [Value] attribute btVector3 m_n;
 };
 
 [Prefix="btSoftBody::"]
@@ -751,7 +759,7 @@ interface Config {
 };
 
 interface btSoftBody {
-  void btSoftBody(btSoftBodyWorldInfo worldInfo);//, long node_count, [Const] btVector3 x, [Const] long m);
+  void btSoftBody(btSoftBodyWorldInfo worldInfo, long node_count, btVector3 x, float[] m);
 
   [Value] attribute Config m_cfg;
   [Value] attribute tNodeArray m_nodes;
