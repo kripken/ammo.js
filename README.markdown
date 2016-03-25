@@ -38,7 +38,7 @@ You can also build ammo.js yourself, as follows:
 
    and set it up. See
 
-      https://github.com/kripken/emscripten/wiki/Getting-started
+      http://kripken.github.io/emscripten-site/docs/getting_started/
 
  * Run the build script,
 
