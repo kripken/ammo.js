@@ -69,6 +69,7 @@ function main() {
   }
 
   // Delete objects we created through |new|. We just do a few of them here, but you should do them all if you are not shutting down ammo.js
+  // we'll free the objects in reversed order as they were created via 'new' to avoid the 'dead' object links
   Ammo.destroy(dynamicsWorld);
   Ammo.destroy(solver);
   Ammo.destroy(overlappingPairCache);
