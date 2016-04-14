@@ -1,7 +1,7 @@
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 function main() {
-  var collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(), // every single |new| currently leaks...
+  var collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
       dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
       overlappingPairCache    = new Ammo.btDbvtBroadphase(),
       solver                  = new Ammo.btSequentialImpulseConstraintSolver(),
