@@ -17,7 +17,7 @@ function main() {
 
   (function() {
     var mass          = 0,
-        isDynamic     = mass !== 0,
+        isDynamic     = (mass !== 0),
         localInertia  = new Ammo.btVector3(0, 0, 0);
 
     if (isDynamic)
@@ -39,7 +39,7 @@ function main() {
     startTransform.setIdentity();
 
     var mass          = 1,
-        isDynamic     = (mass != 0),
+        isDynamic     = (mass !== 0),
         localInertia  = new Ammo.btVector3(0, 0, 0);
     
     if (isDynamic)
