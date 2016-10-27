@@ -304,7 +304,7 @@
 				var rayCaster = new Ammo.btDefaultVehicleRaycaster(physicsWorld);
 				var vehicle = new Ammo.btRaycastVehicle(tuning, body, rayCaster);
 				vehicle.setCoordinateSystem(0, 1, 2);
-				physicsWorld.addVehicle(vehicle);
+				physicsWorld.addAction(vehicle);
 
 				// Wheels
 				var FRONT_LEFT = 0;

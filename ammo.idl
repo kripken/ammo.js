@@ -576,9 +576,6 @@ interface btDiscreteDynamicsWorld {
   void removeConstraint(btTypedConstraint constraint);
 
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
-  void addVehicle (btActionInterface vehicle);
-  void removeVehicle (btActionInterface vehicle);
-  void updateVehicles (float timeStep);
 };
 btDiscreteDynamicsWorld implements btDynamicsWorld;
 
