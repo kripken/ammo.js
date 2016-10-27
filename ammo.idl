@@ -576,6 +576,9 @@ interface btDiscreteDynamicsWorld {
   void removeConstraint(btTypedConstraint constraint);
 
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
+  void addVehicle (btActionInterface vehicle);
+  void removeVehicle (btActionInterface vehicle);
+  void updateVehicles (float timeStep);
 };
 btDiscreteDynamicsWorld implements btDynamicsWorld;
 
@@ -590,7 +593,15 @@ interface btVehicleTuning {
   attribute float m_maxSuspensionForce;
 };
 
+[Prefix="btDefaultVehicleRaycaster::"]
+interface btVehicleRaycasterResult {
+    [Value] attribute btVector3 m_hitPointInWorld;
+    [Value] attribute btVector3 m_hitNormalInWorld;
+    attribute float m_distFraction;
+};
+
 interface btVehicleRaycaster {
+    void castRay ([Const, Ref] btVector3 from, [Const, Ref] btVector3 to, [Const, Ref] btVehicleRaycasterResult result);
 };
 
 interface btDefaultVehicleRaycaster {
@@ -610,6 +621,21 @@ interface RaycastInfo {
   attribute any m_groundObject;
 };
 
+interface btWheelInfoConstructionInfo {
+    [Value] attribute btVector3 m_chassisConnectionCS;
+    [Value] attribute btVector3 m_wheelDirectionCS;
+    [Value] attribute btVector3 m_wheelAxleCS;
+    attribute float m_suspensionRestLength;
+    attribute float m_maxSuspensionTravelCm;
+    attribute float m_wheelRadius;
+    attribute float m_suspensionStiffness;
+    attribute float m_wheelsDampingCompression;
+    attribute float m_wheelsDampingRelaxation;
+    attribute float m_frictionSlip;
+    attribute float m_maxSuspensionForce;
+    attribute boolean m_bIsFrontWheel;
+};
+
 interface btWheelInfo {
   attribute float m_suspensionStiffness;
   attribute float m_frictionSlip;
@@ -626,9 +652,22 @@ interface btWheelInfo {
   attribute boolean m_bIsFrontWheel;
   [Value] attribute RaycastInfo m_raycastInfo;
   [Value] attribute btVector3 m_chassisConnectionPointCS;
+  void btWheelInfo([Ref] btWheelInfoConstructionInfo ci);
+  float getSuspensionRestLength ();
+  void  updateWheel ([Const, Ref] btRigidBody chassis, [Ref] RaycastInfo raycastInfo);
+  [Value] attribute btTransform m_worldTransform;
+  [Value] attribute btVector3 m_wheelDirectionCS;
+  [Value] attribute btVector3 m_wheelAxleCS;
+  attribute float m_rotation;
+  attribute float m_deltaRotation;
+  attribute float m_brake;
+  attribute float  m_clippedInvContactDotSuspension;
+  attribute float  m_suspensionRelativeVelocity;
+  attribute float  m_skidInfo;
 };
 
 interface btActionInterface {
+    void updateAction (btCollisionWorld collisionWorld, float deltaTimeStep);
 };
 
 interface btKinematicCharacterController {
@@ -669,6 +708,23 @@ interface btRaycastVehicle {
   void setBrake(float brake, long wheelIndex);
   void setCoordinateSystem(long rightIndex, long upIndex, long forwardIndex);
   float getCurrentSpeedKmHour();
+  [Const, Ref] btTransform getChassisWorldTransform();
+  float rayCast([Ref] btWheelInfo wheel);
+  void updateVehicle(float step);
+  void resetSuspension();
+  float getSteeringValue(long wheel);
+  void updateWheelTransformsWS([Ref] btWheelInfo wheel, optional boolean interpolatedTransform);
+  void setPitchControl(float pitch);
+  void updateSuspension(float deltaTime);
+  void updateFriction(float timeStep);
+  long getRightAxis();
+  long getUpAxis();
+  long getForwardAxis();
+  [Value] btVector3 getForwardVector();
+  long getUserConstraintType();
+  void setUserConstraintType(long userConstraintType);
+  void setUserConstraintId(long uid);
+  long getUserConstraintId();
 };
 btRaycastVehicle implements btActionInterface;
 
