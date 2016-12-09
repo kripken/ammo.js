@@ -151,20 +151,19 @@ Release Process
 Pushing a new build in `builds/ammo.js` should be done only after the
 following steps:
 
-  * Build a safe build and make sure it passes all automatic tests. Safe
-    builds contain a lot of runtime assertions that can catch potential
-    bugs (similar to the sort of things valgrind can catch).
+  * Build using  python make.py  which generates builds/temp.js
 
-  * Build a fast build and make sure it passes all automatic tests.
-
-  * Run closure compiler on that fast build and make sure it passes
-    all automatic tests.
+  * Make sure it passes all automatic tests using  python test.py
+    (That uses builds/temp.js by default, you can also pass a flag
+    saying which build to use.)
 
   * Make sure that the stress test benchmark did not regress
-    compared to the old build.
+    compared to the old build. That number is printed out at the
+    end of running the tests.
 
   * Run the WebGL demo in examples/webgl_demo and make sure it looks
-    ok.
+    ok, using something like  firefox examples/webgl_demo/ammo.html
+    (chrome will need a webserver as it doesn't like file:// urls)
 
 
 Upstream Version
