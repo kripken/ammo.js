@@ -155,7 +155,8 @@ following steps:
 
   * Make sure it passes all automatic tests using  python test.py
     (That uses builds/temp.js by default, you can also pass a flag
-    saying which build to use.)
+    saying which build to use.) Note that it uses SpiderMonkey
+    by default, see the script contents for details.
 
   * Make sure that the stress test benchmark did not regress
     compared to the old build. That number is printed out at the
