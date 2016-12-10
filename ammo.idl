@@ -13,6 +13,7 @@ interface btVector3 {
   void setZ(float z);
   void setValue(float x, float y, float z);
   void normalize();
+  [Value] btVector3 rotate([Ref] btVector3 wAxis, float angle); 
   float dot([Ref] btVector3 v);
   [Operator="*=", Ref] btVector3 op_mul(float x);
   [Operator="+=", Ref] btVector3 op_add([Ref] btVector3 v);
@@ -42,7 +43,23 @@ interface btQuaternion {
   void btQuaternion(float x, float y, float z, float w);
   void setValue(float x, float y, float z, float w);
   void setEulerZYX(float z, float y, float x);
+  void setRotation([Ref] btVector3 axis, float angle);
   void normalize();
+  float length2();
+  float length();
+  float dot([Ref] btQuaternion q);
+  [Value] btQuaternion normalized();
+  [Value] btVector3 getAxis();
+  [Value] btQuaternion inverse();
+  float getAngle();
+  float getAngleShortestPath();
+  float angle([Ref] btQuaternion q);
+  float angleShortestPath([Ref] btQuaternion q);
+  [Operator="+=", Ref] btQuaternion op_add([Ref] btQuaternion q);
+  [Operator="-=", Ref] btQuaternion op_sub([Ref] btQuaternion q);
+  [Operator="*=", Ref] btQuaternion op_mul(float s);
+  [Operator="*=", Ref] btQuaternion op_mulq([Ref] btQuaternion q);
+  [Operator="/=", Ref] btQuaternion op_div(float s);
 };
 btQuaternion implements btQuadWord;
 
