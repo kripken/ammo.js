@@ -32,7 +32,7 @@
         var FLOOR_HEIGHT = -56
 
         var physicsWorker = null;
-        var nextPhysicsWorker = new Worker('worker.js');
+        var nextPhysicsWorker = new Worker('worker.wasm.js');
 
         // CubicVR code
 
@@ -120,7 +120,7 @@
           if (physicsWorker) physicsWorker.terminate();
           physicsWorker = nextPhysicsWorker;
           nextPhysicsWorker = null;
-          if (!physicsWorker) physicsWorker = new Worker('worker.js');
+          if (!physicsWorker) physicsWorker = new Worker('worker.wasm.js');
 
           physicsWorker.onmessage = function(event) {
             var data = event.data;
@@ -177,7 +177,7 @@
               <option value="2500">2500</option>
             </select>
             <input type="button" value="go!" onclick="startUp(boxes.value);">
-            <a href="https://twitter.com/horse_js"><img src="js.png" style="width: 4em; margin-left: 300px"></a>
+            <a href="https://twitter.com/horse_wasm"><img src="wasm.png" style="width: 4em; margin-left: 300px"></a>
           </form>
         </div>
         <div id="during"><div>Physics FPS (current / stable): <input type="text" id="out" readonly="1" size="7"></div><div id="postdiv"></div></div>
