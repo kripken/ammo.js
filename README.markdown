@@ -5,11 +5,12 @@ ammo.js
 # Demos
 
  * [Cubes](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.html)
+ * [Cubes (WebAssembly)](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.wasm.html)
  * [SoftBody-Rope](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_rope/index.html)
  * [SoftBody-Cloth](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_cloth/index.html)
  * [SoftBody-Volume](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_volume/index.html)
  * [Heightmap](http://kripken.github.com/ammo.js/examples/webgl_demo_terrain/index.html)
- * [Vehicle](http://kripken.github.io/ammo.js/examples/webgl_demo_vehicle/index.html) **new!**
+ * [Vehicle](http://kripken.github.io/ammo.js/examples/webgl_demo_vehicle/index.html)
 
 # Overview
 
