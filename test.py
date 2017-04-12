@@ -6,6 +6,7 @@ build = os.path.join('builds', 'temp.js')
 if len(sys.argv) > 1:
   build = sys.argv[1]
 print 'Using build:', build
+build = os.path.basename(build)
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
@@ -21,11 +22,18 @@ print '==================================='
 print
 
 def run(filename):
-  if JS_ENGINE[0] == SPIDERMONKEY_ENGINE[0]:
-    cmd = JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + os.path.join('tests', 'testutils.js') + '")', filename]
-    return Popen(cmd, stdout=PIPE).communicate()[0]
-  else:
-    return Popen(JS_ENGINE + [build, os.path.join('tests', 'testutils.js'), filename], stdout=PIPE).communicate()[0]
+  filename = os.path.abspath(filename)
+  test_utils = os.path.abspath(os.path.join('tests', 'testutils.js'))
+  old = os.getcwd()
+  try:
+    os.chdir('builds')
+    if JS_ENGINE[0] == SPIDERMONKEY_ENGINE[0]:
+      cmd = JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + test_utils + '")', filename]
+      return Popen(cmd, stdout=PIPE).communicate()[0]
+    else:
+      return Popen(JS_ENGINE + [build, test_utils, filename], stdout=PIPE).communicate()[0]
+  finally:
+    os.chdir(old)
 
 __counter = 0
 def stage(text):
