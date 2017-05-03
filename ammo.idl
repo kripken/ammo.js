@@ -570,12 +570,13 @@ interface btCollisionWorld {
 interface btContactSolverInfo {
   attribute boolean m_splitImpulse;
   attribute long m_splitImpulsePenetrationThreshold;
+  attribute long m_numIterations;
 };
 
 interface btDynamicsWorld {
   void addAction(btActionInterface action);
   void removeAction(btActionInterface action);
-  [Value] btContactSolverInfo getSolverInfo();
+  [Ref] btContactSolverInfo getSolverInfo();
 };
 btDynamicsWorld implements btCollisionWorld;
 
