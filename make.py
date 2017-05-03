@@ -51,7 +51,7 @@ emcc_args += ['-s', 'TOTAL_MEMORY=%d' % (64*1024*1024)] # default 64MB. Compile 
 
 emcc_args += '-s EXPORT_NAME="Ammo" -s MODULARIZE=1'.split(' ')
 
-target = 'temp.js' if not wasm else 'temp.wasm.js'
+target = 'ammo.js' if not wasm else 'ammo.wasm.js'
 
 print
 print '--------------------------------------------------'
