@@ -13,7 +13,7 @@ interface btVector3 {
   void setZ(float z);
   void setValue(float x, float y, float z);
   void normalize();
-  [Value] btVector3 rotate([Ref] btVector3 wAxis, float angle); 
+  [Value] btVector3 rotate([Ref] btVector3 wAxis, float angle);
   float dot([Ref] btVector3 v);
   [Operator="*=", Ref] btVector3 op_mul(float x);
   [Operator="+=", Ref] btVector3 op_add([Ref] btVector3 v);
@@ -104,14 +104,16 @@ interface btCollisionObject {
   void activate(optional boolean forceActivation);
   boolean isActive();
   boolean isKinematicObject();
+  boolean isStaticObject();
+  boolean isStaticOrKinematicObject();
   void setRestitution(float rest);
   void setFriction(float frict);
   void setRollingFriction(float frict);
   [Ref] btTransform getWorldTransform();
   long getCollisionFlags();
   void setCollisionFlags(long flags);
-  void setWorldTransform ([Const,Ref] btTransform worldTrans);
-  void setCollisionShape (btCollisionShape collisionShape);
+  void setWorldTransform([Const,Ref] btTransform worldTrans);
+  void setCollisionShape(btCollisionShape collisionShape);
   void setCcdMotionThreshold (float ccdMotionThreshold);
   void setCcdSweptSphereRadius (float radius);
   long getUserIndex();
