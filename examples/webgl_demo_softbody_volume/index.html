@@ -40,6 +40,8 @@
 
         <script>
 
+		Ammo().then(function(Ammo) {
+
 			// Detects webgl
             if ( ! Detector.webgl ) {
                 Detector.addGetWebGLMessage();
@@ -190,7 +192,7 @@
 
                 // Create soft volumes
                 var volumeMass = 15;
-                
+
                 var sphereGeometry = new THREE.SphereBufferGeometry( 1.5, 40, 25 );
                 sphereGeometry.translate( 5, 5, 0 );
                 createSoftVolume( sphereGeometry, volumeMass, 250 );
@@ -198,7 +200,7 @@
                 var boxGeometry = new THREE.BufferGeometry().fromGeometry( new THREE.BoxGeometry( 1, 1, 5, 4, 4, 20 ) );
                 boxGeometry.translate( -2, 5, 0 );
                 createSoftVolume( boxGeometry, volumeMass, 120 );
-                
+
                 // Ramp
                 pos.set( 3, 1, 0 );
                 quat.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), 30 * Math.PI / 180 );
@@ -212,13 +214,13 @@
 
                 // Obtain a Geometry
                 var geometry = new THREE.Geometry().fromBufferGeometry( bufGeometry );
-                
+
                 // Merge the vertices so the triangle soup is converted to indexed triangles
                 var vertsDiff = geometry.mergeVertices();
-                
+
                 // Convert again to BufferGeometry, indexed
                 var indexedBufferGeom = createIndexedBufferGeometryFromGeometry( geometry );
-                
+
                 // Create index arrays mapping the indexed vertices to bufGeometry vertices
                 mapIndices( bufGeometry, indexedBufferGeom );
 
@@ -262,22 +264,22 @@
 
                 return bufferGeom;
             }
-            
+
             function isEqual( x1, y1, z1, x2, y2, z2 ) {
                 var delta = 0.000001;
                 return Math.abs( x2 - x1 ) < delta &&
                         Math.abs( y2 - y1 ) < delta &&
                         Math.abs( z2 - z1 ) < delta;
             }
-            
+
             function mapIndices( bufGeometry, indexedBufferGeom ) {
-            
+
                 // Creates ammoVertices, ammoIndices and ammoIndexAssociation in bufGeometry
 
                 var vertices = bufGeometry.attributes.position.array;
                 var idxVertices = indexedBufferGeom.attributes.position.array;
                 var indices = indexedBufferGeom.index.array;
-                
+
                 var numIdxVertices = idxVertices.length / 3;
                 var numVertices = vertices.length / 3;
 
@@ -286,12 +288,12 @@
                 bufGeometry.ammoIndexAssociation = [];
 
                 for ( var i = 0; i < numIdxVertices; i++ ) {
-                    
+
                     var association = [];
                     bufGeometry.ammoIndexAssociation.push( association );
-                    
+
                     var i3 = i * 3;
-                    
+
                     for ( var j = 0; j < numVertices; j++ ) {
                         var j3 = j * 3;
                         if ( isEqual( idxVertices[ i3 ], idxVertices[ i3 + 1 ],  idxVertices[ i3 + 2 ],
@@ -299,26 +301,26 @@
                             association.push( j3 );
                         }
                     }
-                    
+
                 }
-                
+
             }
-            
+
             function createSoftVolume( bufferGeom, mass, pressure ) {
 
                 processGeometry( bufferGeom );
-            
+
                 var volume = new THREE.Mesh( bufferGeom, new THREE.MeshPhongMaterial( { color: 0xFFFFFF } ) );
                 volume.castShadow = true;
                 volume.receiveShadow = true;
                 volume.frustumCulled = false;
                 scene.add( volume );
-                
+
                 textureLoader.load( "../textures/colors.png", function( texture ) {
                     volume.material.map = texture;
                     volume.material.needsUpdate = true;
                 } );
-                
+
                 // Volume physic object
 
                 var volumeSoftBody = softBodyHelpers.CreateFromTriMesh(
@@ -353,7 +355,7 @@
                 volumeSoftBody.setActivationState( 4 );
 
                 softBodies.push( volume );
-                
+
             }
 
             function createParalellepiped( sx, sy, sz, mass, pos, quat, material ) {
@@ -404,7 +406,7 @@
             function initInput() {
 
                 window.addEventListener( 'mousedown', function( event ) {
-                    
+
                     if ( ! clickRequest ) {
 
                         mouseCoords.set(
@@ -415,7 +417,7 @@
                         clickRequest = true;
 
                     }
-                    
+
                 }, false );
 
             }
@@ -425,7 +427,7 @@
                 if ( clickRequest ) {
 
                     raycaster.setFromCamera( mouseCoords, camera );
-                    
+
                     // Creates a ball
                     var ballMass = 3;
                     var ballRadius = 0.4;
@@ -474,7 +476,7 @@
             	var deltaTime = clock.getDelta();
 
             	updatePhysics( deltaTime );
-            	
+
             	processClick();
 
                 controls.update( deltaTime );
@@ -499,7 +501,7 @@
                     var numVerts = association.length;
                     var nodes = softBody.get_m_nodes();
                     for ( var j = 0; j < numVerts; j ++ ) {
-                        
+
                         var node = nodes.at( j );
                         var nodePos = node.get_m_x();
                         var x = nodePos.x();
@@ -524,7 +526,7 @@
                             volumeNormals[ indexVertex ] = nz;
                         }
                     }
-                    
+
                     geometry.attributes.position.needsUpdate = true;
                     geometry.attributes.normal.needsUpdate = true;
 
@@ -547,6 +549,8 @@
 			    }
 
 			}
+
+		});
 
         </script>
 

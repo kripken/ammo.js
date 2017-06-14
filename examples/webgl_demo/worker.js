@@ -1,7 +1,7 @@
 
 var Module = { TOTAL_MEMORY: 256*1024*1024 };
 
-importScripts('ammo.js');
+importScripts('../../builds/ammo.js');
 
 Ammo().then(function(Ammo) {
   var NUM = 0, NUMRANGE = [];
@@ -168,4 +168,3 @@ Ammo().then(function(Ammo) {
     interval = setInterval(mainLoop, 1000/60);
   }
 });
-
