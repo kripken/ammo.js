@@ -42,6 +42,8 @@
 
         <script>
 
+		Ammo().then(function(Ammo) {
+
 			// Detects webgl
             if ( ! Detector.webgl ) {
                 Detector.addGetWebGLMessage();
@@ -188,7 +190,7 @@
 
 				// Create the terrain body
 
-				groundShape = this.createTerrainShape( heightData );
+				groundShape = createTerrainShape( heightData );
 				var groundTransform = new Ammo.btTransform();
 	  			groundTransform.setIdentity();
 	  			// Shifts the terrain, since bullet re-centers it on its bounding box.
@@ -416,6 +418,8 @@
 			      	}
 			    }
 			}
+
+		});
 
         </script>
 

@@ -49,6 +49,8 @@
 
         <script>
 
+		Ammo().then(function(Ammo) {
+
 			// Detects webgl
 			if ( ! Detector.webgl ) {
 				Detector.addGetWebGLMessage();
@@ -437,6 +439,8 @@
 			initPhysics();
 			createObjects();
 			tick();
+
+		});
 
         </script>
     </body>

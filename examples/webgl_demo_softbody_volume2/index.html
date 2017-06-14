@@ -40,6 +40,8 @@
 
         <script>
 
+		Ammo().then(function(Ammo) {
+
 			// Detects webgl
             if ( ! Detector.webgl ) {
                 Detector.addGetWebGLMessage();
@@ -204,9 +206,9 @@
 
 
             }
-            
+
             function createSoftBox( sizeX, sizeY, sizeZ, numPointsX, numPointsY, numPointsZ, tX, tY, tZ, mass, pressure ) {
-            
+
                 if ( numPointsX < 2 || numPointsY < 2 || numPointsZ < 2 ) {
                     return;
                 }
@@ -221,9 +223,9 @@
                     var index = a + b * numPointsX + c * numPointsX * numPointsY;
                     indexFromOffset[ offset ] = index;
                 }
-                
+
                 // Construct BufferGeometry
-                
+
                 var numVertices = numPointsX * numPointsY * numPointsZ;
                 var numFaces = 4 * ( ( numPointsX - 1 ) * ( numPointsY - 1 ) + ( numPointsX - 1 ) * ( numPointsZ - 1 ) + ( numPointsY - 1 ) * ( numPointsZ - 1 ) );
 
@@ -240,7 +242,7 @@
                 for ( var p = 0, k = 0; k < numPointsZ; k++ ) {
                     for ( var j = 0; j < numPointsY; j++ ) {
                         for ( var i = 0; i < numPointsX; i++ ) {
-                        
+
                             // Vertex and normal
                             var p3 = p * 3;
                             vertices[ p3 ] = i * sx - sizeX * 0.5;
@@ -350,28 +352,28 @@
                 bufferGeom.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
 
                 bufferGeom.translate( tX, tY, tZ );
-                
+
                 // Create mesh from geometry
                 var volume = new THREE.Mesh( bufferGeom, new THREE.MeshPhongMaterial( { color: 0xFFFFFF, wireframe: true } ) );
                 volume.castShadow = true;
                 volume.receiveShadow = true;
                 volume.frustumCulled = false;
                 scene.add( volume );
-                
+
                 // Create soft body
                 var vectorTemp = new Ammo.btVector3( 0, 0, 0 );
                 vectorTemp.setValue( vertices[ 0 ], vertices[ 1 ], vertices[ 2 ] );
-                
+
                 var volumeSoftBody = new Ammo.btSoftBody( physicsWorld.getWorldInfo(), 1, vectorTemp, [ 1.0 ] );
-                
+
                 var physMat0 = volumeSoftBody.get_m_materials().at( 0 );
-                
+
                 for ( var i = 1, il = vertices.length / 3; i < il; i++ ) {
                     var i3 = i * 3;
                     vectorTemp.setValue( vertices[ i3 ], vertices[ i3 + 1 ], vertices[ i3 + 2 ] );
                     volumeSoftBody.appendNode( vectorTemp, 1.0 );
                 }
-                
+
                 for ( var i = 0, il = indices.length / 3; i < il; i++ ) {
                     var i3 = i * 3;
                     volumeSoftBody.appendFace( indices[ i3 ], indices[ i3 + 1 ], indices[ i3 + 2 ] );
@@ -379,7 +381,7 @@
 
                 // Create tetrahedrons
                 var p = 0;
-                
+
                 function newTetra( i0, i1, i2, i3, i4 ) {
 
                     var v0 = p + indexFromOffset[ i0 ];
@@ -389,20 +391,20 @@
                     var v4 = p + indexFromOffset[ i4 ];
 
                     volumeSoftBody.appendTetra( v0, v1, v2, v3, v4 );
-                    
+
                     volumeSoftBody.appendLink( v0, v1, physMat0, true );
                     volumeSoftBody.appendLink( v0, v2, physMat0, true );
                     volumeSoftBody.appendLink( v0, v3, physMat0, true );
                     volumeSoftBody.appendLink( v1, v2, physMat0, true );
                     volumeSoftBody.appendLink( v2, v3, physMat0, true );
                     volumeSoftBody.appendLink( v3, v1, physMat0, true );
-                
+
                 }
-                
+
                 for ( var k = 0; k < numPointsZ; k++ ) {
                     for ( var j = 0; j < numPointsY; j++ ) {
                         for ( var i = 0; i < numPointsX; i++ ) {
-                        
+
                             if ( i < numPointsX - 1 && j < numPointsY - 1 && k < numPointsZ - 1 ) {
 
                                 // Creates 5 tetrahedrons for each cube
@@ -426,7 +428,7 @@
                 }
 
                 // Config soft body
-                
+
                 var sbConfig = volumeSoftBody.get_m_cfg();
                 sbConfig.set_viterations( 40 );
                 sbConfig.set_piterations( 40 );
@@ -454,7 +456,7 @@
                 volumeSoftBody.setActivationState( 4 );
 
                 softBodies.push( volume );
-                
+
             }
 
             function createParalellepiped( sx, sy, sz, mass, pos, quat, material ) {
@@ -505,7 +507,7 @@
             function initInput() {
 
                 window.addEventListener( 'mousedown', function( event ) {
-                    
+
                     if ( ! clickRequest ) {
 
                         mouseCoords.set(
@@ -516,7 +518,7 @@
                         clickRequest = true;
 
                     }
-                    
+
                 }, false );
 
             }
@@ -526,7 +528,7 @@
                 if ( clickRequest ) {
 
                     raycaster.setFromCamera( mouseCoords, camera );
-                    
+
                     // Creates a ball
                     var ballMass = 0.7;
                     var ballRadius = 0.4;
@@ -575,7 +577,7 @@
             	var deltaTime = clock.getDelta();
 
             	updatePhysics( deltaTime );
-            	
+
             	processClick();
 
                 controls.update( deltaTime );
@@ -602,8 +604,8 @@
                     for ( var j = 0; j < numVerts; j ++ ) {
                         var node = nodes.at( j );
                         var nodePos = node.get_m_x();
-                        var nodeNormal = node.get_m_n();                        
-                        
+                        var nodeNormal = node.get_m_n();
+
                         volumePositions[ p ] = nodePos.x();
                         volumeNormals[ p++ ] = nodeNormal.x();
                         volumePositions[ p ] = nodePos.y();
@@ -612,7 +614,7 @@
                         volumeNormals[ p++ ] = nodeNormal.z();
 
                     }
-                    
+
                     geometry.attributes.position.needsUpdate = true;
                     geometry.attributes.normal.needsUpdate = true;
 
@@ -635,6 +637,8 @@
 			    }
 
 			}
+
+		});
 
         </script>
 
