@@ -447,7 +447,7 @@ interface btRigidBody {
   void setMotionState(btMotionState motionState);
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast([Const] btCollisionObject colObj);
-  void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax); 
+  void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
 };
 btRigidBody implements btCollisionObject;
 
@@ -462,6 +462,15 @@ interface btTypedConstraint {
   void enableFeedback(boolean needsFeedback);
   [Const] float getBreakingImpulseThreshold();
   void setBreakingImpulseThreshold([Const] float threshold);
+  [Const] float getParam(long num, long axis);
+  void setParam(long num, float value, long axis);
+};
+
+enum btConstraintParams {
+  "BT_CONSTRAINT_ERP",
+  "BT_CONSTRAINT_STOP_ERP",
+  "BT_CONSTRAINT_CFM",
+  "BT_CONSTRAINT_STOP_CFM"
 };
 
 interface btPoint2PointConstraint {
