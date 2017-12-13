@@ -207,6 +207,7 @@ ClosestConvexResultCallback implements ConvexResultCallback;
 
 interface btCollisionShape {
   void setLocalScaling([Const, Ref] btVector3 scaling);
+  [Const, Ref] btVector3 getLocalScaling();
   void calculateLocalInertia(float mass, [Ref] btVector3 inertia);
   void setMargin(float margin);
   float getMargin();
@@ -448,6 +449,9 @@ interface btRigidBody {
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast([Const] btCollisionObject colObj);
   void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
+  void applyGravity();
+  [Const, Ref] btVector3 getGravity();
+  void setGravity([Const, Ref] btVector3 acceleration);
 };
 btRigidBody implements btCollisionObject;
 
@@ -582,6 +586,7 @@ interface btCollisionWorld {
   void convexSweepTest([Const] btConvexShape castShape, [Const, Ref] btTransform from, [Const, Ref] btTransform to, [Ref] ConvexResultCallback resultCallback, float allowedCcdPenetration);
   void contactPairTest([Const] btCollisionObject colObjA, [Const] btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);
   void contactTest([Const] btCollisionObject colObj, [Ref] ContactResultCallback resultCallback);
+  void updateSingleAabb([Const] btCollisionObject colObj);
 };
 
 interface btContactSolverInfo {
