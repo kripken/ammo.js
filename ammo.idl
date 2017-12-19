@@ -823,6 +823,19 @@ interface tMaterialArray {
 };
 
 [Prefix="btSoftBody::"]
+interface Anchor {
+  attribute Node m_node;
+  attribute btRigidBody m_body;
+};
+
+[Prefix="btSoftBody::"]
+interface tAnchorArray {
+  [Const] long size();
+  [Value] Anchor at(long n);
+  void clear();
+};
+
+[Prefix="btSoftBody::"]
 interface Config {
   attribute float kVCF;
   attribute float kDP;
@@ -857,6 +870,7 @@ interface btSoftBody {
   [Value] attribute Config m_cfg;
   [Value] attribute tNodeArray m_nodes;
   [Value] attribute tMaterialArray m_materials;
+  [Value] attribute tAnchorArray m_anchors; 
 
   [Const] boolean checkLink( long node0, long node1);
   [Const] boolean checkFace( long node0, long node1, long node2);
