@@ -825,7 +825,12 @@ interface tMaterialArray {
 [Prefix="btSoftBody::"]
 interface Anchor {
   attribute Node m_node;
+  [Value] attribute btVector3 m_local;
   attribute btRigidBody m_body;
+  attribute float m_influence;
+  [Value] attribute btMatrix3x3 m_c0;
+  [Value] attribute btVector3 m_c1;
+  attribute float m_c2;
 };
 
 [Prefix="btSoftBody::"]
