@@ -233,6 +233,9 @@ interface btCapsuleShape {
   void btCapsuleShape(float radius, float height);
   void setMargin(float margin);
   float getMargin();
+  long getUpAxis();
+  float getRadius();
+  float getHalfHeight();
 };
 btCapsuleShape implements btCollisionShape;
 
@@ -582,6 +585,7 @@ interface btCollisionWorld {
   btOverlappingPairCache getPairCache();
   [Ref] btDispatcherInfo getDispatchInfo();
   void addCollisionObject(btCollisionObject collisionObject, optional short collisionFilterGroup, optional short collisionFilterMask);
+  void removeCollisionObject(btCollisionObject collisionObject);
   [Const] btBroadphaseInterface getBroadphase ();
   void convexSweepTest([Const] btConvexShape castShape, [Const, Ref] btTransform from, [Const, Ref] btTransform to, [Ref] ConvexResultCallback resultCallback, float allowedCcdPenetration);
   void contactPairTest([Const] btCollisionObject colObjA, [Const] btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);
@@ -729,6 +733,7 @@ interface btKinematicCharacterController {
   btPairCachingGhostObject getGhostObject ();
   void setUseGhostSweepTest (boolean useGhostObjectSweepTest);
   boolean onGround ();
+  void setUpInterpolate (boolean value);
 };
 btKinematicCharacterController implements btActionInterface;
 
