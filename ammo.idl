@@ -839,6 +839,7 @@ interface tAnchorArray {
   [Value] Anchor at(long n);
   void clear();
   void push_back([Ref] Anchor val);
+  void pop_back();
 };
 
 [Prefix="btSoftBody::"]
