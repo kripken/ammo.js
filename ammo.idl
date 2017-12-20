@@ -895,6 +895,7 @@ interface btSoftBody {
   void rotate( [Const, Ref] btQuaternion rot);
   void scale(  [Const, Ref] btVector3 scl);
   long generateClusters(long k, optional long maxiterations);
+  long generateBendingConstraints(long distance, Material mat);
   btSoftBody upcast([Const] btCollisionObject colObj);
 };
 btSoftBody implements btCollisionObject;
