@@ -34,13 +34,13 @@ import tools.shared as emscripten
 wasm = 'wasm' in sys.argv
 closure = 'closure' in sys.argv
 
-args = '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 --memory-init-file 0 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[]'
+args = '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[]'
 if not wasm:
-  args += ' -s AGGRESSIVE_VARIABLE_ELIMINATION=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1'
+  args += ' -s AGGRESSIVE_VARIABLE_ELIMINATION=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1 -s SINGLE_FILE=1'
 else:
   args += ''' -s WASM=1 -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 -s BINARYEN_TRAP_MODE="allow"'''
 if closure:
-  args += ' --closure 1'
+  args += ' --closure 1 -s IGNORE_CLOSURE_COMPILER_ERRORS=1' # closure complains about the bullet Node class (Node is a DOM thing too)
 else:
   args += ' -s NO_DYNAMIC_EXECUTION=1'
 
