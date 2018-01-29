@@ -805,6 +805,8 @@ interface btSoftBodyWorldInfo {
 interface Node {
   [Value] attribute btVector3 m_x;
   [Value] attribute btVector3 m_n;
+  [Value] attribute btVector3 m_f;
+  [Value] attribute btVector3 m_v;
 };
 
 [Prefix="btSoftBody::"]
@@ -892,6 +894,9 @@ interface btSoftBody {
   void appendFace( long node0, long node1, long node2, Material mat);
   void appendTetra( long node0, long node1, long node2, long node3, Material mat);
   void appendAnchor( long node, btRigidBody body, boolean disableCollisionBetweenLinkedBodies, float influence);
+  void addForce([Const, Ref] btVector3 force);
+  void addForce([Const, Ref] btVector3 force, long node);
+  void addAeroForceToNode([Const, Ref] btVector3 windVelocity, long nodeIndex);
   [Const] float getTotalMass();
   void setTotalMass( float mass, boolean fromfaces);
   void setMass(long node, float mass);
