@@ -152,17 +152,14 @@ Release Process
 Pushing a new build in `builds/ammo.js` should be done only after the
 following steps:
 
-  * Build using  python make.py  which generates builds/temp.js
+  * Build using  python make.py closure       which generates the asm.js
+    build, and   python make.py closure wasm  which generates the wasm
+    build.
 
-  * Make sure it passes all automatic tests using  python test.py
-    (That uses builds/temp.js by default, you can also pass a flag
-    saying which build to use.) Note that it uses SpiderMonkey
+  * Make sure it passes all automatic tests using
+    python test.py (build-name)  Note that it uses SpiderMonkey
     by default, and SPIDERMONKEY_ENGINE is defined in ~/.emscripten,
     see the script contents for details.
-
-  * Make sure that the stress test benchmark did not regress
-    compared to the old build. That number is printed out at the
-    end of running the tests.
 
   * Run the WebGL demo in examples/webgl_demo and make sure it looks
     ok, using something like  firefox examples/webgl_demo/ammo.html
