@@ -499,6 +499,7 @@ interface btGeneric6DofConstraint {
   void setLinearUpperLimit([Const, Ref] btVector3 linearUpper);
   void setAngularLowerLimit([Const, Ref] btVector3 angularLower);
   void setAngularUpperLimit([Const, Ref] btVector3 angularUpper);
+  [Const, Ref] btTransform getFrameOffsetA();
 };
 btGeneric6DofConstraint implements btTypedConstraint;
 
