@@ -37,7 +37,7 @@ def build():
   wasm = 'wasm' in sys.argv
   closure = 'closure' in sys.argv
 
-  args = '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[]'
+  args = '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[] -s LEGACY_VM_SUPPORT=1'
   if not wasm:
     args += ' -s AGGRESSIVE_VARIABLE_ELIMINATION=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1 -s SINGLE_FILE=1'
   else:
