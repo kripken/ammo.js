@@ -66,11 +66,12 @@
 			var broadphase;
 			var solver;
 			var physicsWorld;
-			var rigidBodies = [];
 			var margin = 0.01;
 			var transformAux1 = new Ammo.btTransform();
 			var tempVRayOrigin = new Ammo.btVector3();
 			var tempVRayDest = new Ammo.btVector3();
+			var tempbtVector3 = new Ammo.btVector3();
+			var tempbtQuat = new Ammo.btQuaternion();
 			var closestRayResultCallback = new Ammo.ClosestRayResultCallback( tempVRayOrigin, tempVRayDest );
 
 			var fly;
@@ -347,9 +348,10 @@
 
 				var transform = new Ammo.btTransform();
     			transform.setIdentity();
-    			// TODO test use temp vector and quat
-    			transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
-    			transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+    			tempbtVector3.setValue( pos.x, pos.y, pos.z );
+    			tempbtQuat.setValue( quat.x, quat.y, quat.z, quat.w );
+    			transform.setOrigin( tempbtVector3 );
+    			transform.setRotation( tempbtQuat );
 				var motionState = new Ammo.btDefaultMotionState( transform );
 
 				var localInertia = new Ammo.btVector3( 0, 0, 0 );
@@ -361,7 +363,6 @@
 				threeObject.userData.physicsBody = body;
 
 				if ( mass > 0 ) {
-					rigidBodies.push( threeObject );
 
 					// Disable deactivation
 					body.setActivationState( 4 );
@@ -595,23 +596,6 @@
 
 				// Step world
 				physicsWorld.stepSimulation( deltaTime, 10 );
-
-			    // Update rigid bodies
-// TODO REMOVE
-			    for ( var i = 0, il = rigidBodies.length; i < il; i++ ) {
-			    	var objThree = rigidBodies[ i ];
-			    	var objPhys = objThree.userData.physicsBody;
-					var ms = objPhys.getMotionState();
-					if ( ms ) {
-
-			        	ms.getWorldTransform( transformAux1 );
-						var p = transformAux1.getOrigin();
-						var q = transformAux1.getRotation();
-						objThree.position.set( p.x(), p.y(), p.z() );
-						objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
-
-			      	}
-			    }
 
 			}
 
