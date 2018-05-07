@@ -806,9 +806,12 @@ interface btSoftBodyWorldInfo {
 [Prefix="btSoftBody::"]
 interface Node {
   [Value] attribute btVector3 m_x;
-  [Value] attribute btVector3 m_n;
-  [Value] attribute btVector3 m_f;
+  [Value] attribute btVector3 m_q;
   [Value] attribute btVector3 m_v;
+  [Value] attribute btVector3 m_f;
+  [Value] attribute btVector3 m_n;
+  attribute float m_im;	
+  attribute float m_area;
 };
 
 [Prefix="btSoftBody::"]
