@@ -809,8 +809,8 @@ interface Node {
   [Value] attribute btVector3 m_v;
   [Value] attribute btVector3 m_f;
   [Value] attribute btVector3 m_n;
-  [Value] attribute float m_im;	
-  [Value] attribute float m_area;
+  attribute float m_im;	
+  attribute float m_area;
 };
 
 [Prefix="btSoftBody::"]
