@@ -1,0 +1,602 @@
+<html lang="en">
+    <head>
+        <title>Ammo.js ray test demo</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                color: #61443e;
+                font-family:Monospace;
+                font-size:13px;
+                text-align:center;
+
+                background-color: #bfd1e5;
+                margin: 0px;
+                overflow: hidden;
+            }
+
+            #info {
+                position: absolute;
+                top: 0px; width: 100%;
+                padding: 5px;
+            }
+
+            a {
+
+                color: #a06851;
+            }
+
+        </style>
+    </head>
+    <body>
+		<div id="info">Ammo.js ray test demo<br>Control the fly with the cursors, and the camera with the mouse.</div>
+        <div id="container"><br /><br /><br /><br /><br />Loading...</div>
+
+		<script src="../../builds/ammo.js"></script>
+
+        <script src="../js/three/three.min.js"></script>
+        <script src="../js/three/OrbitControls.js"></script>
+        <script src="../js/three/Detector.js"></script>
+        <script src="../js/three/stats.min.js"></script>
+
+        <script>
+
+		Ammo().then(function(Ammo) {
+
+			// Detects webgl
+            if ( ! Detector.webgl ) {
+                Detector.addGetWebGLMessage();
+                document.getElementById( 'container' ).innerHTML = "";
+            }
+
+            // - Global variables -
+
+			// Graphics variables
+            var container, stats;
+            var camera, controls, scene, renderer;
+            var textureLoader;
+            var clock = new THREE.Clock();
+            var tempVec1 = new THREE.Vector3();
+            var tempQuat1 = new THREE.Quaternion();
+
+            // Physics variables
+            var gravityConstant = -9.8;
+			var collisionConfiguration;
+			var dispatcher;
+			var broadphase;
+			var solver;
+			var physicsWorld;
+			var margin = 0.01;
+			var transformAux1 = new Ammo.btTransform();
+			var tempVRayOrigin = new Ammo.btVector3();
+			var tempVRayDest = new Ammo.btVector3();
+			var tempbtVector3 = new Ammo.btVector3();
+			var tempbtQuat = new Ammo.btQuaternion();
+			var closestRayResultCallback = new Ammo.ClosestRayResultCallback( tempVRayOrigin, tempVRayDest );
+
+			var fly;
+			var rays;
+			var raysVisuals;
+			var rayHit;
+			
+			var angVel = 12;
+			var flyVelocity = 1.5;
+			var velX = 0;
+			var velY = 0;
+
+			var time = 0;
+			var keyboardController = {
+                up: false,
+                down: false,
+                left: false,
+                right: false
+			};
+			var instinctController = {
+                up: false,
+                down: false,
+                left: false,
+                right: false
+			};
+
+			// - Main code -
+
+            init();
+            animate();
+
+
+            // - Functions -
+
+            function init() {
+
+				initGraphics();
+
+				initPhysics();
+
+				createObjects();
+
+				initInput();
+
+            }
+
+            function initGraphics() {
+
+				container = document.getElementById( 'container' );
+
+                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.02, 50 );
+
+                scene = new THREE.Scene();
+
+				camera.position.x = -3;
+				camera.position.y = 2;
+                camera.position.z = 2;
+
+                controls = new THREE.OrbitControls( camera );
+                controls.target.y = 1;
+                controls.enablePan = false;
+
+                renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0xbfd1e5 );
+                renderer.setPixelRatio( window.devicePixelRatio );
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.shadowMap.enabled = true;
+
+                textureLoader = new THREE.TextureLoader();
+
+				var ambientLight = new THREE.AmbientLight( 0x404040 );
+				scene.add( ambientLight );
+
+                var light = new THREE.DirectionalLight( 0xffffff, 1 );
+                light.position.set( -10, 10, 5 );
+				light.castShadow = true;
+				var d = 10;
+			    light.shadow.camera.left = -d;
+			    light.shadow.camera.right = d;
+			    light.shadow.camera.top = d;
+			    light.shadow.camera.bottom = -d;
+			    light.shadow.camera.near = 2;
+			    light.shadow.camera.far = 50;
+			    light.shadow.mapSize.x = 1024;
+			    light.shadow.mapSize.y = 1024;
+                scene.add( light );
+
+                container.innerHTML = "";
+
+                container.appendChild( renderer.domElement );
+
+                stats = new Stats();
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.top = '0px';
+                container.appendChild( stats.domElement );
+
+                //
+
+                window.addEventListener( 'resize', onWindowResize, false );
+
+            }
+
+			function initPhysics() {
+
+				// Physics configuration
+
+				collisionConfiguration = new Ammo.btSoftBodyRigidBodyCollisionConfiguration();
+				dispatcher = new Ammo.btCollisionDispatcher( collisionConfiguration );
+				broadphase = new Ammo.btDbvtBroadphase();
+				solver = new Ammo.btSequentialImpulseConstraintSolver();
+				softBodySolver = new Ammo.btDefaultSoftBodySolver();
+				physicsWorld = new Ammo.btSoftRigidDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration, softBodySolver);
+				physicsWorld.setGravity( new Ammo.btVector3( 0, gravityConstant, 0 ) );
+				physicsWorld.getWorldInfo().set_m_gravity( new Ammo.btVector3( 0, gravityConstant, 0 ) );
+
+            }
+
+            function createObjects() {
+
+				var pos = new THREE.Vector3();
+				var quat = new THREE.Quaternion();
+				
+				var roomX = 10;
+				var roomY = 2.5;
+				var roomZ = 6;
+				
+				var wallsMaterial = new THREE.MeshPhongMaterial( { color: 0xFFFFFF } );
+				textureLoader.load( "../textures/grid.png", function( texture ) {
+					texture.wrapS = THREE.RepeatWrapping;
+					texture.wrapT = THREE.RepeatWrapping;
+					texture.repeat.set( 15, 10 );
+					wallsMaterial.map = texture;
+					wallsMaterial.needsUpdate = true;
+				} );
+
+				// Floor
+				pos.set( - 0.5, -1, - 0.5 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( roomX + 1, 2, roomZ + 1 ), 0, pos, quat );
+				
+				// Ceiling
+				pos.set( - 0.5, roomY + 1, - 0.5 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( roomX + 1, 2, roomZ + 1 ), 0, pos, quat );
+
+				// Walls
+				pos.set( 0, roomY * 0.5 + 1, - roomZ * 0.5 - 0.5 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( roomX, roomY + 2, 1 ), 0, pos, quat );
+				
+				pos.set( 0, roomY * 0.5 + 1, + roomZ * 0.5 + 0.5 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( roomX, roomY + 2, 1 ), 0, pos, quat );
+				
+				pos.set( - roomX * 0.5 - 0.5, roomY * 0.5 + 1, 0 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( 1, roomY + 2, roomZ ), 0, pos, quat );
+				
+				pos.set( roomX * 0.5 + 0.5, roomY * 0.5 + 1, 0 );
+				quat.set( 0, 0, 0, 1 );
+				createRigidBody( new THREE.Object3D(), createBoxShape( 1, roomY + 2, roomZ ), 0, pos, quat );
+				
+				// Walls visual
+				pos.set( 0, roomY * 0.5, 0 );
+				quat.set( 0, 0, 0, 1 );
+				var box = createVisualBox( roomX, roomY, roomZ, pos, quat, wallsMaterial );
+				box.castShadow = false;
+				box.receiveShadow = true;
+				// Invert geometry
+				var vertices = box.geometry.vertices;
+				for ( var i = 0; i < vertices.length; i++ ) {
+					vertices[ i ].multiplyScalar( -1 );
+				}
+				
+				// Furniture
+				
+				var woodMaterial = new THREE.MeshLambertMaterial( { color: 0x332712 } );
+				
+				// Table
+				createParalellepiped( 3, 0.08, 1.8, 0, new THREE.Vector3( 0, 0.9, 0 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.08, 0.9, 1.7, 0, new THREE.Vector3( - 1.3, 0.9 * 0.5, 0 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.08, 0.9, 1.7, 0, new THREE.Vector3( 1.3, 0.9 * 0.5, 0 ), new THREE.Quaternion(), woodMaterial );
+				
+				// Closet
+				createParalellepiped( 0.6, 1.9, 1.6, 0, new THREE.Vector3( roomX * 0.5 - 0.3, 1.9 * 0.5, 0 ), new THREE.Quaternion(), woodMaterial );
+				
+				// Chair
+				var chairX = - roomX * 0.1;
+				var chairZ = - roomZ * 0.5 + 0.5;
+				createParalellepiped( 0.4, 0.06, 0.4, 0, new THREE.Vector3( chairX, 0.5, chairZ + 0.2 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.1, 0.9, 0.1, 0, new THREE.Vector3( chairX + 0.15, 0.45, chairZ + 0.05 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.1, 0.9, 0.1, 0, new THREE.Vector3( chairX - 0.15, 0.45, chairZ + 0.05 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.1, 0.5, 0.1, 0, new THREE.Vector3( chairX + 0.15, 0.25, chairZ + 0.35 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.1, 0.5, 0.1, 0, new THREE.Vector3( chairX - 0.15, 0.25, chairZ + 0.35 ), new THREE.Quaternion(), woodMaterial );
+				createParalellepiped( 0.4, 0.4, 0.05, 0, new THREE.Vector3( chairX, 0.7, chairZ + 0.08 ), new THREE.Quaternion(), woodMaterial );
+
+				// Fly
+				var flyMass = 0;
+				var flyRadius = 0.08;
+
+				fly = new THREE.Mesh( new THREE.SphereGeometry( flyRadius, 20, 20 ), new THREE.MeshPhongMaterial( { color: 0x202020 } ) );
+				fly.rotation.y = 0.35;
+				fly.castShadow = true;
+				fly.receiveShadow = true;
+				fly.position.y = 1.8;
+				scene.add( fly );
+				
+				// Fly rays
+				var rayXY = 0.5;
+				var rayZ = 1;
+				rays = [];
+				raysVisuals = [];
+				rayHit = [];
+				rays.push( new THREE.Vector3( 0,   rayXY, - rayZ * 0.6 ) );
+				rays.push( new THREE.Vector3( 0, - rayXY, - rayZ * 0.6 ) );
+				rays.push( new THREE.Vector3( rayXY, 0, - rayZ ) );
+				rays.push( new THREE.Vector3( - rayXY, 0, - rayZ ) );
+				
+				for ( var i = 0; i < rays.length; i++ ) {
+					var l = rays[ i ].length();
+					var cylGeom = new THREE.CylinderGeometry( 0.02, 0.02, l, 6 );
+					cylGeom.translate( 0, - 0.5 * l, 0 );
+					cylGeom.rotateX( - Math.PI * 0.5 );
+					cylGeom.lookAt( rays[ i ] );
+					var cylinder = new THREE.Mesh( cylGeom, new THREE.MeshPhongMaterial( { color: 0x00FF00 } ) );
+					cylinder.castShadow = true;
+					cylinder.receiveShadow = true;
+					fly.add( cylinder );
+					raysVisuals.push( cylinder );
+					rayHit.push( false );
+				}
+				
+            }
+
+            function createParalellepiped( sx, sy, sz, mass, pos, quat, material ) {
+
+				var threeObject = createVisualBox( sx, sy, sz, pos, quat, material );
+
+				var shape = createBoxShape( sx, sy, sz );
+
+				createRigidBody( threeObject, shape, mass, pos, quat );
+
+				return threeObject;
+
+            }
+            
+            function createVisualBox( sx, sy, sz, pos, quat, material ) {
+            
+				var threeObject = new THREE.Mesh( new THREE.BoxGeometry( sx, sy, sz, 1, 1, 1 ), material );
+				threeObject.position.copy( pos );
+            	threeObject.quaternion.copy( quat );
+				threeObject.castShadow = true;
+				threeObject.receiveShadow = true;
+				scene.add( threeObject );
+				
+				return threeObject;
+            }
+            
+            function createBoxShape( sx, sy, sz ) {
+				var shape = new Ammo.btBoxShape( new Ammo.btVector3( sx * 0.5, sy * 0.5, sz * 0.5 ) );
+				shape.setMargin( margin );
+				return shape;
+            }
+
+            function createRigidBody( threeObject, physicsShape, mass, pos, quat ) {
+
+            	threeObject.position.copy( pos );
+            	threeObject.quaternion.copy( quat );
+
+				var transform = new Ammo.btTransform();
+    			transform.setIdentity();
+    			tempbtVector3.setValue( pos.x, pos.y, pos.z );
+    			tempbtQuat.setValue( quat.x, quat.y, quat.z, quat.w );
+    			transform.setOrigin( tempbtVector3 );
+    			transform.setRotation( tempbtQuat );
+				var motionState = new Ammo.btDefaultMotionState( transform );
+
+				var localInertia = new Ammo.btVector3( 0, 0, 0 );
+		    	physicsShape.calculateLocalInertia( mass, localInertia );
+
+		    	var rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, physicsShape, localInertia );
+		    	var body = new Ammo.btRigidBody( rbInfo );
+
+				threeObject.userData.physicsBody = body;
+
+				if ( mass > 0 ) {
+
+					// Disable deactivation
+					body.setActivationState( 4 );
+				}
+
+				physicsWorld.addRigidBody( body );
+
+            }
+
+			function createRandomColor() {
+				return Math.floor( Math.random() * ( 1 << 24 ) );
+			}
+
+            function createMaterial() {
+            	return new THREE.MeshPhongMaterial( { color: createRandomColor() } );
+            }
+
+            function initInput() {
+
+            	window.addEventListener( 'keydown', function( event ) {
+
+					switch ( event.key ) {
+
+						case "ArrowDown":
+							keyboardController.down = 1;
+							break;
+
+						case "ArrowUp":
+							keyboardController.up = 1;
+							break;
+
+						case "ArrowLeft":
+							keyboardController.left = 1;
+							break;
+
+						case "ArrowRight":
+							keyboardController.right = 1;
+							break;
+
+						default:
+							return; // Quit when this doesn't handle the key event.
+					}
+
+            	}, false );
+
+            	window.addEventListener( 'keyup', function( event ) {
+
+					switch ( event.key ) {
+
+						case "ArrowDown":
+							keyboardController.down = 0;
+							break;
+
+						case "ArrowUp":
+							keyboardController.up = 0;
+							break;
+
+						case "ArrowLeft":
+							keyboardController.left = 0;
+							break;
+
+						case "ArrowRight":
+							keyboardController.right = 0;
+							break;
+
+						default:
+							return; // Quit when this doesn't handle the key event.
+					}
+
+            	}, false );
+
+            }
+
+            function onWindowResize() {
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            }
+
+            function animate() {
+
+                requestAnimationFrame( animate );
+
+                render();
+                stats.update();
+
+            }
+
+            function render() {
+
+            	var deltaTime = clock.getDelta();
+
+            	updatePhysics( deltaTime );
+
+                controls.update( deltaTime );
+
+                renderer.render( scene, camera );
+
+                time += deltaTime;
+
+            }
+            
+            function controlFly( deltaTime ) {
+            
+				var randomVel = 50;
+
+				var xi = instinctController.down ? -1 : ( instinctController.up ? 1 : 0 );
+				var yi = instinctController.left ? -1 : ( instinctController.right ? 1 : 0 );
+				
+				var xk = keyboardController.down ? -1 : ( keyboardController.up ? 1 : 0 );
+				var yk = keyboardController.left ? -1 : ( keyboardController.right ? 1 : 0 );
+				
+				var x = xi !== 0 ? xi : xk;
+				var y = yi !== 0 ? yi : yk;
+				
+				if ( y === 0 ) {
+					velY += ( Math.random() - 0.5 ) * 2 * randomVel * deltaTime;
+					velY = Math.max( - randomVel, Math.min( randomVel, velY ) );
+					y += velY * deltaTime;
+				}
+				else {
+					velX = 0;
+					velY = 0;
+				}
+				
+				if ( x === 0 ) {
+					velX += ( Math.random() - 0.5 ) * 2 * randomVel * deltaTime;
+					velX = Math.max( - randomVel, Math.min( randomVel, velX ) );
+					x += velX * deltaTime;
+				}
+				else {
+					velX = 0;
+					velY = 0;
+				}
+
+				/*
+				if ( x !== 0 ) {
+					tempVec1.set( 0, 1, 0 );
+					tempQuat1.setFromAxisAngle( tempVec1, x * deltaTime * angVel );
+					fly.quaternion.multiply( tempQuat1 );
+				}
+				
+				if ( y !== 0 ) {
+					tempVec1.set( 1, 0, 0 );
+					tempQuat1.setFromAxisAngle( tempVec1, y * deltaTime * angVel );
+					fly.quaternion.multiply( tempQuat1 );
+				}
+				*/
+				
+				// Update fly rotation
+				fly.rotation.x = fly.rotation.x + x * deltaTime * angVel;
+				fly.rotation.y = fly.rotation.y + y * deltaTime * angVel;
+
+				// Update fly position
+				tempVec1.set( 0, 0, - deltaTime * flyVelocity );
+				tempVec1.applyQuaternion( fly.quaternion );
+				fly.position.add( tempVec1 );
+
+            }
+
+			function castPhysicsRay( origin, dest, intersectionPoint, intersectionNormal ) {
+    
+				// Returns true if ray hit, and returns intersection data on the last two vector parameters
+				// TODO Mask and group filters can be added to the test (rayCallBack.m_collisionFilterGroup and m_collisionFilterMask)
+				
+				// Reset closestRayResultCallback to reuse it
+				var rayCallBack = Ammo.castObject( closestRayResultCallback, Ammo.RayResultCallback );
+				rayCallBack.set_m_closestHitFraction( 1 );
+				rayCallBack.set_m_collisionObject( null );
+
+				// Set closestRayResultCallback origin and dest
+				tempVRayOrigin.setValue( origin.x, origin.y, origin.z );
+				tempVRayDest.setValue( dest.x, dest.y, dest.z );
+				closestRayResultCallback.get_m_rayFromWorld().setValue( origin.x, origin.y, origin.z );
+				closestRayResultCallback.get_m_rayToWorld().setValue( dest.x, dest.y, dest.z );
+
+				// Perform ray test
+				physicsWorld.rayTest( tempVRayOrigin, tempVRayDest, closestRayResultCallback );
+
+				if ( closestRayResultCallback.hasHit() ) {
+
+					if ( intersectionPoint ) {
+						var point = closestRayResultCallback.get_m_hitPointWorld();
+						intersectionPoint.set( point.x(), point.y(), point.z() );
+					}
+
+					if ( intersectionNormal ) {
+						var normal = closestRayResultCallback.get_m_hitNormalWorld();
+						intersectionNormal.set( normal.x(), normal.y(), normal.z() );
+					}
+
+					return true;
+
+				}
+				else {
+
+					return false;
+
+				}
+
+			}
+
+            function updatePhysics( deltaTime ) {
+            
+				// Make ray tests
+				for ( var i = 0; i < rays.length; i++ ) {
+
+					tempVec1.copy( rays[ i ] ).applyMatrix4( fly.matrixWorld );
+
+					rayHit[ i ] = castPhysicsRay( fly.position, tempVec1 );
+					
+					if ( rayHit[ i ] ) {
+						raysVisuals[ i ].material.color.setRGB( 1, 0, 0 );
+					}
+					else {
+						raysVisuals[ i ].material.color.setRGB( 0, 1, 0 );
+					}
+
+				}
+				
+				instinctController.up = rayHit[ 0 ];
+				instinctController.down = rayHit[ 1 ];
+				instinctController.right = rayHit[ 2 ];
+				instinctController.left = rayHit[ 3 ];
+				
+				// Control fly
+				controlFly( deltaTime );
+
+				// Step world
+				physicsWorld.stepSimulation( deltaTime, 10 );
+
+			}
+
+		});
+
+        </script>
+
+    </body>
+</html>
