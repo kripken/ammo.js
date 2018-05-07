@@ -132,6 +132,7 @@ interface RayResultCallback {
   boolean hasHit();
   attribute short m_collisionFilterGroup;
   attribute short m_collisionFilterMask;
+  attribute float m_closestHitFraction;
   [Const] attribute btCollisionObject m_collisionObject;
 };
 
