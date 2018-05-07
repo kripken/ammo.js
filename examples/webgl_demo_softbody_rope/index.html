@@ -123,18 +123,17 @@
                 light.position.set( -10, 10, 5 );
 				light.castShadow = true;
 				var d = 10;
-			    light.shadowCameraLeft = -d;
-			    light.shadowCameraRight = d;
-			    light.shadowCameraTop = d;
-			    light.shadowCameraBottom = -d;
+			    light.shadow.camera.left = -d;
+			    light.shadow.camera.right = d;
+			    light.shadow.camera.top = d;
+			    light.shadow.camera.bottom = -d;
 
-			    light.shadowCameraNear = 2;
-			    light.shadowCameraFar = 50;
+			    light.shadow.camera.near = 2;
+			    light.shadow.camera.far = 50;
 
-			    light.shadowMapWidth = 1024;
-			    light.shadowMapHeight = 1024;
+			    light.shadow.mapSize.x = 1024;
+			    light.shadow.mapSize.y = 1024;
 
-			    light.shadowDarkness = 0.65;
                 scene.add( light );
 
 
