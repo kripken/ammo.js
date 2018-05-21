@@ -14,7 +14,9 @@ ammo.js
 
 # Overview
 
-**Example code to give you an idea of the API: https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/ammo.html#L14**
+**Example code to give you an idea of the API**:
+
+ * https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/worker.js#L6 which interacts with https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/ammo.html#L14
 
 ammo.js is a direct port of the [Bullet physics engine](http://bulletphysics.org/) to JavaScript, using Emscripten. The source code is translated directly to JavaScript, without human rewriting, so functionality should be identical to the original Bullet.
 
