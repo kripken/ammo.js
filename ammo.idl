@@ -297,7 +297,7 @@ btConvexHullShape implements btCollisionShape;
 
 interface btShapeHull {
   void btShapeHull(btConvexShape shape);
-  bool BuildHull(float margin);
+  boolean BuildHull(float margin);
   btVector3 getVertexPointer();
   long getIndexPointer();
 };
