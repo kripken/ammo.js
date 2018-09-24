@@ -288,21 +288,19 @@ interface btConeShape {
 btConeShape implements btCollisionShape;
 
 interface btConvexHullShape {
-  void btConvexHullShape();
+  void btConvexHullShape([Const] optional float[] points, optional long numPoints);
   void addPoint([Const, Ref] btVector3 point, optional boolean recalculateLocalAABB);
   void setMargin(float margin);
   float getMargin();
+  long getNumVertices();
 };
 btConvexHullShape implements btCollisionShape;
 
 interface btShapeHull {
   void btShapeHull(btConvexShape shape);
   boolean buildHull(float margin);
-  long numTriangles();
   long numVertices();
-  long numIndices();
   [Const] btVector3 getVertexPointer();
-  [Const] VoidPtr getIndexPointer();
 };
 
 interface btConeShapeX {
