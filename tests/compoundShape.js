@@ -84,6 +84,15 @@ Ammo().then(function(Ammo) {
   // Test number of shapes
   assertEq(compoundShape.getNumChildShapes(), 6, "compoundShape.getNumChildShapes() should return 6");
 
+  // Create convex hull with ShapeHull
+  vec.setValue(0.5, 0.75, 1.25);
+  var boxShape = new Ammo.btBoxShape(vec);
+  boxShape.setMargin(0);
+  var shapeHull = new Ammo.btShapeHull(boxShape);
+  assert(shapeHull.buildHull(0), "shapeHull.buildHull should return true");
+  var convexHullShape = new Ammo.btConvexHullShape(shapeHull.getVertexPointer(), shapeHull.numVertices());
+  assertEq(convexHullShape.getNumVertices(), 8, "convexHullShape.getNumVertices() should return 8");
+
   // Create rigid body
   vec.setValue(10, 5, 2);
   transform.setOrigin(vec);
