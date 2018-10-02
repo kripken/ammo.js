@@ -102,7 +102,7 @@ class	btIDebugDraw
 	
 	virtual void	setDebugMode(int debugMode) =0;
 	
-	virtual int		getDebugMode() const = 0;
+	virtual int		getDebugMode() =0;
 
 	virtual void drawAabb(const btVector3& from,const btVector3& to,const btVector3& color)
 	{

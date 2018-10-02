@@ -1,6 +1,26 @@
 
 // Linear Math
 
+interface btIDebugDraw {
+  void drawLine([Const, Ref] btVector3 from, [Const, Ref] btVector3 to, [Const, Ref] btVector3 color);
+  void drawContactPoint([Const, Ref] btVector3 pointOnB, [Const, Ref] btVector3 normalOnB, float distance, long lifeTime, [Const, Ref] btVector3 color);
+  void reportErrorWarning([Const] DOMString warningString);
+  void draw3dText([Const, Ref] btVector3 location, [Const] DOMString textString);
+  void setDebugMode(long debugMode);
+  long getDebugMode();
+};
+
+[JSImplementation="btIDebugDraw"]
+interface DebugDrawer {
+  void DebugDrawer();
+  void drawLine([Const, Ref] btVector3 from, [Const, Ref] btVector3 to, [Const, Ref] btVector3 color);
+  void drawContactPoint([Const, Ref] btVector3 pointOnB, [Const, Ref] btVector3 normalOnB, float distance, long lifeTime, [Const, Ref] btVector3 color);
+  void reportErrorWarning([Const] DOMString warningString);
+  void draw3dText([Const, Ref] btVector3 location, [Const] DOMString textString);
+  void setDebugMode(long debugMode);
+  long getDebugMode();
+};
+
 interface btVector3 {
   void btVector3();
   void btVector3(float x, float y, float z);
@@ -601,6 +621,10 @@ interface btCollisionWorld {
   void contactPairTest(btCollisionObject colObjA, btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);
   void contactTest(btCollisionObject colObj, [Ref] ContactResultCallback resultCallback);
   void updateSingleAabb(btCollisionObject colObj);
+  void setDebugDrawer(btIDebugDraw debugDrawer);
+  btIDebugDraw getDebugDrawer();
+  void debugDrawWorld();
+  void debugDrawObject([Const, Ref] btTransform worldTransform, [Const] btCollisionShape shape, [Const, Ref] btVector3 color);
 };
 
 interface btContactSolverInfo {
