@@ -313,6 +313,7 @@ interface btConvexHullShape {
   void setMargin(float margin);
   float getMargin();
   long getNumVertices();
+  boolean initializePolyhedralFeatures(long shiftVerticesByMargin);
 };
 btConvexHullShape implements btCollisionShape;
 
