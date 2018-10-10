@@ -18,7 +18,7 @@ interface DebugDrawer {
   void reportErrorWarning([Const] DOMString warningString);
   void draw3dText([Const, Ref] btVector3 location, [Const] DOMString textString);
   void setDebugMode(long debugMode);
-  long getDebugMode();
+  [Const] long getDebugMode();
 };
 
 interface btVector3 {
