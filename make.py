@@ -19,11 +19,10 @@ def which(program):
   return None
 
 def build():
-  emcc = which('emcc')
-  if emcc:
+  EMSCRIPTEN_ROOT = os.environ.get('EMSCRIPTEN_ROOT')
+  if not EMSCRIPTEN_ROOT:
+    emcc = which('emcc')
     EMSCRIPTEN_ROOT = os.path.dirname(emcc)
-  else:
-    EMSCRIPTEN_ROOT = os.environ.get('EMSCRIPTEN_ROOT')
 
   if not EMSCRIPTEN_ROOT:
     print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
