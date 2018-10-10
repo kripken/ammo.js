@@ -9,14 +9,23 @@ INCLUDES = ['btBulletDynamicsCommon.h', os.path.join('BulletCollision', 'Collisi
 
 # Startup
 
-exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 stage_counter = 0
 
-def build():
+def which(program):
+  for path in os.environ["PATH"].split(os.pathsep):
+    exe_file = os.path.join(path, program)
+    if os.path.exists(exe_file):
+      return exe_file
+  return None
 
-  try:
-    EMSCRIPTEN_ROOT
-  except:
+def build():
+  emcc = which('emcc')
+  if emcc:
+    EMSCRIPTEN_ROOT = os.path.dirname(emcc)
+  else:
+    EMSCRIPTEN_ROOT = os.environ.get('EMSCRIPTEN_ROOT')
+
+  if not EMSCRIPTEN_ROOT:
     print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
     sys.exit(1)
 
