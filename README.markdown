@@ -124,6 +124,18 @@ to be aware of:
     | `==`  | `op_eq`  |
 
 
+Reducing Build Size
+===============
+
+The size of the ammo.js builds can be reduced in several ways:
+
+  * Removing uneeded interfaces from ammo.idl
+  Some good examples of this are `btIDebugDraw` and `DebugDrawer`, which are both only needed if visual debug rendering is desired.
+
+  * Removing methods from the `-s EXPORTED_RUNTIME_METHODS=[]` argument in make.py
+  For example, `Pointer_stringify` is only needed if printable error messages are desired from `DebugDrawer`.
+
+
 Troubleshooting
 ===============
 
