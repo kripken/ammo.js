@@ -18,15 +18,22 @@ ammo.js
 
  * https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/worker.js#L6 which interacts with https://github.com/kripken/ammo.js/blob/master/examples/webgl_demo/ammo.html#L14
 
-ammo.js is a direct port of the [Bullet physics engine](http://bulletphysics.org/) to JavaScript, using Emscripten. The source code is translated directly to JavaScript, without human rewriting, so functionality should be identical to the original Bullet.
+ammo.js is a direct port of the [Bullet physics
+engine](http://bulletphysics.org/) to JavaScript, using Emscripten. The source
+code is translated directly to JavaScript, without human rewriting, so
+functionality should be identical to the original Bullet.
 
-**Note: ammo.js has just been updated to a new porting approach. If you find some part of the Bullet API that is not supported that you need, please see https://github.com/kripken/ammo.js/issues/60**
+**Note: ammo.js has just been updated to a new porting approach. If you find
+some part of the Bullet API that is not supported that you need, please see
+https://github.com/kripken/ammo.js/issues/60**
 
-'ammo' stands for "Avoided Making My Own js physics engine by compiling bullet from C++" ;)
+'ammo' stands for "Avoided Making My Own js physics engine by compiling bullet
+from C++" ;)
 
 ammo.js is zlib licensed, just like Bullet.
 
-Discussion takes place on IRC at #emscripten on Mozilla's server (irc.mozilla.org)
+Discussion takes place on IRC at #emscripten on Mozilla's server
+(irc.mozilla.org)
 
 
 Instructions
@@ -112,16 +119,16 @@ to be aware of:
 
   * There is experimental support for binding operator functions. The following
     might work:
-         
-    | Operator  | Name in JS  |
-    |---|---|
-    | `=`  | `op_set`  |
-    | `+`  | `op_add`  |
-    | `-`  | `op_sub`  |
-    | `*`  | `op_mul`  |
-    | `/`  | `op_div`  |
-    | `[]`  | `op_get`  |
-    | `==`  | `op_eq`  |
+
+    | Operator  | Name in JS |
+    |-----------|------------|
+    | `=`       | `op_set`   |
+    | `+`       | `op_add`   |
+    | `-`       | `op_sub`   |
+    | `*`       | `op_mul`   |
+    | `/`       | `op_div`   |
+    | `[]`      | `op_get`   |
+    | `==`      | `op_eq`    |
 
 
 Reducing Build Size
@@ -182,4 +189,3 @@ Upstream Version
 ================
 
 Bullet 2.82 patched with [raycast fix from 2.83](https://github.com/bulletphysics/bullet3/commit/7151865c16ba996996206e1fd7869cbb1e7edd8d)
-
