@@ -25,7 +25,7 @@ def build():
     EMSCRIPTEN_ROOT = os.path.dirname(emcc)
 
   if not EMSCRIPTEN_ROOT:
-    print "ERROR: Missing EMSCRIPTEN_ROOT (which should be equal to emscripten's root dir) in ~/.emscripten"
+    print "ERROR: EMSCRIPTEN_ROOT environment variable (which should be equal to emscripten's root dir) not found"
     sys.exit(1)
 
   sys.path.append(EMSCRIPTEN_ROOT)
