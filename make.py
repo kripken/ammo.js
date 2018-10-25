@@ -19,7 +19,7 @@ def which(program):
   return None
 
 def build():
-  EMSCRIPTEN_ROOT = os.environ.get('EMSCRIPTEN_ROOT')
+  EMSCRIPTEN_ROOT = os.environ.get('EMSCRIPTEN')
   if not EMSCRIPTEN_ROOT:
     emcc = which('emcc')
     EMSCRIPTEN_ROOT = os.path.dirname(emcc)
