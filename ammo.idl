@@ -437,6 +437,11 @@ interface btDbvtBroadphase {
   void btDbvtBroadphase();
 };
 
+interface btBroadphaseProxy {
+  attribute long m_collisionFilterGroup;
+  attribute long m_collisionFilterMask;
+};
+
 
 // Dynamics
 
@@ -487,6 +492,7 @@ interface btRigidBody {
   void applyGravity();
   [Const, Ref] btVector3 getGravity();
   void setGravity([Const, Ref] btVector3 acceleration);
+  [Const] btBroadphaseProxy getBroadphaseProxy();
 };
 btRigidBody implements btCollisionObject;
 
