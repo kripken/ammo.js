@@ -309,18 +309,6 @@ interface btConeShape {
 };
 btConeShape implements btCollisionShape;
 
-interface btSphereShape {
-  void btSphereShape(float radius);
-  void setMargin(float margin);
-  float getMargin();
-};
-btSphereShape implements btCollisionShape;
-
-interface btConeShape {
-  void btConeShape(float radius, float height);
-};
-btConeShape implements btCollisionShape;
-
 interface btIntArray {
   long size();
   long at(long n);
