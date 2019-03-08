@@ -375,6 +375,7 @@ interface btCompoundShape {
 btCompoundShape implements btCollisionShape;
 
 interface btStridingMeshInterface {
+  void setScaling([Const, Ref] btVector3 scaling);
 };
 
 interface btTriangleMesh {
