@@ -366,6 +366,7 @@ btConeShapeZ implements btConeShape;
 interface btCompoundShape {
   void btCompoundShape(optional boolean enableDynamicAabbTree);
   void addChildShape([Const, Ref] btTransform localTransform, btCollisionShape shape);
+  void removeChildShape(btCollisionShape shape);
   void removeChildShapeByIndex(long childShapeindex);
   [Const] long getNumChildShapes();
   btCollisionShape getChildShape(long index);
