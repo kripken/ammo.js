@@ -230,7 +230,7 @@ public:
 		return m_latencyMotionStateInterpolation;
 	}
 
-	// Contact callback support
+	// XXX EMSCRIPTEN: Contact callback support
 	void setContactAddedCallback(unsigned long callbackFunction) {
 		gContactAddedCallback = (ContactAddedCallback)callbackFunction;
 	}
