@@ -57,7 +57,7 @@ def build():
 
   wasm = 'wasm' in sys.argv
   closure = 'closure' in sys.argv
-  add_function_support = True #  TODO: make optional?
+  add_function_support = 'add_func' in sys.argv
 
   args = '-O3 --llvm-lto 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=["Pointer_stringify"]'
   if add_function_support:
