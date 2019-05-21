@@ -78,10 +78,6 @@ def build():
 
   emcc_args += '-s EXPORT_NAME="Ammo" -s MODULARIZE=1'.split(' ')
 
-  emcc_args += '-s RESERVED_FUNCTION_POINTERS=20'.split(' ') # Default 20 reserved function pointers
-  
-  emcc_args += '-s EXTRA_EXPORTED_RUNTIME_METHODS=["addFunction"]'.split(' ') # Compile with exported runtime methods
-
   target = 'ammo.js' if not wasm else 'ammo.wasm.js'
 
   print
