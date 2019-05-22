@@ -1,3 +1,18 @@
 bullet/build
 *.diff
 
+# Build artefacts
+.vscode/ipch
+bullet/autom4te.cache
+Makefile.in
+*.guess
+*.in
+bullet/aclocal.m4
+bullet/missing
+bullet/compile
+bullet/config.sub
+bullet/config.h.in
+bullet/config.h.in~
+bullet/configure
+bullet/depcomp
+bullet/ltmain.sh
