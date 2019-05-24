@@ -179,6 +179,9 @@ interface btManifoldPoint {
   [Value] attribute btVector3 m_positionWorldOnB;
   [Value] attribute btVector3 m_positionWorldOnA;
   [Value] attribute btVector3 m_normalWorldOnB;
+  
+  // Contact callback support
+  attribute any m_userPersistentData;
 };
 
 [Prefix="btCollisionWorld::"]
@@ -693,6 +696,11 @@ interface btDiscreteDynamicsWorld {
   void removeConstraint(btTypedConstraint constraint);
 
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
+
+	// Contact callback support
+  void setContactAddedCallback(long funcpointer);
+  void setContactProcessedCallback(long funcpointer);
+  void setContactDestroyedCallback(long funcpointer);
 };
 btDiscreteDynamicsWorld implements btDynamicsWorld;
 
