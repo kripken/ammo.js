@@ -461,6 +461,7 @@ interface btAxisSweep3 {
 };
 
 interface btBroadphaseInterface {
+  btOverlappingPairCache getOverlappingPairCache();
 };
 
 interface btCollisionConfiguration {
