@@ -149,9 +149,9 @@ interface btCollisionObject {
 
 [NoDelete]
 interface btCollisionObjectWrapper {
-	[Const, Ref] btTransform getWorldTransform();
-	[Const] btCollisionObject getCollisionObject();
-	[Const] btCollisionShape getCollisionShape();
+  [Const, Ref] btTransform getWorldTransform();
+  [Const] btCollisionObject getCollisionObject();
+  [Const] btCollisionShape getCollisionShape();
 };
 
 [Prefix="btCollisionWorld::"]
