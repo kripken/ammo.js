@@ -128,6 +128,9 @@ interface btCollisionObject {
   boolean isKinematicObject();
   boolean isStaticObject();
   boolean isStaticOrKinematicObject();
+  [Const] float getRestitution();
+  [Const] float getFriction();
+  [Const] float getRollingFriction();
   void setRestitution(float rest);
   void setFriction(float frict);
   void setRollingFriction(float frict);
@@ -146,6 +149,9 @@ interface btCollisionObject {
 
 [NoDelete]
 interface btCollisionObjectWrapper {
+	[Const, Ref] btTransform getWorldTransform();
+	[Const] btCollisionObject getCollisionObject();
+	[Const] btCollisionShape getCollisionShape();
 };
 
 [Prefix="btCollisionWorld::"]
