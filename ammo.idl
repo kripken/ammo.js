@@ -307,6 +307,11 @@ interface btSphereShape {
 };
 btSphereShape implements btCollisionShape;
 
+interface btMultiSphereShape {
+  void btMultiSphereShape([Const] btVector3 positions, [Const] float[] radii, long numPoints);
+};
+btMultiSphereShape implements btCollisionShape;
+
 interface btConeShape {
   void btConeShape(float radius, float height);
 };
