@@ -128,6 +128,9 @@ interface btCollisionObject {
   boolean isKinematicObject();
   boolean isStaticObject();
   boolean isStaticOrKinematicObject();
+  [Const] float getRestitution();
+  [Const] float getFriction();
+  [Const] float getRollingFriction();
   void setRestitution(float rest);
   void setFriction(float frict);
   void setRollingFriction(float frict);
@@ -146,6 +149,9 @@ interface btCollisionObject {
 
 [NoDelete]
 interface btCollisionObjectWrapper {
+  [Const, Ref] btTransform getWorldTransform();
+  [Const] btCollisionObject getCollisionObject();
+  [Const] btCollisionShape getCollisionShape();
 };
 
 [Prefix="btCollisionWorld::"]
@@ -507,8 +513,11 @@ interface btRigidBody {
   [Const, Ref] btTransform getCenterOfMassTransform();
   void setCenterOfMassTransform([Const, Ref] btTransform xform);
   void setSleepingThresholds(float linear, float angular);
+  [Const] float getLinearDamping();
+  [Const] float getAngularDamping();
   void setDamping(float lin_damping, float ang_damping);
   void setMassProps(float mass, [Const, Ref] btVector3 inertia);
+  [Const, Ref] btVector3 getLinearFactor();
   void setLinearFactor([Const, Ref] btVector3 linearFactor);
   void applyTorque([Const, Ref] btVector3 torque);
   void applyLocalTorque([Const, Ref] btVector3 torque);
@@ -525,6 +534,7 @@ interface btRigidBody {
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
   void setMotionState(btMotionState motionState);
+  [Const, Ref] btVector3 getAngularFactor();
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast(btCollisionObject colObj);
   void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
