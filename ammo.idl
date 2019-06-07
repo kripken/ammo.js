@@ -465,6 +465,7 @@ interface btOverlappingPairCallback {
 
 interface btOverlappingPairCache {
   void setInternalGhostPairCallback(btOverlappingPairCallback ghostPairCallback);
+  [Const] float getNumOverlappingPairs();
 };
 
 interface btAxisSweep3 {
