@@ -145,6 +145,7 @@ interface btCollisionObject {
   void setUserIndex(long index);
   VoidPtr getUserPointer();
   void setUserPointer(VoidPtr userPointer);
+  [Const] btBroadphaseProxy getBroadphaseHandle();
 };
 
 [NoDelete]
