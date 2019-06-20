@@ -134,8 +134,8 @@ def build():
     args = ['-I../src', '-c']
     for include in INCLUDES:
       args += ['-include', include]
-    emscripten.Building.emcc('glue.cpp', args, 'glue.bc')
-    assert(os.path.exists('glue.bc'))
+    emscripten.Building.emcc('glue.cpp', args, 'glue.o')
+    assert(os.path.exists('glue.o'))
 
     # Configure with CMake on Windows, and with configure on Unix.
     cmake_build = emscripten.WINDOWS
@@ -171,13 +171,10 @@ def build():
                     os.path.join('src', '.libs', 'libBulletCollision.a'),
                     os.path.join('src', '.libs', 'libLinearMath.a')]
 
-    emscripten.Building.link(['glue.bc'] + bullet_libs, 'libbullet.bc')
-    assert os.path.exists('libbullet.bc')
-
     stage('emcc: ' + ' '.join(emcc_args))
 
     temp = os.path.join('..', '..', 'builds', target)
-    emscripten.Building.emcc('libbullet.bc', emcc_args + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
+    emscripten.Building.emcc('-DNOTHING_WAKA_WAKA', emcc_args + ['glue.o'] + bullet_libs + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
                             temp)
 
     assert os.path.exists(temp), 'Failed to create script code'
