@@ -99,7 +99,7 @@ interface btTransform {
   [Ref] btVector3 getOrigin();
   [Value] btQuaternion getRotation();
   [Ref] btMatrix3x3 getBasis();
-  void setFromOpenGLMatrix(float[] m);
+  void setFromOpenGLMatrix(sequence<float> m);
   [Value] btTransform inverse();
   [Operator="*=", Ref] btTransform op_mul([Ref] btTransform t);
 };
@@ -315,7 +315,7 @@ interface btSphereShape {
 btSphereShape implements btCollisionShape;
 
 interface btMultiSphereShape {
-  void btMultiSphereShape([Const] btVector3 positions, [Const] float[] radii, long numPoints);
+  void btMultiSphereShape([Const] btVector3 positions, [Const] sequence<float> radii, long numPoints);
 };
 btMultiSphereShape implements btCollisionShape;
 
@@ -331,7 +331,7 @@ interface btIntArray {
 
 interface btFace {
   [Value] attribute btIntArray m_indices;
-  attribute float[] m_plane;
+  attribute sequence<float> m_plane;
 };
 
 interface btVector3Array {
@@ -350,7 +350,7 @@ interface btConvexPolyhedron {
 };
 
 interface btConvexHullShape {
-  void btConvexHullShape([Const] optional float[] points, optional long numPoints);
+  void btConvexHullShape([Const] optional sequence<float> points, optional long numPoints);
   void addPoint([Const, Ref] btVector3 point, optional boolean recalculateLocalAABB);
   void setMargin(float margin);
   float getMargin();
@@ -981,7 +981,7 @@ interface Config {
 };
 
 interface btSoftBody {
-  void btSoftBody(btSoftBodyWorldInfo worldInfo, long node_count, btVector3 x, float[] m);
+  void btSoftBody(btSoftBodyWorldInfo worldInfo, long node_count, btVector3 x, sequence<float> m);
 
   [Value] attribute Config m_cfg;
   [Value] attribute tNodeArray m_nodes;
@@ -1047,8 +1047,8 @@ interface btSoftBodyHelpers {
 
   btSoftBody CreateRope([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 from, [Const, Ref] btVector3 to, long res, long fixeds);
   btSoftBody CreatePatch([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags);
-  btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, float[] tex_coords);
+  btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, sequence<float> tex_coords);
   btSoftBody CreateEllipsoid([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 center, [Const, Ref] btVector3 radius, long res);
-  btSoftBody CreateFromTriMesh([Ref] btSoftBodyWorldInfo worldInfo, float[] vertices, long[] triangles, long ntriangles, boolean randomizeConstraints);
+  btSoftBody CreateFromTriMesh([Ref] btSoftBodyWorldInfo worldInfo, sequence<float> vertices, sequence<long> triangles, long ntriangles, boolean randomizeConstraints);
   btSoftBody CreateFromConvexHull([Ref] btSoftBodyWorldInfo worldInfo, [Const] btVector3 vertices, long nvertices, boolean randomizeConstraints);
 };
