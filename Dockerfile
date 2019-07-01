@@ -5,8 +5,5 @@ RUN apt-get update \
           libgeos-dev ed \
           automake autoconf libtool \
     && rm -rf /var/lib/apt/lists/*
-#RUN mkdir /code
-ADD . /code
+RUN mkdir code
 WORKDIR /code
-RUN cd bullet && sh autogen.sh && cd ..
-ENTRYPOINT python make.py
