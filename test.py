@@ -2,7 +2,7 @@ import os, sys, re, json
 from subprocess import Popen, PIPE, STDOUT
 
 # By default use builds/ammo.js. Or the commandline argument can override that.
-build = os.path.join('builds', 'temp.js')
+build = os.path.join('builds', 'ammo.js')
 if len(sys.argv) > 1:
   build = sys.argv[1]
 print 'Using build:', build
@@ -10,14 +10,19 @@ build = os.path.basename(build)
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
-JS_ENGINE = SPIDERMONKEY_ENGINE
-#JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
-
+if SPIDERMONKEY_ENGINE:
+  JS_ENGINE = SPIDERMONKEY_ENGINE
+elif V8_ENGINE:
+  JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
+else:
+  JS_ENGINE = NODE_JS
 if type(JS_ENGINE) == str:
   JS_ENGINE = [JS_ENGINE]
 
 
 print
+print '==================================='
+print JS_ENGINE
 print '==================================='
 print
 
@@ -27,7 +32,7 @@ def run(filename):
   old = os.getcwd()
   try:
     os.chdir('builds')
-    if JS_ENGINE[0] == SPIDERMONKEY_ENGINE[0]:
+    if JS_ENGINE == SPIDERMONKEY_ENGINE:
       cmd = JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + test_utils + '")', filename]
       return Popen(cmd, stdout=PIPE).communicate()[0]
     else:
