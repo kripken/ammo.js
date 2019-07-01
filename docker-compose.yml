@@ -1,0 +1,6 @@
+version: '3'
+
+services:
+  builder:
+    build: .
+    command: python make.py
