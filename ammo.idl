@@ -598,6 +598,9 @@ interface btGeneric6DofSpringConstraint {
   void enableSpring(long index, boolean onOff);
   void setStiffness(long index, float stiffness);
   void setDamping(long index, float damping);
+  void setEquilibriumPoint(long index, float val);
+  void setEquilibriumPoint(long index);
+  void setEquilibriumPoint();
 };
 btGeneric6DofSpringConstraint implements btGeneric6DofConstraint;
 
