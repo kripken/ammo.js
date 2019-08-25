@@ -395,9 +395,21 @@ interface btStridingMeshInterface {
   void setScaling([Const, Ref] btVector3 scaling);
 };
 
+interface btIndexedMesh {
+  attribute long m_numTriangles;
+};
+
+interface btIndexedMeshArray {
+  long size();
+  [Const, Ref] btIndexedMesh at(long n);
+};
+
 interface btTriangleMesh {
   void btTriangleMesh(optional boolean use32bitIndices, optional boolean use4componentVertices);
   void addTriangle([Const, Ref] btVector3 vertex0, [Const, Ref] btVector3 vertex1, [Const, Ref] btVector3 vertex2, optional boolean removeDuplicateVertices);
+  long findOrAddVertex([Const, Ref] btVector3 vertex, boolean removeDuplicateVertices);
+  void addIndex(long index);
+ [Ref] btIndexedMeshArray getIndexedMeshArray();
 };
 btTriangleMesh implements btStridingMeshInterface;
 
