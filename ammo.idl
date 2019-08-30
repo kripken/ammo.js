@@ -128,6 +128,9 @@ interface btCollisionObject {
   boolean isKinematicObject();
   boolean isStaticObject();
   boolean isStaticOrKinematicObject();
+  [Const] float getRestitution();
+  [Const] float getFriction();
+  [Const] float getRollingFriction();
   void setRestitution(float rest);
   void setFriction(float frict);
   void setRollingFriction(float frict);
@@ -142,10 +145,14 @@ interface btCollisionObject {
   void setUserIndex(long index);
   VoidPtr getUserPointer();
   void setUserPointer(VoidPtr userPointer);
+  [Const] btBroadphaseProxy getBroadphaseHandle();
 };
 
 [NoDelete]
 interface btCollisionObjectWrapper {
+  [Const, Ref] btTransform getWorldTransform();
+  [Const] btCollisionObject getCollisionObject();
+  [Const] btCollisionShape getCollisionShape();
 };
 
 [Prefix="btCollisionWorld::"]
@@ -179,6 +186,9 @@ interface btManifoldPoint {
   [Value] attribute btVector3 m_positionWorldOnB;
   [Value] attribute btVector3 m_positionWorldOnA;
   [Value] attribute btVector3 m_normalWorldOnB;
+  
+  // Contact callback support
+  attribute any m_userPersistentData;
 };
 
 [Prefix="btCollisionWorld::"]
@@ -304,6 +314,11 @@ interface btSphereShape {
 };
 btSphereShape implements btCollisionShape;
 
+interface btMultiSphereShape {
+  void btMultiSphereShape([Const] btVector3 positions, [Const] float[] radii, long numPoints);
+};
+btMultiSphereShape implements btCollisionShape;
+
 interface btConeShape {
   void btConeShape(float radius, float height);
 };
@@ -370,7 +385,7 @@ interface btCompoundShape {
   void removeChildShapeByIndex(long childShapeindex);
   [Const] long getNumChildShapes();
   btCollisionShape getChildShape(long index);
-  void	updateChildTransform(long childIndex, [Const, Ref] btTransform newChildTransform, optional boolean shouldRecalculateLocalAabb);
+  void updateChildTransform(long childIndex, [Const, Ref] btTransform newChildTransform, optional boolean shouldRecalculateLocalAabb);
   void setMargin(float margin);
   float getMargin();
 };
@@ -380,9 +395,21 @@ interface btStridingMeshInterface {
   void setScaling([Const, Ref] btVector3 scaling);
 };
 
+interface btIndexedMesh {
+  attribute long m_numTriangles;
+};
+
+interface btIndexedMeshArray {
+  long size();
+  [Const, Ref] btIndexedMesh at(long n);
+};
+
 interface btTriangleMesh {
   void btTriangleMesh(optional boolean use32bitIndices, optional boolean use4componentVertices);
   void addTriangle([Const, Ref] btVector3 vertex0, [Const, Ref] btVector3 vertex1, [Const, Ref] btVector3 vertex2, optional boolean removeDuplicateVertices);
+  long findOrAddVertex([Const, Ref] btVector3 vertex, boolean removeDuplicateVertices);
+  void addIndex(long index);
+ [Ref] btIndexedMeshArray getIndexedMeshArray();
 };
 btTriangleMesh implements btStridingMeshInterface;
 
@@ -451,6 +478,7 @@ interface btOverlappingPairCallback {
 
 interface btOverlappingPairCache {
   void setInternalGhostPairCallback(btOverlappingPairCallback ghostPairCallback);
+  [Const] float getNumOverlappingPairs();
 };
 
 interface btAxisSweep3 {
@@ -458,6 +486,7 @@ interface btAxisSweep3 {
 };
 
 interface btBroadphaseInterface {
+  btOverlappingPairCache getOverlappingPairCache();
 };
 
 interface btCollisionConfiguration {
@@ -498,8 +527,11 @@ interface btRigidBody {
   [Const, Ref] btTransform getCenterOfMassTransform();
   void setCenterOfMassTransform([Const, Ref] btTransform xform);
   void setSleepingThresholds(float linear, float angular);
+  [Const] float getLinearDamping();
+  [Const] float getAngularDamping();
   void setDamping(float lin_damping, float ang_damping);
   void setMassProps(float mass, [Const, Ref] btVector3 inertia);
+  [Const, Ref] btVector3 getLinearFactor();
   void setLinearFactor([Const, Ref] btVector3 linearFactor);
   void applyTorque([Const, Ref] btVector3 torque);
   void applyLocalTorque([Const, Ref] btVector3 torque);
@@ -516,6 +548,7 @@ interface btRigidBody {
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
   btMotionState getMotionState();
   void setMotionState(btMotionState motionState);
+  [Const, Ref] btVector3 getAngularFactor();
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast(btCollisionObject colObj);
   void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
@@ -577,6 +610,9 @@ interface btGeneric6DofSpringConstraint {
   void enableSpring(long index, boolean onOff);
   void setStiffness(long index, float stiffness);
   void setDamping(long index, float damping);
+  void setEquilibriumPoint(long index, float val);
+  void setEquilibriumPoint(long index);
+  void setEquilibriumPoint();
 };
 btGeneric6DofSpringConstraint implements btGeneric6DofConstraint;
 
@@ -693,6 +729,11 @@ interface btDiscreteDynamicsWorld {
   void removeConstraint(btTypedConstraint constraint);
 
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
+
+	// Contact callback support
+  void setContactAddedCallback(long funcpointer);
+  void setContactProcessedCallback(long funcpointer);
+  void setContactDestroyedCallback(long funcpointer);
 };
 btDiscreteDynamicsWorld implements btDynamicsWorld;
 
