@@ -176,6 +176,29 @@ interface ClosestRayResultCallback {
 };
 ClosestRayResultCallback implements RayResultCallback;
 
+interface btConstCollisionObjectArray {
+  long size();
+  [Const] btCollisionObject at(long n);
+};
+
+interface btScalarArray {
+  long size();
+  float at(long n);
+};
+
+[Prefix="btCollisionWorld::"]
+interface AllHitsRayResultCallback {
+  void AllHitsRayResultCallback([Const, Ref] btVector3 from, [Const, Ref] btVector3 to);
+
+  [Value] attribute btConstCollisionObjectArray m_collisionObjects;
+  [Value] attribute btVector3 m_rayFromWorld;
+  [Value] attribute btVector3 m_rayToWorld;
+  [Value] attribute btVector3Array m_hitNormalWorld;
+  [Value] attribute btVector3Array m_hitPointWorld;
+  [Value] attribute btScalarArray m_hitFractions;
+};
+AllHitsRayResultCallback implements RayResultCallback;
+
 interface btManifoldPoint {
   [Const, Ref] btVector3 getPositionWorldOnA();
   [Const, Ref] btVector3 getPositionWorldOnB();
