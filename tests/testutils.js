@@ -26,3 +26,7 @@ function getClosureMapping() {
   return ret;
 }
 
+if (typeof print === 'undefined') {
+  print = function(x) { console.log(x) };
+}
+

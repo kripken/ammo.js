@@ -34,9 +34,14 @@ def run(filename):
     os.chdir('builds')
     if JS_ENGINE == SPIDERMONKEY_ENGINE:
       cmd = JS_ENGINE + ['-e', 'gcparam("maxBytes", 1024*1024*1024); load("' + build + '"); load("' + test_utils + '")', filename]
-      return Popen(cmd, stdout=PIPE).communicate()[0]
     else:
-      return Popen(JS_ENGINE + [build, test_utils, filename], stdout=PIPE).communicate()[0]
+      with open('t.js', 'w') as f:
+        f.write(open(build).read())
+        f.write(open(test_utils).read())
+        f.write(open(filename).read())
+      cmd = JS_ENGINE + ['t.js']
+    print(' '.join(cmd), 'in', os.getcwd())
+    return Popen(cmd, stdout=PIPE).communicate()[0]
   finally:
     os.chdir(old)
 
