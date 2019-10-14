@@ -146,6 +146,7 @@ interface btCollisionObject {
   VoidPtr getUserPointer();
   void setUserPointer(VoidPtr userPointer);
   [Const] btBroadphaseProxy getBroadphaseHandle();
+  void setIgnoreCollisionCheck([Const] btCollisionObject co, boolean ignoreCollisionCheck);
 };
 
 [NoDelete]

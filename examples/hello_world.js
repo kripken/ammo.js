@@ -1,4 +1,5 @@
-Ammo().then(function() {
+Ammo().then(function(AmmoLib) {
+  Ammo = AmmoLib
   // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
   function main() {
