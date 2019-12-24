@@ -644,6 +644,20 @@ interface btGeneric6DofSpringConstraint {
 };
 btGeneric6DofSpringConstraint implements btGeneric6DofConstraint;
 
+interface btUniversalConstraint {
+  void btUniversalConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btVector3 anchor, [Const,Ref] btVector3 axis1, [Const,Ref] btVector3 axis2);
+  [Const,Ref] btVector3 getAnchor();
+  [Const,Ref] btVector3 getAnchor2();
+  [Const,Ref] btVector3 getAxis1();
+  [Const,Ref] btVector3 getAxis2();
+  float getAngle1();
+  float getAngle2();
+  void setUpperLimit(float ang1max, float ang2max);
+  void setLowerLimit(float ang1min, float ang2min);
+  void setAxis ([Const,Ref] btVector3 axis1, [Const,Ref] btVector3 axis2);
+};
+btUniversalConstraint implements btGeneric6DofConstraint;
+
 interface btSequentialImpulseConstraintSolver {
   void btSequentialImpulseConstraintSolver();
 };
