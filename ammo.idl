@@ -259,8 +259,19 @@ interface ClosestConvexResultCallback {
   [Value] attribute btVector3 m_convexToWorld;
   [Value] attribute btVector3 m_hitNormalWorld;
   [Value] attribute btVector3 m_hitPointWorld;
+  [Const] attribute btCollisionObject m_hitCollisionObject;
 };
 ClosestConvexResultCallback implements ConvexResultCallback;
+
+[Prefix="btDiscreteDynamicsWorld::"]
+interface btClosestNotMeConvexResultCallback {
+  void btClosestNotMeConvexResultCallback(btCollisionObject me, [Const, Ref] btVector3 convexFromWorld, [Const, Ref] btVector3 convexToWorld, btOverlappingPairCache pairCache, btDispatcher dispatcher);
+
+  attribute btCollisionObject m_me;
+  attribute btOverlappingPairCache m_pairCache;
+  attribute btDispatcher m_dispatcher;
+};
+btClosestNotMeConvexResultCallback implements ClosestConvexResultCallback;
 
 interface btCollisionShape {
   void setLocalScaling([Const, Ref] btVector3 scaling);
