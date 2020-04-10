@@ -10,12 +10,18 @@ build = os.path.basename(build)
 
 exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
 
-if SPIDERMONKEY_ENGINE:
+try:
   JS_ENGINE = SPIDERMONKEY_ENGINE
-elif V8_ENGINE:
-  JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
-else:
-  JS_ENGINE = NODE_JS
+except:
+  SPIDERMONKEY_ENGINE = None
+  try:
+    JS_ENGINE = V8_ENGINE # Note: fails stress due to floating point differences
+  except:
+    V8_ENGINE = None
+    JS_ENGINE = NODE_JS
+
+print(JS_ENGINE)
+
 if type(JS_ENGINE) == str:
   JS_ENGINE = [JS_ENGINE]
 
