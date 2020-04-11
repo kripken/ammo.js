@@ -1,4 +1,4 @@
-Ammo().then(function() {
+Ammo().then(function(Ammo) {
   // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
 
   function main() {
@@ -36,18 +36,18 @@ Ammo().then(function() {
     (function() {
       var colShape        = new Ammo.btSphereShape(1),
           startTransform  = new Ammo.btTransform();
-      
+
       startTransform.setIdentity();
 
       var mass          = 1,
           isDynamic     = (mass !== 0),
           localInertia  = new Ammo.btVector3(0, 0, 0);
-      
+
       if (isDynamic)
         colShape.calculateLocalInertia(mass,localInertia);
 
       startTransform.setOrigin(new Ammo.btVector3(2, 10, 0));
-    
+
       var myMotionState = new Ammo.btDefaultMotionState(startTransform),
           rbInfo        = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia),
           body          = new Ammo.btRigidBody(rbInfo);
@@ -60,7 +60,7 @@ Ammo().then(function() {
 
     for (var i = 0; i < 135; i++) {
       dynamicsWorld.stepSimulation(1/60, 10);
-      
+
       bodies.forEach(function(body) {
         if (body.getMotionState()) {
           body.getMotionState().getWorldTransform(trans);
