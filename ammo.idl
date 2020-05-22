@@ -118,6 +118,7 @@ btDefaultMotionState implements btMotionState;
 // Collision
 
 interface btCollisionObject {
+  void btCollisionObject();
   void setAnisotropicFriction([Const, Ref] btVector3 anisotropicFriction, long frictionMode);
   btCollisionShape getCollisionShape();
   void setContactProcessingThreshold(float contactProcessingThreshold);
@@ -217,6 +218,8 @@ interface btManifoldPoint {
 
 [Prefix="btCollisionWorld::"]
 interface ContactResultCallback {
+  attribute short m_collisionFilterGroup;
+  attribute short m_collisionFilterMask;
   float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
 };
 
@@ -740,6 +743,8 @@ interface btCollisionWorld {
   btIDebugDraw getDebugDrawer();
   void debugDrawWorld();
   void debugDrawObject([Const, Ref] btTransform worldTransform, [Const] btCollisionShape shape, [Const, Ref] btVector3 color);
+  boolean getForceUpdateAllAabbs();
+  void setForceUpdateAllAabbs(boolean forceUpdateAllAabbs);
 };
 
 interface btContactSolverInfo {
