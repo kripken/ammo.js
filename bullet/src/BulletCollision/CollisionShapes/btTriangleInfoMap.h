@@ -19,7 +19,9 @@ subject to the following restrictions:
 
 #include "LinearMath/btHashMap.h"
 #include "LinearMath/btSerializer.h"
-
+#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+struct  btTriangleInfoMap;
+#include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
 
 ///for btTriangleInfo m_flags
 #define TRI_INFO_V0V1_CONVEX 1
@@ -82,6 +84,11 @@ struct	btTriangleInfoMap : public btInternalTriangleInfoMap
 	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
 
 	void	deSerialize(struct btTriangleInfoMapData& data);
+
+        // XXX EMSCRIPTEN: expose btGenerateInternalEdgeInfo
+	void generateInternalEdgeInfo(btBvhTriangleMeshShape* trimeshShape) {
+		btGenerateInternalEdgeInfo(trimeshShape, this);
+	}
 
 };
 

@@ -31,6 +31,12 @@ struct InplaceSolverIslandCallback;
 
 #include "LinearMath/btAlignedObjectArray.h"
 
+// XXX EMSCRIPTEN: set callback for btAdjustInternalEdgeContacts
+bool ContactAddedCallbackAdjustInternalEdgeContacts(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap,int partId0,int index0,const btCollisionObjectWrapper* colObj1Wrap,int partId1,int index1)
+{
+	btAdjustInternalEdgeContacts(cp, colObj1Wrap, colObj0Wrap, partId1,index1);
+	return true;
+}
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
 ///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController
@@ -239,7 +245,12 @@ public:
 	}
 	void setContactDestroyedCallback(unsigned long callbackFunction) {
 		gContactDestroyedCallback = (ContactDestroyedCallback)callbackFunction;
-	}	
+	}
+
+	// XXX EMSCRIPTEN: set callback for btAdjustInternalEdgeContacts
+	void activateContactAddedCallbackAdjustInternalEdgeContacts() {
+		gContactAddedCallback = ContactAddedCallbackAdjustInternalEdgeContacts;
+	}
 
 class btClosestNotMeConvexResultCallback : public btCollisionWorld::ClosestConvexResultCallback
 {
