@@ -948,6 +948,19 @@ interface btSoftBodyWorldInfo {
 };
 
 [Prefix="btSoftBody::"]
+interface Face {
+  attribute Node[] m_n;
+  [Value] attribute btVector3 m_normal;
+  attribute float m_ra;
+};
+
+[Prefix="btSoftBody::"]
+interface tFaceArray {
+  [Const] long size();
+  [Const, Ref] Face at(long n);
+};
+
+[Prefix="btSoftBody::"]
 interface Node {
   [Value] attribute btVector3 m_x;
   [Value] attribute btVector3 m_q;
@@ -1032,6 +1045,7 @@ interface btSoftBody {
 
   [Value] attribute Config m_cfg;
   [Value] attribute tNodeArray m_nodes;
+  [Value] attribute tFaceArray m_faces;
   [Value] attribute tMaterialArray m_materials;
   [Value] attribute tAnchorArray m_anchors;
 
