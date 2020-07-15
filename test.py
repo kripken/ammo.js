@@ -8,7 +8,10 @@ if len(sys.argv) > 1:
 print 'Using build:', build
 build = os.path.basename(build)
 
-exec(open(os.path.expanduser('~/.emscripten'), 'r').read())
+emscripten = os.environ['EMSDK'] + '/.emscripten'
+if not os.path.exists(emscripten):
+  emscripten = os.path.expanduser('~/.emscripten')
+exec(open(emscripten, 'r').read())
 
 try:
   JS_ENGINE = SPIDERMONKEY_ENGINE
