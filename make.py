@@ -42,7 +42,7 @@ def build():
     sys.exit(1)
 
   sys.path.append(EMSCRIPTEN_ROOT)
-  import tools.shared as emscripten
+  import tools.building as emscripten
 
   # Settings
 
@@ -134,7 +134,7 @@ def build():
     args = ['-I../src', '-c']
     for include in INCLUDES:
       args += ['-include', include]
-    emscripten.Building.emcc('glue.cpp', args, 'glue.o')
+    emscripten.emcc('glue.cpp', args, 'glue.o')
     assert(os.path.exists('glue.o'))
 
     # Configure with CMake on Windows, and with configure on Unix.
@@ -143,20 +143,20 @@ def build():
     if cmake_build:
       if not os.path.exists('CMakeCache.txt'):
         stage('Configure via CMake')
-        emscripten.Building.configure([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'emcmake'), 'cmake', '..', '-DBUILD_DEMOS=OFF', '-DBUILD_EXTRAS=OFF', '-DBUILD_CPU_DEMOS=OFF', '-DUSE_GLUT=OFF', '-DCMAKE_BUILD_TYPE=Release'])
+        emscripten.configure([emscripten.PYTHON, os.path.join(EMSCRIPTEN_ROOT, 'emcmake'), 'cmake', '..', '-DBUILD_DEMOS=OFF', '-DBUILD_EXTRAS=OFF', '-DBUILD_CPU_DEMOS=OFF', '-DUSE_GLUT=OFF', '-DCMAKE_BUILD_TYPE=Release'])
     else:
       if not os.path.exists('config.h'):
         stage('Configure (if this fails, run autogen.sh in bullet/ first)')
-        emscripten.Building.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
+        emscripten.configure(['../configure', '--disable-demos','--disable-dependency-tracking'])
 
     stage('Make')
 
     CORES = multiprocessing.cpu_count()
 
     if emscripten.WINDOWS:
-      emscripten.Building.make(['mingw32-make', '-j', str(CORES)])
+      emscripten.make(['mingw32-make', '-j', str(CORES)])
     else:
-      emscripten.Building.make(['make', '-j', str(CORES)])
+      emscripten.make(['make', '-j', str(CORES)])
 
     stage('Link')
 
@@ -174,7 +174,7 @@ def build():
     stage('emcc: ' + ' '.join(emcc_args))
 
     temp = os.path.join('..', '..', 'builds', target)
-    emscripten.Building.emcc('-DNOTHING_WAKA_WAKA', emcc_args + ['glue.o'] + bullet_libs + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
+    emscripten.emcc('-DNOTHING_WAKA_WAKA', emcc_args + ['glue.o'] + bullet_libs + ['--js-transform', 'python %s' % os.path.join('..', '..', 'bundle.py')],
                             temp)
 
     assert os.path.exists(temp), 'Failed to create script code'
