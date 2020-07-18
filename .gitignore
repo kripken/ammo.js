@@ -1,3 +1,9 @@
 bullet/build
 node_modules
 *.diff
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
