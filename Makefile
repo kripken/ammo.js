@@ -5,18 +5,7 @@
 # Enable add function support with ADD_FUNCTION_SUPPORT=1
 #
 INCLUDES := \
-	bullet/src/btBulletDynamicsCommon.h \
-	bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h \
-	bullet/src/BulletCollision/CollisionShapes/btConvexPolyhedron.h \
-	bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h \
-	bullet/src/BulletCollision/CollisionShapes/btShapeHull.h \
-	bullet/src/BulletDynamics/Character/btKinematicCharacterController.h \
-	bullet/src/BulletSoftBody/btDefaultSoftBodySolver.h \
-	bullet/src/BulletSoftBody/btSoftBody.h \
-	bullet/src/BulletSoftBody/btSoftBodyHelpers.h \
-	bullet/src/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h \
-	bullet/src/BulletSoftBody/btSoftRigidDynamicsWorld.h \
-	idl_templates.h
+	ammo.h
 
 BULLET_LIBS := \
 	bullet/build/src/.libs/libBulletCollision.a \
