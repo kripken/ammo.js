@@ -3,7 +3,11 @@ var Module = { TOTAL_MEMORY: 256*1024*1024 };
 
 importScripts('../../builds/ammo.wasm.js');
 
-Ammo().then(function(Ammo) {
+var config = {
+  locateFile: () => '../../builds/ammo.wasm.wasm'
+}
+
+Ammo(config).then(function(Ammo) {
   var NUM = 0, NUMRANGE = [];
 
   // Bullet-interfacing code
