@@ -1,3 +1,14 @@
+builds/CMakeCache.txt
+builds/CMakeFiles/
+builds/Makefile
+builds/WebIDLGrammar.pkl
+builds/bullet/
+builds/cmake_install.cmake
+builds/glue.cpp
+builds/glue.js
+builds/glue.o
+builds/parser.out
+
 bullet/build
 node_modules
 *.diff
