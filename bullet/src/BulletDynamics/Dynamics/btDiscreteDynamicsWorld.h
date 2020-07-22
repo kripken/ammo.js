@@ -151,7 +151,7 @@ public:
 	virtual void	removeCollisionObject(btCollisionObject* collisionObject);
 
 
-	void	debugDrawConstraint(btTypedConstraint* constraint);
+	virtual void	debugDrawConstraint(btTypedConstraint* constraint);
 
 	virtual void	debugDrawWorld();
 
@@ -239,7 +239,7 @@ public:
 	}
 	void setContactDestroyedCallback(unsigned long callbackFunction) {
 		gContactDestroyedCallback = (ContactDestroyedCallback)callbackFunction;
-	}	
+	}
 };
 
 #endif //BT_DISCRETE_DYNAMICS_WORLD_H
