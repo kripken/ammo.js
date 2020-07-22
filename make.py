@@ -5,20 +5,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 # Definitions
 
-INCLUDES = ['btBulletDynamicsCommon.h',
-os.path.join('BulletCollision', 'CollisionShapes', 'btHeightfieldTerrainShape.h'),
-os.path.join('BulletCollision', 'CollisionShapes', 'btConvexPolyhedron.h'),
-os.path.join('BulletCollision', 'CollisionShapes', 'btShapeHull.h'),
-os.path.join('BulletCollision', 'CollisionDispatch', 'btGhostObject.h'),
-
-os.path.join('BulletDynamics', 'Character', 'btKinematicCharacterController.h'),
-
-os.path.join('BulletSoftBody', 'btSoftBody.h'),
-os.path.join('BulletSoftBody', 'btSoftRigidDynamicsWorld.h'), os.path.join('BulletSoftBody', 'btDefaultSoftBodySolver.h'),
-os.path.join('BulletSoftBody', 'btSoftBodyRigidBodyCollisionConfiguration.h'),
-os.path.join('BulletSoftBody', 'btSoftBodyHelpers.h'),
-
-os.path.join('..', '..', 'idl_templates.h')]
+INCLUDES = [ os.path.join('..', '..', 'ammo.h') ]
 
 # Startup
 

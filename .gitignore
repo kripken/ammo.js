@@ -1,3 +1,21 @@
+builds/CMakeCache.txt
+builds/CMakeFiles/
+builds/Makefile
+builds/WebIDLGrammar.pkl
+builds/bullet/
+builds/cmake_install.cmake
+builds/glue.cpp
+builds/glue.js
+builds/glue.o
+builds/parser.out
+builds/t.js
+
 bullet/build
 node_modules
 *.diff
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
