@@ -8,6 +8,7 @@ builds/glue.cpp
 builds/glue.js
 builds/glue.o
 builds/parser.out
+builds/t.js
 
 bullet/build
 node_modules
