@@ -9,6 +9,27 @@ from distutils.extension import Extension
 from distutils.util import get_platform
 from glob import glob
 
+# monkey-patch for parallel compilation
+import multiprocessing
+import multiprocessing.pool
+def parallelCCompile(self, sources, output_dir=None, macros=None, include_dirs=None, debug=0, extra_preargs=None, extra_postargs=None, depends=None):
+    # those lines are copied from distutils.ccompiler.CCompiler directly
+    macros, objects, extra_postargs, pp_opts, build = self._setup_compile(output_dir, macros, include_dirs, sources, depends, extra_postargs)
+    cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+    # parallel code
+    N = 2*multiprocessing.cpu_count()# number of parallel compilations
+    def _single_compile(obj):
+        try: src, ext = build[obj]
+        except KeyError: return
+        self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+    # convert to list, imap is evaluated on-demand
+    pool = multiprocessing.pool.ThreadPool(N)
+    list(pool.imap(_single_compile,objects))
+    return objects
+import distutils.ccompiler
+distutils.ccompiler.CCompiler.compile=parallelCCompile
+
+
 #see http://stackoverflow.com/a/8719066/295157
 import os
 
@@ -22,6 +43,12 @@ CXX_FLAGS += '-DBT_USE_DOUBLE_PRECISION '
 CXX_FLAGS += '-DBT_ENABLE_ENET '
 CXX_FLAGS += '-DBT_ENABLE_CLSOCKET '
 CXX_FLAGS += '-DB3_DUMP_PYTHON_VERSION '
+CXX_FLAGS += '-DEGL_ADD_PYTHON_INIT '
+CXX_FLAGS += '-DB3_ENABLE_FILEIO_PLUGIN '
+CXX_FLAGS += '-DB3_USE_ZIPFILE_FILEIO '
+CXX_FLAGS += '-DBT_THREADSAFE=1 '
+
+EGL_CXX_FLAGS = ''
 
 
 
@@ -49,6 +76,10 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/TinyRenderer/tgaimage.cpp"]\
 +["examples/TinyRenderer/our_gl.cpp"]\
 +["examples/TinyRenderer/TinyRenderer.cpp"]\
++["examples/SharedMemory/plugins/pdControlPlugin/pdControlPlugin.cpp"]\
++["examples/SharedMemory/plugins/collisionFilterPlugin/collisionFilterPlugin.cpp"]\
++["examples/SharedMemory/plugins/fileIOPlugin/fileIOPlugin.cpp"]\
++["examples/SharedMemory/b3RobotSimulatorClientAPI_NoDirect.cpp"]\
 +["examples/SharedMemory/IKTrajectoryHelper.cpp"]\
 +["examples/SharedMemory/InProcessMemory.cpp"]\
 +["examples/SharedMemory/PhysicsClient.cpp"]\
@@ -65,7 +96,8 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/SharedMemory/PhysicsClientC_API.cpp"]\
 +["examples/SharedMemory/Win32SharedMemory.cpp"]\
 +["examples/SharedMemory/PosixSharedMemory.cpp"]\
-+["examples/SharedMemory/TinyRendererVisualShapeConverter.cpp"]\
++["examples/SharedMemory/plugins/tinyRendererPlugin/TinyRendererVisualShapeConverter.cpp"]\
++["examples/SharedMemory/plugins/tinyRendererPlugin/tinyRendererPlugin.cpp"]\
 +["examples/SharedMemory/PhysicsClientUDP.cpp"]\
 +["examples/SharedMemory/PhysicsClientUDP_C_API.cpp"]\
 +["examples/SharedMemory/PhysicsClientTCP.cpp"]\
@@ -76,12 +108,28 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/Utils/ChromeTraceUtil.cpp"]\
 +["examples/Utils/b3Clock.cpp"]\
 +["examples/Utils/b3Quickprof.cpp"]\
-+["examples/ThirdPartyLibs/tinyxml/tinystr.cpp"]\
-+["examples/ThirdPartyLibs/tinyxml/tinyxml.cpp"]\
-+["examples/ThirdPartyLibs/tinyxml/tinyxmlerror.cpp"]\
-+["examples/ThirdPartyLibs/tinyxml/tinyxmlparser.cpp"]\
++["examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp"]\
 +["examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.cpp"]\
 +["examples/ThirdPartyLibs/stb_image/stb_image.cpp"]\
++["examples/ThirdPartyLibs/stb_image/stb_image_write.cpp"]\
++["examples/ThirdPartyLibs/minizip/ioapi.c"]\
++["examples/ThirdPartyLibs/minizip/unzip.c"]\
++["examples/ThirdPartyLibs/minizip/zip.c"]\
++["examples/ThirdPartyLibs/zlib/adler32.c"]\
++["examples/ThirdPartyLibs/zlib/compress.c"]\
++["examples/ThirdPartyLibs/zlib/crc32.c"]\
++["examples/ThirdPartyLibs/zlib/deflate.c"]\
++["examples/ThirdPartyLibs/zlib/gzclose.c"]\
++["examples/ThirdPartyLibs/zlib/gzlib.c"]\
++["examples/ThirdPartyLibs/zlib/gzread.c"]\
++["examples/ThirdPartyLibs/zlib/gzwrite.c"]\
++["examples/ThirdPartyLibs/zlib/infback.c"]\
++["examples/ThirdPartyLibs/zlib/inffast.c"]\
++["examples/ThirdPartyLibs/zlib/inflate.c"]\
++["examples/ThirdPartyLibs/zlib/inftrees.c"]\
++["examples/ThirdPartyLibs/zlib/trees.c"]\
++["examples/ThirdPartyLibs/zlib/uncompr.c"]\
++["examples/ThirdPartyLibs/zlib/zutil.c"]\
 +["examples/Importers/ImportColladaDemo/LoadMeshFromCollada.cpp"]\
 +["examples/Importers/ImportObjDemo/LoadMeshFromObj.cpp"]\
 +["examples/Importers/ImportObjDemo/Wavefront2GLInstanceGraphicsShape.cpp"]\
@@ -133,6 +181,9 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/LinearMath/btConvexHullComputer.cpp"]\
 +["src/LinearMath/btQuickprof.cpp"]\
 +["src/LinearMath/btThreads.cpp"]\
++["src/LinearMath/TaskScheduler/btTaskScheduler.cpp"]\
++["src/LinearMath/TaskScheduler/btThreadSupportPosix.cpp"]\
++["src/LinearMath/TaskScheduler/btThreadSupportWin32.cpp"]\
 +["src/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp"]\
 +["src/BulletCollision/BroadphaseCollision/btDbvt.cpp"]\
 +["src/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp"]\
@@ -215,6 +266,8 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp"]\
 +["src/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp"]\
 +["src/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btMiniSDF.cpp"]\
 +["src/BulletCollision/CollisionShapes/btUniformScalingShape.cpp"]\
 +["src/BulletCollision/Gimpact/btContactProcessing.cpp"]\
 +["src/BulletCollision/Gimpact/btGImpactQuantizedBvh.cpp"]\
@@ -232,6 +285,7 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/BulletDynamics/Dynamics/btSimulationIslandManagerMt.cpp"]\
 +["src/BulletDynamics/Dynamics/btDiscreteDynamicsWorldMt.cpp"]\
 +["src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp"]\
++["src/BulletDynamics/ConstraintSolver/btBatchedConstraints.cpp"]\
 +["src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp"]\
 +["src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp"]\
 +["src/BulletDynamics/ConstraintSolver/btSliderConstraint.cpp"]\
@@ -248,6 +302,7 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp"]\
 +["src/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.cpp"]\
 +["src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp"]\
++["src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolverMt.cpp"]\
 +["src/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp"]\
 +["src/BulletDynamics/MLCPSolvers/btLemkeAlgorithm.cpp"]\
 +["src/BulletDynamics/MLCPSolvers/btMLCPSolver.cpp"]\
@@ -259,8 +314,10 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyFixedConstraint.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp"]\
++["src/BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp"]\
 +["src/BulletDynamics/Featherstone/btMultiBodySliderConstraint.cpp"]\
++["src/BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.cpp"]\
 +["src/BulletDynamics/Vehicle/btRaycastVehicle.cpp"]\
 +["src/BulletDynamics/Vehicle/btWheelInfo.cpp"]\
 +["src/BulletDynamics/Character/btKinematicCharacterController.cpp"]\
@@ -274,6 +331,7 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["Extras/Serialize/BulletFileLoader/bDNA.cpp"]\
 +["Extras/Serialize/BulletFileLoader/bFile.cpp"]\
 +["Extras/Serialize/BulletFileLoader/btBulletFile.cpp"]\
++["Extras/Serialize/BulletWorldImporter/btMultiBodyWorldImporter.cpp"]\
 +["Extras/Serialize/BulletWorldImporter/btBulletWorldImporter.cpp"]\
 +["Extras/Serialize/BulletWorldImporter/btWorldImporter.cpp"]\
 +["Extras/InverseDynamics/CloneTreeCreator.cpp"]\
@@ -375,6 +433,53 @@ sources = ["examples/pybullet/pybullet.c"]\
 +["examples/ThirdPartyLibs/Gwen/Platforms/Windows.cpp"]\
 +["examples/ThirdPartyLibs/Gwen/Renderers/OpenGL_DebugFont.cpp"]\
 
+
+
+egl_renderer_sources = \
+["examples/SharedMemory/plugins/eglPlugin/eglRendererVisualShapeConverter.cpp"]\
++["examples/SharedMemory/plugins/eglPlugin/eglRendererPlugin.cpp"]\
++["examples/Importers/ImportColladaDemo/LoadMeshFromCollada.cpp"]\
++["examples/Importers/ImportObjDemo/LoadMeshFromObj.cpp"]\
++["examples/Importers/ImportMeshUtility/b3ImportMeshUtility.cpp"]\
++["examples/Importers/ImportObjDemo/Wavefront2GLInstanceGraphicsShape.cpp"]\
++["examples/TinyRenderer/geometry.cpp"]\
++["examples/TinyRenderer/model.cpp"]\
++["examples/TinyRenderer/tgaimage.cpp"]\
++["examples/TinyRenderer/our_gl.cpp"]\
++["examples/TinyRenderer/TinyRenderer.cpp"]\
++["examples/ThirdPartyLibs/Wavefront/tiny_obj_loader.cpp"]\
++["examples/ThirdPartyLibs/stb_image/stb_image.cpp"]\
++["examples/ThirdPartyLibs/stb_image/stb_image_write.cpp"]\
++["examples/ThirdPartyLibs/tinyxml2/tinyxml2.cpp"]\
++["examples/OpenGLWindow/SimpleCamera.cpp"]\
++["examples/Utils/b3Clock.cpp"]\
++["examples/Utils/b3ResourcePath.cpp"]\
++["src/BulletCollision/CollisionShapes/btShapeHull.cpp"]\
++["src/BulletCollision/CollisionShapes/btConvexHullShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btBoxShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btSphereShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btConvexShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btCollisionShape.cpp"]\
++["src/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp"]\
++["src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp"]\
++["src/Bullet3Common/b3Logging.cpp"]\
++["src/LinearMath/btAlignedAllocator.cpp"]\
++["src/LinearMath/btConvexHull.cpp"]\
++["src/LinearMath/btConvexHullComputer.cpp"] \
++["src/LinearMath/btGeometryUtil.cpp"]\
++["src/LinearMath/btQuickprof.cpp"] \
++["src/LinearMath/btThreads.cpp"] \
++["src/Bullet3Common/b3AlignedAllocator.cpp"] \
++["examples/ThirdPartyLibs/glad/gl.c"]\
++["examples/OpenGLWindow/GLInstancingRenderer.cpp"]\
++["examples/OpenGLWindow/GLRenderToTexture.cpp"] \
++["examples/OpenGLWindow/LoadShader.cpp"]
+
+if 'BT_USE_EGL' in CXX_FLAGS:
+    sources += ['examples/ThirdPartyLibs/glad/egl.c']
+    sources += ['examples/OpenGLWindow/EGLOpenGLWindow.cpp']
+
 if _platform == "linux" or _platform == "linux2":
     libraries = ['dl','pthread']
     CXX_FLAGS += '-D_LINUX '
@@ -383,11 +488,26 @@ if _platform == "linux" or _platform == "linux2":
     CXX_FLAGS += '-DGLEW_DYNAMIC_LOAD_ALL_GLX_FUNCTIONS=1 '
     CXX_FLAGS += '-DDYNAMIC_LOAD_X11_FUNCTIONS '
     CXX_FLAGS += '-DHAS_SOCKLEN_T '
-    CXX_FLAGS += '-fno-inline-functions-called-once'
+    CXX_FLAGS += '-fno-inline-functions-called-once '
+    EGL_CXX_FLAGS += '-DBT_USE_EGL '
+    EGL_CXX_FLAGS += '-fPIC ' # for plugins
+
     sources = sources + ["examples/ThirdPartyLibs/enet/unix.c"]\
     +["examples/OpenGLWindow/X11OpenGLWindow.cpp"]\
-    +["examples/ThirdPartyLibs/Glew/glew.c"]
+    +["examples/ThirdPartyLibs/glad/gl.c"]\
+    +["examples/ThirdPartyLibs/glad/glx.c"]
     include_dirs += ["examples/ThirdPartyLibs/optionalX11"]
+
+    if 'BT_USE_EGL' in EGL_CXX_FLAGS:
+        egl_renderer_sources = egl_renderer_sources\
+        +["examples/OpenGLWindow/EGLOpenGLWindow.cpp"]\
+        +['examples/ThirdPartyLibs/glad/egl.c']
+    else:
+        egl_renderer_sources = egl_renderer_sources\
+        +["examples/OpenGLWindow/X11OpenGLWindow.cpp"]\
+        +["examples/ThirdPartyLibs/glad/glx.c"]
+
+
 elif _platform == "win32":
     print("win32!")
     libraries = ['Ws2_32','Winmm','User32','Opengl32','kernel32','glu32','Gdi32','Comdlg32']
@@ -396,7 +516,7 @@ elif _platform == "win32":
     sources = sources + ["examples/ThirdPartyLibs/enet/win32.c"]\
     +["examples/OpenGLWindow/Win32Window.cpp"]\
     +["examples/OpenGLWindow/Win32OpenGLWindow.cpp"]\
-    +["examples/ThirdPartyLibs/Glew/glew.c"]
+    +["examples/ThirdPartyLibs/glad/gl.c"]
 elif _platform == "darwin":
     print("darwin!")
     os.environ['LDFLAGS'] = '-framework Cocoa -framework OpenGL'
@@ -406,9 +526,11 @@ elif _platform == "darwin":
 #    CXX_FLAGS += '-framework Cocoa '
     sources = sources + ["examples/ThirdPartyLibs/enet/unix.c"]\
     +["examples/OpenGLWindow/MacOpenGLWindow.cpp"]\
+    +["examples/ThirdPartyLibs/glad/gl.c"]\
     +["examples/OpenGLWindow/MacOpenGLWindowObjC.m"]
 else:
     print("bsd!")
+    libraries = ['GL','GLEW','pthread']
     os.environ['LDFLAGS'] = '-L/usr/X11R6/lib'
     CXX_FLAGS += '-D_BSD '
     CXX_FLAGS += '-I/usr/X11R6/include '
@@ -416,7 +538,7 @@ else:
     CXX_FLAGS += '-fno-inline-functions-called-once'
     sources = ["examples/ThirdPartyLibs/enet/unix.c"]\
     +["examples/OpenGLWindow/X11OpenGLWindow.cpp"]\
-    +["examples/ThirdPartyLibs/Glew/glew.c"]\
+    +["examples/ThirdPartyLibs/glad/gl.c"]\
     + sources
 
 setup_py_dir = os.path.dirname(os.path.realpath(__file__))
@@ -429,7 +551,7 @@ hh = setup_py_dir + "/" + datadir
 for root, dirs, files in os.walk(hh):
     for fn in files:
         ext = os.path.splitext(fn)[1][1:]
-        if ext and ext in 'png gif jpg urdf sdf obj mtl dae off stl STL xml '.split():
+        if ext and ext in 'yaml index meta data-00000-of-00001 png gif jpg urdf sdf obj txt mtl dae off stl STL xml '.split():
             fn = root + "/" + fn
             need_files.append(fn[1+len(hh):])
 
@@ -439,9 +561,31 @@ print("packages")
 print(find_packages('examples/pybullet/gym'))
 print("-----")
 
+extensions = []
+
+pybullet_ext = Extension("pybullet",
+        sources =  sources,
+        libraries = libraries,
+        extra_compile_args=CXX_FLAGS.split(),
+        include_dirs = include_dirs + ["src","examples/ThirdPartyLibs","examples/ThirdPartyLibs/glad", "examples/ThirdPartyLibs/enet/include","examples/ThirdPartyLibs/clsocket/src"]
+     )
+extensions.append(pybullet_ext)
+
+
+if 'BT_USE_EGL' in EGL_CXX_FLAGS:
+
+	eglRender = Extension("eglRenderer",
+        	sources =  egl_renderer_sources,
+        	libraries = libraries,
+        	extra_compile_args=(CXX_FLAGS+EGL_CXX_FLAGS ).split(),
+        	include_dirs = include_dirs + ["src","examples", "examples/ThirdPartyLibs","examples/ThirdPartyLibs/glad", "examples/ThirdPartyLibs/enet/include","examples/ThirdPartyLibs/clsocket/src"])
+
+	extensions.append(eglRender)
+
+
 setup(
 	name = 'pybullet',
-	version='1.5.1',
+	version='2.4.0',
 	description='Official Python Interface for the Bullet Physics SDK specialized for Robotics Simulation and Reinforcement Learning',
 	long_description='pybullet is an easy to use Python module for physics simulation, robotics and deep reinforcement learning based on the Bullet Physics SDK. With pybullet you can load articulated bodies from URDF, SDF and other file formats. pybullet provides forward dynamics simulation, inverse dynamics computation, forward and inverse kinematics and collision detection and ray intersection queries. Aside from physics simulation, pybullet supports to rendering, with a CPU renderer and OpenGL visualization and support for virtual reality headsets.',
 	url='https://github.com/bulletphysics/bullet3',
@@ -450,13 +594,8 @@ setup(
 	license='zlib',
 	platforms='any',
 	keywords=['game development', 'virtual reality', 'physics simulation', 'robotics', 'collision detection', 'opengl'],
-	ext_modules = [Extension("pybullet", 
-	sources =  sources,
-	libraries = libraries,
-	extra_compile_args=CXX_FLAGS.split(),
-	include_dirs = include_dirs + ["src","examples/ThirdPartyLibs","examples/ThirdPartyLibs/Glew", "examples/ThirdPartyLibs/enet/include","examples/ThirdPartyLibs/clsocket/src"]
-     ) ],
-     classifiers=['Development Status :: 5 - Production/Stable',
+	ext_modules = extensions,
+	classifiers=['Development Status :: 5 - Production/Stable',
                    'License :: OSI Approved :: zlib/libpng License',
                    'Operating System :: Microsoft :: Windows',
                    'Operating System :: POSIX :: Linux',
@@ -474,4 +613,3 @@ setup(
     packages=[x for x in find_packages('examples/pybullet/gym')],
     package_data = { 'pybullet_data': need_files }
 )
-
