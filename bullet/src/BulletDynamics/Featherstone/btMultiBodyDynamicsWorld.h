@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
 
+#define BT_USE_VIRTUAL_CLEARFORCES_AND_GRAVITY
 
 class btMultiBody;
 class btMultiBodyConstraint;
@@ -38,6 +39,8 @@ protected:
 	virtual void	calculateSimulationIslands();
 	virtual void	updateActivationState(btScalar timeStep);
 	virtual void	solveConstraints(btContactSolverInfo& solverInfo);
+	
+	virtual void	serializeMultiBodies(btSerializer* serializer);
 
 public:
 
@@ -48,6 +51,16 @@ public:
 	virtual void	addMultiBody(btMultiBody* body, short group= btBroadphaseProxy::DefaultFilter, short mask=btBroadphaseProxy::AllFilter);
 
 	virtual void	removeMultiBody(btMultiBody* body);
+
+	virtual int		getNumMultibodies() const
+	{
+		return m_multiBodies.size();
+	}
+
+	btMultiBody*	getMultiBody(int mbIndex)
+	{
+		return m_multiBodies[mbIndex];
+	}
 
 	virtual void	addMultiBodyConstraint( btMultiBodyConstraint* constraint);
 
@@ -73,5 +86,14 @@ public:
 	virtual void	debugDrawWorld();
 
 	virtual void	debugDrawMultiBodyConstraint(btMultiBodyConstraint* constraint);
+	
+	void	forwardKinematics();
+	virtual void clearForces();
+	virtual void clearMultiBodyConstraintForces();
+	virtual void clearMultiBodyForces();
+	virtual void applyGravity();
+	
+	virtual	void	serialize(btSerializer* serializer);
+
 };
 #endif //BT_MULTIBODY_DYNAMICS_WORLD_H
