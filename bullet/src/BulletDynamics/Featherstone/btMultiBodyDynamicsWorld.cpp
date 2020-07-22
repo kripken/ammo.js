@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include "LinearMath/btSerializer.h"
 
 
-void	btMultiBodyDynamicsWorld::addMultiBody(btMultiBody* body, short group, short mask)
+void	btMultiBodyDynamicsWorld::addMultiBody(btMultiBody* body, int group, int mask)
 {
 	m_multiBodies.push_back(body);
 
@@ -384,7 +384,7 @@ btMultiBodyDynamicsWorld::btMultiBodyDynamicsWorld(btDispatcher* dispatcher,btBr
 	m_multiBodyConstraintSolver(constraintSolver)
 {
 	//split impulse is not yet supported for Featherstone hierarchies
-	getSolverInfo().m_splitImpulse = false;
+//	getSolverInfo().m_splitImpulse = false;
 	getSolverInfo().m_solverMode |=SOLVER_USE_2_FRICTION_DIRECTIONS;
 	m_solverMultiBodyIslandCallback = new MultiBodyInplaceSolverIslandCallback(constraintSolver,dispatcher);
 }
