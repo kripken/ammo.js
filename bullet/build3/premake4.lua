@@ -56,10 +56,22 @@
 
 	newoption
 	{
+		trigger = "enable_stable_pd",
+		description = "Enable Stable PD control in PyBullet"
+	}
+
+
+	newoption
+	{
 		trigger = "enable_static_vr_plugin",
 		description = "Statically link vr plugin (in examples/SharedMemory/plugins/vrSyncPlugin)"
 	}
-
+	
+	newoption
+	{
+		trigger = "enable_physx",
+		description = "Allow optional PhysX backend for PyBullet, use pybullet.connect(pybullet.PhysX)."
+	}
 
 	newoption
 	{
@@ -638,4 +650,7 @@ end
 	include "../src/BulletDynamics"
 	include "../src/BulletCollision"
 	include "../src/LinearMath"
+	if _OPTIONS["enable_physx"] then
+		include "../src/physx"
+	end
 
