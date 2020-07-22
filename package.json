@@ -11,5 +11,8 @@
   "bugs": {
     "url": "https://github.com/kripken/ammo.js/issues"
   },
-  "homepage": "https://github.com/kripken/ammo.js"
+  "homepage": "https://github.com/kripken/ammo.js",
+  "devDependencies": {
+    "http-server": "^0.12.3"
+  }
 }

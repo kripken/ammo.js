@@ -145,6 +145,19 @@ The size of the ammo.js builds can be reduced in several ways:
   * Removing methods from the `-s EXPORTED_RUNTIME_METHODS=[]` argument in make.py. For example, `UTF8ToString` is only needed if printable error messages are desired from `DebugDrawer`.
 
 
+Running the Examples
+================
+
+[http-server](https://github.com/http-party/http-server) is included as a dev
+dependency as an easy way to run the examples. Make sure to serve everything
+from the repo root so that the examples can find ammo in the `builds`
+directory:
+
+  ```bash
+  $ npx http-server -p 3000 .
+  ```
+
+
 Troubleshooting
 ===============
 
