@@ -13,6 +13,9 @@ foreach(_TARGET ${BULLET_TARGETS})
   list(APPEND BULLET_LIBS $<TARGET_FILE:${_TARGET}>)
 endforeach()
 
+# Disable bullet graphical benchmarks
+set(USE_GRAPHICAL_BENCHMARK OFF)
+
 # Default is 64*1024*1024 = 64MB
 set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
 
