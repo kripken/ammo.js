@@ -6,10 +6,15 @@
    		osversion.majorversion, osversion.minorversion, osversion.revision,
    		osversion.description))
 
-
-	-- Multithreaded compiling
 	if _ACTION == "vs2010" or _ACTION=="vs2008" then
-		buildoptions { "/MP"  }
+		buildoptions
+		{
+			-- Multithreaded compiling
+			"/MP",
+			-- Disable a few useless warnings
+			"/wd4244",
+			"/wd4267"
+		}
 	end
 
 	act = ""
@@ -25,14 +30,19 @@
 
 	newoption
 	{
-		trigger = "force_dlopen_opengl",
-		description = "Dynamically load OpenGL (instead of static/dynamic linking)"
+		trigger = "enable_system_opengl",
+		description = "Try to link and use the system OpenGL headers version instead of dynamically loading OpenGL (dlopen is default)"
 	}
 
 	newoption
 	{
-		trigger = "force_dlopen_x11",
-		description = "Dynamically load OpenGL (instead of static/dynamic linking)"
+		trigger = "enable_openvr",
+		description = "Enable experimental Virtual Reality examples, using OpenVR for HTC Vive and Oculus Rift"
+	}
+	newoption
+	{
+		trigger = "enable_system_x11",
+		description = "Try to link and use system X11 headers instead of dynamically loading X11 (dlopen is default)"
 	}
 
 	newoption
@@ -73,6 +83,38 @@
 		description = "Enable Lua scipting support in Example Browser"
 	}
 
+	newoption
+        {
+                trigger = "enable_pybullet",
+                description = "Enable high-level Python scripting of Bullet with URDF/SDF import and synthetic camera."
+        }
+
+if os.is("Linux") then
+ 		default_python_include_dir = "/usr/include/python2.7"
+ 		default_python_lib_dir = "/usr/local/lib/"
+end
+
+		
+if os.is("Windows") then
+ 		default_python_include_dir = "C:/Python-3.5.2/include"
+ 		default_python_lib_dir = "C:/Python-3.5.2/libs"
+end
+
+		newoption
+    {
+			trigger     = "python_include_dir",
+			value       = default_python_include_dir,
+			description = "Python (2.x or 3.x) include directory"
+    }
+    
+    newoption
+    {
+			trigger     = "python_lib_dir",
+			value       = default_python_lib_dir,
+			description = "Python (2.x or 3.x) library directory "
+    }
+
+	
 	newoption {
 		trigger     = "targetdir",
 		value       = "path such as ../bin",
@@ -97,6 +139,17 @@
 		description = "Do not build bullet3 libs"
 	}
 
+	newoption
+	{
+		trigger = "double",
+		description = "Double precision version of Bullet"
+	}
+	
+	if _OPTIONS["double"] then
+		defines {"BT_USE_DOUBLE_PRECISION"}
+	end
+
+	
 	configurations {"Release", "Debug"}
 	configuration "Release"
 		flags { "Optimize", "EnableSSE2","StaticRuntime", "NoMinimalRebuild", "FloatFast"}
@@ -111,7 +164,7 @@
 			platforms {"x32"}
 		end
 	else
-		platforms {"x32", "x64"}
+		platforms {"x32","x64"}
 	end
 
 	configuration {"x32"}
@@ -162,6 +215,14 @@
 	targetdir( _OPTIONS["targetdir"] or "../bin" )
 	location("./" .. act .. postfix)
 
+	if not _OPTIONS["python_include_dir"] then
+			_OPTIONS["python_include_dir"] = default_python_include_dir
+	end
+	
+	if not _OPTIONS["python_lib_dir"] then
+			_OPTIONS["python_lib_dir"] = default_python_lib_dir
+	end
+	
 
 	projectRootDir = os.getcwd() .. "/../"
 	print("Project root directory: " .. projectRootDir);
@@ -176,38 +237,26 @@
 
 	language "C++"
 
-	if _OPTIONS["no-bullet3"] then
-		print "--no-bullet3 implies --no-demos"
-		_OPTIONS["no-demos"] = "1"
-	else
-		include "../src/Bullet3Common"
-		include "../src/Bullet3Geometry"
-		include "../src/Bullet3Collision"
-		include "../src/Bullet3Dynamics"
-		include "../src/Bullet3OpenCL"
-		include "../src/Bullet3Serialize/Bullet2FileLoader"
-	end
-
-	if _OPTIONS["no-extras"] then
-		print "--no-extras implies --no-demos"
-		_OPTIONS["no-demos"] = "1"
-	else
-		include "../Extras"
-	end
-
 	if not _OPTIONS["no-demos"] then
 		include "../examples/ExampleBrowser"
 		include "../examples/OpenGLWindow"
 		include "../examples/ThirdPartyLibs/Gwen"
+		include "../examples/SimpleOpenGL3"
+		include "../examples/TinyRenderer"
 
 		include "../examples/HelloWorld"
 		include "../examples/BasicDemo"
-
+		include "../examples/InverseDynamics"
+		include "../examples/ExtendedTutorials"
 		include "../examples/SharedMemory"
+		include "../examples/ThirdPartyLibs/BussIK"
 		include "../examples/MultiThreading"
 
 		if _OPTIONS["lua"] then
 		   include "../examples/ThirdPartyLibs/lua-5.2.3"
+		end
+		if _OPTIONS["enable_pybullet"] then
+		  include "../examples/pybullet"
 		end
 
 		if not _OPTIONS["no-test"] then
@@ -219,6 +268,25 @@
 			end
 		end
 	end
+
+	 if _OPTIONS["no-bullet3"] then
+                print "--no-bullet3 implies --no-demos"
+                _OPTIONS["no-demos"] = "1"
+        else
+                include "../src/Bullet3Common"
+                include "../src/Bullet3Geometry"
+                include "../src/Bullet3Collision"
+                include "../src/Bullet3Dynamics"
+                include "../src/Bullet3OpenCL"
+                include "../src/Bullet3Serialize/Bullet2FileLoader"
+        end
+
+        if _OPTIONS["no-extras"] then
+                print "--no-extras implies --no-demos"
+                _OPTIONS["no-demos"] = "1"
+        else
+                include "../Extras"
+        end
 
 	if not _OPTIONS["no-test"] then
 		include "../test/Bullet2"
