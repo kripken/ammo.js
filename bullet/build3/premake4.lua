@@ -18,6 +18,11 @@
         act = _ACTION
     end
 
+	  newoption {
+    		trigger     = "ios",
+    		description = "Enable iOS target (requires xcode4)"
+	}
+
 	newoption
         {
                 trigger = "force_dlopen_opengl",
@@ -55,6 +60,11 @@
 		trigger = "enet",
 		description = "Enable enet NAT punchthrough test"
 	}
+	newoption
+	{
+		trigger = "lua",
+		description = "Enable Lua scipting support in Example Browser"
+	}
 
 	newoption
 	{
@@ -68,8 +78,8 @@
 	configuration "Debug"
 		defines {"_DEBUG=1"}
 		flags { "Symbols", "StaticRuntime" , "NoMinimalRebuild", "NoEditAndContinue" ,"FloatFast"}
-
-	if os.is("Linux") then
+	
+	if os.is("Linux") or os.is("macosx") then
 		if os.is64bit() then
 			platforms {"x64"}
 		else
@@ -95,12 +105,25 @@
 	postfix=""
 
 	if _ACTION == "xcode4" then
+			 if _OPTIONS["ios"] then
+                        postfix = "ios";
+                        xcodebuildsettings
+                        {
+                                'INFOPLIST_FILE = "../../test/Bullet2/Info.plist"',
+                                'CODE_SIGN_IDENTITY = "iPhone Developer"',
+                                "SDKROOT = iphoneos",
+                                'ARCHS = "armv7"',
+                                'TARGETED_DEVICE_FAMILY = "1,2"',
+                                'VALID_ARCHS = "armv7"',
+                        }       
+			else
 			xcodebuildsettings
 			{
         		'ARCHS = "$(ARCHS_STANDARD_32_BIT) $(ARCHS_STANDARD_64_BIT)"',
         		'VALID_ARCHS = "x86_64 i386"',
 			'SDKROOT = "macosx10.9"',
 			}
+			end
 	end
 
 -- comment-out for now, URDF reader needs exceptions
@@ -123,9 +146,11 @@
 
 	language "C++"
 
+if not _OPTIONS["ios"] then
+
 	include "../examples/ExampleBrowser"
 	include "../examples/OpenGLWindow"
-	
+	include "../examples/SharedMemory"	
 	include "../examples/ThirdPartyLibs/Gwen"
 
 	include "../examples/HelloWorld"
@@ -136,20 +161,10 @@
 		include "../test/enet/client"
 		include "../test/enet/server"	
 	end
-	
-	if not _OPTIONS["without-gtest"] then
-		include "../test/gtest-1.7.0"
---		include "../test/hello_gtest"
-		include "../test/collision"
-		include "../test/TestBullet3OpenCL"
-		include "../test/GwenOpenGLTest"
+
+	if _OPTIONS["lua"] then
+		include "../examples/ThirdPartyLibs/lua-5.2.3"
 	end
-	
-	
-	include "../src/BulletSoftBody"
-	include "../src/BulletDynamics"
-	include "../src/BulletCollision"
-	include "../src/LinearMath"
 	
 	include "../src/Bullet3Common"
 	include "../src/Bullet3Geometry"
@@ -157,6 +172,19 @@
 	include "../src/Bullet3Dynamics"
 	include "../src/Bullet3OpenCL"
 	include "../src/Bullet3Serialize/Bullet2FileLoader"
-	
-	
+
+ 	if not _OPTIONS["without-gtest"] then
+                include "../test/gtest-1.7.0"
+--              include "../test/hello_gtest"
+                include "../test/collision"
+                include "../test/TestBullet3OpenCL"
+                include "../test/GwenOpenGLTest"
+        end
+end
+
+	include "../test/Bullet2"	
+ 	include "../src/BulletSoftBody"
+        include "../src/BulletDynamics"
+        include "../src/BulletCollision"
+        include "../src/LinearMath"
 	
