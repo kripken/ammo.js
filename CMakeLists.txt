@@ -20,6 +20,9 @@ set(USE_GRAPHICAL_BENCHMARK OFF)
 # Disable bullet GLUT
 set(USE_GLUT OFF)
 
+# Build Release by default
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
+
 # Default is 64*1024*1024 = 64MB
 set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
 
