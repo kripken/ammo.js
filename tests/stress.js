@@ -1,5 +1,9 @@
-Ammo().then(function(Ammo) {
-  // Stress test
+const test = require('ava');
+const AmmoModule = require('../builds/ammo.js');
+const getClosureMapping = require('./helpers/get-closure-mapping.js');
+
+test('stress', async t => {
+  const Ammo = await AmmoModule();
 
   var TEST_MEMORY = 0;
 
@@ -51,7 +55,7 @@ Ammo().then(function(Ammo) {
     var coneShape = new Ammo.btConeShape(1, 1); // XXX TODO: add cylindershape too
 
     [sphereShape, boxShape, coneShape, boxShape, sphereShape, coneShape].forEach(function(shape, i) {
-      print('creating dynamic shape ' + i);
+      t.log('creating dynamic shape ' + i);
 
       var startTransform = new Ammo.btTransform();
       startTransform.setIdentity();
@@ -60,7 +64,7 @@ Ammo().then(function(Ammo) {
       shape.calculateLocalInertia(mass,localInertia);
 
       startTransform.setOrigin(new Ammo.btVector3(2+i*0.01, 10+i*2.1, 0));
-    
+
       var myMotionState = new Ammo.btDefaultMotionState(startTransform);
       var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
       var body = new Ammo.btRigidBody(rbInfo);
@@ -83,20 +87,20 @@ Ammo().then(function(Ammo) {
       if (i === 250 && TEST_MEMORY) memoryStart = readMemoryCeiling();
 
       dynamicsWorld.stepSimulation(1/60, 10);
-      
+
       bodies.forEach(function(body, j) {
         if (body.getMotionState()) {
           body.getMotionState().getWorldTransform(trans);
-          if (i === NUM-1) print(j + ' : ' + [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
+          if (i === NUM-1) t.log(j + ' : ' + [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
         }
       });
     }
 
     var endTime = Date.now();
 
-    if (TEST_MEMORY) assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
+    if (TEST_MEMORY) t.is(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
 
-    print('total time: ' + ((endTime-startTime)/1000).toFixed(3));
+    t.log('total time: ' + ((endTime-startTime)/1000).toFixed(3));
   }
 
   function testDestroy() {
@@ -108,15 +112,14 @@ Ammo().then(function(Ammo) {
       vec = new Ammo.btVector3(4, 5, 6);
     }
     Ammo.destroy(vec);
-    assertEq(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
+    t.is(readMemoryCeiling(), memoryStart, 'Memory ceiling must remain stable!');
     for (var i = 0; i < NUM; i++) {
       vec = new Ammo.btVector3(4, 5, 6);
     }
-    assertNeq(readMemoryCeiling(), memoryStart, 'Memory ceiling must increase without destroy()!');
+    t.not(readMemoryCeiling(), memoryStart, 'Memory ceiling must increase without destroy()!');
   }
 
   benchmark();
   if (TEST_MEMORY) testDestroy();
-
-  print('ok.')
+  t.pass()
 });
