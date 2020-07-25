@@ -1,8 +1,10 @@
-Ammo().then(function(Ammo) {
+const test = require('ava')
+const AmmoModule = require('../builds/ammo.js')
 
-   
+test('compound shape', async t => {
+  const Ammo = await AmmoModule()
+
   var compoundShape = new Ammo.btCompoundShape();
-
 
   var transform = new Ammo.btTransform();
   transform.setIdentity();
@@ -18,7 +20,7 @@ Ammo().then(function(Ammo) {
   vec.setValue(0.5, 0.75, 1.25);
   var boxShape = new Ammo.btBoxShape(vec);
   boxShape.setMargin(margin);
-  assert(Math.abs(boxShape.getMargin() - margin) < delta, "boxShape margin" );
+  t.assert(Math.abs(boxShape.getMargin() - margin) < delta, "boxShape margin" );
   vec.setValue(0, 0, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);
@@ -29,7 +31,7 @@ Ammo().then(function(Ammo) {
   var sphereShape = new Ammo.btSphereShape(sphereRadius);
   sphereShape.setMargin(margin);
   // Note: the sphere shape is different from the others, it always returns its radius as the margin.
-  assert(Math.abs(sphereShape.getMargin() - sphereRadius) < delta, "sphereShape margin must be equal to the radius" );
+  t.assert(Math.abs(sphereShape.getMargin() - sphereRadius) < delta, "sphereShape margin must be equal to the radius" );
   vec.setValue(1, 0, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);
@@ -39,7 +41,7 @@ Ammo().then(function(Ammo) {
   vec.setValue(0.3, 0.4, 0.3);
   var cylinderShape = new Ammo.btCylinderShape(vec);
   cylinderShape.setMargin(margin);
-  assert(Math.abs(cylinderShape.getMargin() - margin) < delta, "cylinderShape margin" );
+  t.assert(Math.abs(cylinderShape.getMargin() - margin) < delta, "cylinderShape margin" );
   vec.setValue(-1, 0, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);
@@ -55,7 +57,7 @@ Ammo().then(function(Ammo) {
   // Create capsule shape
   var capsuleShape = new Ammo.btCapsuleShape(0.4, 0.5);
   capsuleShape.setMargin(margin);
-  assert(Math.abs(capsuleShape.getMargin() - margin) < delta, "capsuleShape margin" );
+  t.assert(Math.abs(capsuleShape.getMargin() - margin) < delta, "capsuleShape margin" );
   vec.setValue(0, -1, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);
@@ -73,25 +75,25 @@ Ammo().then(function(Ammo) {
   convexHullShape.addPoint(vec);
   vec.setValue(0, -2, -1);
   convexHullShape.setMargin(margin);
-  assert(Math.abs(convexHullShape.getMargin() - margin) < delta, "convexHullShape margin" );
+  t.assert(Math.abs(convexHullShape.getMargin() - margin) < delta, "convexHullShape margin" );
   transform.setOrigin(vec);
   transform.setRotation(quat);
   compoundShape.addChildShape(transform, convexHullShape);
 
   compoundShape.setMargin(margin);
-  assert(Math.abs(compoundShape.getMargin() - margin) < delta, "compoundShape margin" );
+  t.assert(Math.abs(compoundShape.getMargin() - margin) < delta, "compoundShape margin" );
 
   // Test number of shapes
-  assertEq(compoundShape.getNumChildShapes(), 6, "compoundShape.getNumChildShapes() should return 6");
+  t.is(compoundShape.getNumChildShapes(), 6, "compoundShape.getNumChildShapes() should return 6")
 
   // Create convex hull with ShapeHull
   vec.setValue(0.5, 0.75, 1.25);
   var boxShape = new Ammo.btBoxShape(vec);
   boxShape.setMargin(0);
   var shapeHull = new Ammo.btShapeHull(boxShape);
-  assert(shapeHull.buildHull(0), "shapeHull.buildHull should return true");
+  t.assert(shapeHull.buildHull(0), "shapeHull.buildHull should return true");
   var convexHullShape = new Ammo.btConvexHullShape(shapeHull.getVertexPointer(), shapeHull.numVertices());
-  assertEq(convexHullShape.getNumVertices(), 8, "convexHullShape.getNumVertices() should return 8");
+  t.is(convexHullShape.getNumVertices(), 8, "convexHullShape.getNumVertices() should return 8");
 
   // Create rigid body
   vec.setValue(10, 5, 2);
@@ -125,7 +127,4 @@ Ammo().then(function(Ammo) {
   Ammo.destroy(vec);
   Ammo.destroy(quat);
   Ammo.destroy(transform);
-
-  console.log('ok.');
-  //print('ok.');
 });
