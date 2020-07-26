@@ -15,5 +15,8 @@
   "devDependencies": {
     "ava": "^3.11.0",
     "http-server": "^0.12.3"
+  },
+  "scripts": {
+    "test": "ava --verbose"
   }
 }
