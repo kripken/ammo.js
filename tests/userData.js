@@ -1,9 +1,9 @@
 const test = require('ava');
-const AmmoModule = require('../builds/ammo.js');
+const loadAmmo = require('./helpers/load-ammo.js');
 
 // Skipped to reflect current state
 test.skip('userData', async t => {
-  const Ammo = await AmmoModule();
+  const Ammo = await loadAmmo();
 
   var transform = new Ammo.btTransform();
   transform.setIdentity();

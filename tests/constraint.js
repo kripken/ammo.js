@@ -1,8 +1,8 @@
 const test = require('ava');
-const AmmoModule = require('../builds/ammo.js');
+const loadAmmo = require('./helpers/load-ammo.js');
 
 test('constraint', async t => {
-  const Ammo = await AmmoModule();
+  const Ammo = await loadAmmo();
 
   function testConstraint() {
 

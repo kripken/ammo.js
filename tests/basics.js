@@ -1,8 +1,8 @@
 const test = require('ava');
-const AmmoModule = require('../builds/ammo.js');
+const loadAmmo = require('./helpers/load-ammo.js');
 
 test('basics', async t => {
-  const Ammo = await AmmoModule();
+  const Ammo = await loadAmmo()
 
   var vec = new Ammo.btVector3(4, 5, 6);
   t.is([vec.x(), vec.y(), vec.z()].toString(), '4,5,6');

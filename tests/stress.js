@@ -1,9 +1,9 @@
 const test = require('ava');
-const AmmoModule = require('../builds/ammo.js');
 const getClosureMapping = require('./helpers/get-closure-mapping.js');
+const loadAmmo = require('./helpers/load-ammo.js');
 
 test('stress', async t => {
-  const Ammo = await AmmoModule();
+  const Ammo = await loadAmmo();
 
   var TEST_MEMORY = 0;
 

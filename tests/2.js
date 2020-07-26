@@ -1,8 +1,8 @@
 const test = require('ava');
-const AmmoModule = require('../builds/ammo.js');
+const loadAmmo = require('./helpers/load-ammo.js');
 
 test('ClosestRayResultCallback', async t => {
-  const Ammo = await AmmoModule();
+  const Ammo = await loadAmmo();
 
   var rayCallback = new Ammo.ClosestRayResultCallback(new Ammo.btVector3(0, 0, 0), new Ammo.btVector3(1, 3, 17));
   t.log(rayCallback.hasHit());
