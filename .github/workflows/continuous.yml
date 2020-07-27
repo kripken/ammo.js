@@ -22,8 +22,14 @@ jobs:
       - run: ${{ matrix.make || 'make' }}
         working-directory: builds
       - run: npm ci
-      - run: npm test
-        shell: bash
+      - name: Test Ammo Javascript
+        run: npx ava
+        env:
+          AMMO_BUILD: builds/ammo.js
+      - name: Test Ammo WebAssembly
+        run: npx ava
+        env:
+          AMMO_BUILD: builds/ammo.wasm.js
     strategy:
       matrix:
         os:
