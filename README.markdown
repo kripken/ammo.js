@@ -59,7 +59,7 @@ You can also build ammo.js yourself, as follows:
 
  * Optionally, run the automatic tests,
 
-      `python test.py`
+      `npm test`
 
 
 Usage
@@ -145,6 +145,25 @@ The size of the ammo.js builds can be reduced in several ways:
   * Removing methods from the `-s EXPORTED_RUNTIME_METHODS=[]` argument in make.py. For example, `UTF8ToString` is only needed if printable error messages are desired from `DebugDrawer`.
 
 
+Testing
+================
+
+You can run the automatic tests with `npm test`, which in turn will run [ava](https://github.com/avajs/ava) against both the javascript and WebAssembly builds:
+
+```bash
+$ npm run test-js      # --> AMMO_PATH=builds/ammo.js ava
+$ npm run test-wasm    # --> AMMO_PATH=builds/ammo.wasm.js ava
+```
+
+It's also possible to run ava directly for more options:
+
+```
+$ npx ava --verbose
+$ npx ava --node-arguments inspect
+```
+
+When no `AMMO_PATH` is defined, `builds/ammo.js` is tested by default.
+
 Running the Examples
 ================
 
@@ -193,9 +212,7 @@ following steps:
     build.
 
   * Make sure it passes all automatic tests using
-    python test.py (build-name)  Note that it uses SpiderMonkey
-    by default, and SPIDERMONKEY_ENGINE is defined in ~/.emscripten,
-    see the script contents for details.
+    `npm test`
 
   * Run the WebGL demo in examples/webgl_demo and make sure it looks
     ok, using something like  firefox examples/webgl_demo/ammo.html
