@@ -21,7 +21,7 @@ jobs:
         working-directory: builds
       - run: ${{ matrix.make || 'make' }}
         working-directory: builds
-      - run: python test.py
+      - run: npm test
     strategy:
       matrix:
         os:
