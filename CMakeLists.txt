@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE $ENV{EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT $ENV{EMSCRIPTEN}/tools/webidl_binder.py)
@@ -15,6 +16,12 @@ endforeach()
 
 # Disable bullet graphical benchmarks
 set(USE_GRAPHICAL_BENCHMARK OFF)
+
+# Disable bullet GLUT
+set(USE_GLUT OFF)
+
+# Build Release by default
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
 
 # Default is 64*1024*1024 = 64MB
 set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
