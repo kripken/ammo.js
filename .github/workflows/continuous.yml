@@ -23,6 +23,7 @@ jobs:
         working-directory: builds
       - run: npm ci
       - run: npm test
+        shell: bash
     strategy:
       matrix:
         os:
