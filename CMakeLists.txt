@@ -3,7 +3,6 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE $ENV{EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT $ENV{EMSCRIPTEN}/tools/webidl_binder.py)
-set(BUNDLE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bundle.py)
 set(WRAP_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/wrap.py)
 set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
@@ -30,8 +29,8 @@ set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
 set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth")
 
 set(EMCC_ARGS
-  --js-transform "python ${BUNDLE_SCRIPT}"
   --llvm-lto 1
+  --post-js glue.js
   -O3
   -s ALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
   -s EXPORTED_RUNTIME_METHODS=["UTF8ToString"]
@@ -82,8 +81,8 @@ add_subdirectory(bullet EXCLUDE_FROM_ALL)
 
 #######################################
 add_custom_command(
-  OUTPUT glue.cpp
-  BYPRODUCTS glue.js parser.out WebIDLGrammar.pkl
+  OUTPUT glue.cpp glue.js
+  BYPRODUCTS parser.out WebIDLGrammar.pkl
   COMMAND python ${WEBIDL_BINDER_SCRIPT} ${AMMO_IDL_FILE} glue
   DEPENDS ${AMMO_IDL_FILE}
   COMMENT "Generating ammo bindings"
@@ -94,7 +93,7 @@ add_custom_command(
   DEPENDS glue.cpp ${AMMO_HEADER_FILE}
   COMMENT "Building ammo bindings"
   VERBATIM)
-add_custom_target(ammo-bindings ALL DEPENDS glue.o)
+add_custom_target(ammo-bindings ALL DEPENDS glue.js glue.o)
 
 
 #######################################
