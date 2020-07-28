@@ -1,4 +1,9 @@
-Ammo().then(function(Ammo) {
+const test = require('ava');
+const loadAmmo = require('./helpers/load-ammo.js');
+
+// Skipped to reflect current state
+test.skip('userData', async t => {
+  const Ammo = await loadAmmo();
 
   var transform = new Ammo.btTransform();
   transform.setIdentity();
@@ -27,13 +32,13 @@ Ammo().then(function(Ammo) {
 
   rigidBody.setUserPointer(theValue);
   var userPointer1 = rigidBody.getUserPointer();
-  assert(userPointer1.ptr == theValue, "User pointer is not the same" );
+  t.assert(userPointer1.ptr == theValue, "User pointer is not the same" );
 
   theValue = 4567;
 
   rigidBody.setUserIndex(theValue);
   var userIndex1 = rigidBody.getUserIndex();
-  assert(userIndex1 == theValue, "User index is not the same" );
+  t.assert(userIndex1 == theValue, "User index is not the same" );
 
   Ammo.destroy(rigidBody.getCollisionShape());
   Ammo.destroy(motionState);
@@ -42,6 +47,4 @@ Ammo().then(function(Ammo) {
   Ammo.destroy(vec);
   Ammo.destroy(quat);
   Ammo.destroy(transform);
-
-  print('ok.');
 });

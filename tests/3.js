@@ -1,5 +1,8 @@
-Ammo().then(function(Ammo) {
-  // Issue 3: Ammo.btSweepAxis3 doesn't seem to work
+const test = require('ava');
+const loadAmmo = require('./helpers/load-ammo.js');
+
+test('Issue 3: Ammo.btSweepAxis3 doesn\'t seem to work', async t => {
+  const Ammo = await loadAmmo();
 
   var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
   var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
@@ -43,5 +46,5 @@ Ammo().then(function(Ammo) {
     bodies.push(body);
   })();
 
-  print('ok.')
+  t.pass();
 });
