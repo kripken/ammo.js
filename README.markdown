@@ -41,25 +41,7 @@ Instructions
 
 `builds/ammo.js` contains a prebuilt version of ammo.js. This is probably what you want.
 
-You can also build ammo.js yourself, as follows:
-
- * Get Emscripten
-
-      http://emscripten.org
-
-   and set it up. See
-
-      http://kripken.github.io/emscripten-site/docs/getting_started/
-
- * Run the build script,
-
-      `python make.py`
-
-   which should generate builds/ammo.js.
-
- * Optionally, run the automatic tests,
-
-      `npm test`
+You can also [build](#building) ammo.js yourself.
 
 
 Usage
@@ -135,6 +117,41 @@ to be aware of:
     | `==`      | `op_eq`    |
 
 
+Building
+========
+
+In order to build ammo.js yourself, you will need
+[Emscripten](http://emscripten.org) and [cmake](https://cmake.org/download).
+
+For more information about setting up Emscripten, see
+<https://emscripten.org/docs/getting_started>
+
+To configure and build ammo into the `builds` directory, run the following:
+
+  ```bash
+  $ export EMSCRIPTEN=$EMSDK/upstream/emscripten
+  $ cmake -B builds
+  $ cmake --build builds
+  ```
+
+There are also some key options that can be specified during cmake
+configuration, for example:
+
+  ```bash
+  $ cmake -B builds -DCLOSURE=1                # compile with closure
+  $ cmake -B builds -DTOTAL_MEMORY=268435456   # allocate a 256MB heap
+  $ cmake -B builds -DALLOW_MEMORY_GROWTH=1    # enable a resizable heap
+  ```
+
+On windows, you can build using cmake's
+[mingw](https://chocolatey.org/packages/mingw) generator:
+
+  ```bat
+  > set EMSCRIPTEN=%EMSDK%/upstream/emscripten
+  > cmake -B builds -G 'MinGW Makefiles'
+  > cmake --build builds
+  ```
+
 Reducing Build Size
 ===============
 
@@ -207,15 +224,15 @@ Release Process
 Pushing a new build in `builds/ammo.js` should be done only after the
 following steps:
 
-  * Build using  python make.py closure       which generates the asm.js
-    build, and   python make.py closure wasm  which generates the wasm
-    build.
+  * Configure with [closure](https://github.com/google/closure-compiler)
+    enabled: `cmake -B builds -DCLOSURE=1`
 
-  * Make sure it passes all automatic tests using
-    `npm test`
+  * Build both the asm.js and wasm libraries: `cmake --build builds`
+
+  * Make sure they pass all automatic tests: `npm test`
 
   * Run the WebGL demo in examples/webgl_demo and make sure it looks
-    ok, using something like  firefox examples/webgl_demo/ammo.html
+    ok, using something like `firefox examples/webgl_demo/ammo.html`
     (chrome will need a webserver as it doesn't like file:// urls)
 
 
