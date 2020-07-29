@@ -3,8 +3,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE $ENV{EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT $ENV{EMSCRIPTEN}/tools/webidl_binder.py)
-set(BUNDLE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/bundle.py)
-set(WRAP_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/wrap.py)
+set(AMMO_FRONT_MATTER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/front-matter.js)
 set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
 set(BULLET_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet/src/)
@@ -30,8 +29,9 @@ set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
 set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth")
 
 set(EMCC_ARGS
-  --js-transform "python ${BUNDLE_SCRIPT}"
+  --extern-pre-js ${AMMO_FRONT_MATTER_FILE}
   --llvm-lto 1
+  --post-js glue.js
   -O3
   -s ALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
   -s EXPORTED_RUNTIME_METHODS=["UTF8ToString"]
@@ -82,8 +82,8 @@ add_subdirectory(bullet EXCLUDE_FROM_ALL)
 
 #######################################
 add_custom_command(
-  OUTPUT glue.cpp
-  BYPRODUCTS glue.js parser.out WebIDLGrammar.pkl
+  OUTPUT glue.cpp glue.js
+  BYPRODUCTS parser.out WebIDLGrammar.pkl
   COMMAND python ${WEBIDL_BINDER_SCRIPT} ${AMMO_IDL_FILE} glue
   DEPENDS ${AMMO_IDL_FILE}
   COMMENT "Generating ammo bindings"
@@ -94,14 +94,13 @@ add_custom_command(
   DEPENDS glue.cpp ${AMMO_HEADER_FILE}
   COMMENT "Building ammo bindings"
   VERBATIM)
-add_custom_target(ammo-bindings ALL DEPENDS glue.o)
+add_custom_target(ammo-bindings ALL DEPENDS glue.js glue.o)
 
 
 #######################################
 add_custom_command(
   OUTPUT ammo.js
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_JS_ARGS} -o ammo.js
-  COMMAND python ${WRAP_SCRIPT} ammo.js
   DEPENDS ammo-bindings ${BULLET_TARGETS}
   COMMENT "Building ammo javascript"
   VERBATIM)
@@ -112,7 +111,6 @@ add_custom_target(ammo-javascript ALL DEPENDS ammo.js)
 add_custom_command(
   OUTPUT ammo.wasm.js ammo.wasm.wasm
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_WASM_ARGS} -o ammo.wasm.js
-  COMMAND python ${WRAP_SCRIPT} ammo.wasm.js
   DEPENDS ammo-bindings ${BULLET_TARGETS}
   COMMENT "Building ammo webassembly"
   VERBATIM)
