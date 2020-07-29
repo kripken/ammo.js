@@ -2,7 +2,8 @@ ammo.js
 =======
 
 
-# Demos
+Demos
+-----
 
  * [Cubes](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.html)
  * [Cubes (WebAssembly)](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.wasm.html)
@@ -12,7 +13,9 @@ ammo.js
  * [Heightmap](http://kripken.github.com/ammo.js/examples/webgl_demo_terrain/index.html)
  * [Vehicle](http://kripken.github.io/ammo.js/examples/webgl_demo_vehicle/index.html)
 
-# Overview
+
+Overview
+--------
 
 **Example code to give you an idea of the API**:
 
@@ -69,7 +72,7 @@ demo code in
 
 
 Bindings API
-============
+------------
 
 ammo.js autogenerates its API from the Bullet source code, so it should
 be basically identical. There are however some differences and things
@@ -118,7 +121,7 @@ to be aware of:
 
 
 Building
-========
+--------
 
 In order to build ammo.js yourself, you will need
 [Emscripten](http://emscripten.org) and [cmake](https://cmake.org/download).
@@ -152,8 +155,9 @@ On windows, you can build using cmake's
   > cmake --build builds
   ```
 
+
 Reducing Build Size
-===============
+-------------------
 
 The size of the ammo.js builds can be reduced in several ways:
 
@@ -163,7 +167,7 @@ The size of the ammo.js builds can be reduced in several ways:
 
 
 Testing
-================
+-------
 
 You can run the automatic tests with `npm test`, which in turn will run [ava](https://github.com/avajs/ava) against both the javascript and WebAssembly builds:
 
@@ -181,8 +185,9 @@ $ npx ava --node-arguments inspect
 
 When no `AMMO_PATH` is defined, `builds/ammo.js` is tested by default.
 
+
 Running the Examples
-================
+--------------------
 
 [http-server](https://github.com/http-party/http-server) is included as a dev
 dependency as an easy way to run the examples. Make sure to serve everything
@@ -195,7 +200,7 @@ directory:
 
 
 Troubleshooting
-===============
+---------------
 
   * It's easy to forget to write |new| when creating an object, for
     example
@@ -211,7 +216,7 @@ Troubleshooting
 
 
 Reporting Issues
-================
+----------------
 
 If you find a bug in ammo.js and file an issue, please include a script
 that reproduces the problem. That way it is easier to debug, and we can
@@ -219,7 +224,7 @@ then include that script in our automatic tests.
 
 
 Release Process
-===============
+---------------
 
 Pushing a new build in `builds/ammo.js` should be done only after the
 following steps:
@@ -237,6 +242,6 @@ following steps:
 
 
 Upstream Version
-================
+----------------
 
 Bullet 2.82 patched with [raycast fix from 2.83](https://github.com/bulletphysics/bullet3/commit/7151865c16ba996996206e1fd7869cbb1e7edd8d)
