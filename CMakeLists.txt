@@ -13,10 +13,10 @@ foreach(_TARGET ${BULLET_TARGETS})
   list(APPEND BULLET_LIBS $<TARGET_FILE:${_TARGET}>)
 endforeach()
 
-# Disable bullet graphical benchmarks
+# Disable unused bullet options
+set(BUILD_UNIT_TESTS OFF)
+set(BUILD_EXTRAS OFF)
 set(USE_GRAPHICAL_BENCHMARK OFF)
-
-# Disable bullet GLUT
 set(USE_GLUT OFF)
 
 # Build Release by default
