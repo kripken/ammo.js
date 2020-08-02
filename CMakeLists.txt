@@ -103,7 +103,7 @@ add_custom_target(ammo-bindings ALL DEPENDS glue.js glue.o)
 add_custom_command(
   OUTPUT ammo.js
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_JS_ARGS} -o ammo.js
-  DEPENDS ammo-bindings ${BULLET_TARGETS}
+  DEPENDS ammo-bindings ${AMMO_FRONT_MATTER_FILE} ${AMMO_ONLOAD_FILE} ${BULLET_TARGETS}
   COMMENT "Building ammo javascript"
   VERBATIM)
 add_custom_target(ammo-javascript ALL DEPENDS ammo.js)
@@ -113,7 +113,7 @@ add_custom_target(ammo-javascript ALL DEPENDS ammo.js)
 add_custom_command(
   OUTPUT ammo.wasm.js ammo.wasm.wasm
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_WASM_ARGS} -o ammo.wasm.js
-  DEPENDS ammo-bindings ${BULLET_TARGETS}
+  DEPENDS ammo-bindings ${AMMO_FRONT_MATTER_FILE} ${AMMO_ONLOAD_FILE} ${BULLET_TARGETS}
   COMMENT "Building ammo webassembly"
   VERBATIM)
 add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
