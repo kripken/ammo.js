@@ -6,14 +6,18 @@ const CF_CUSTOM_MATERIAL_CALLBACK = 8
 const DISABLE_DEACTIVATION = 4
 
 
+function shouldTest(t, Ammo) {
+  if (Ammo.addFunction) return true
+  t.log(`Passed '${t.title}' without testing (requires ammo with addFunction support)`)
+  t.pass()
+  return false
+}
+
+
 test('Ammo.addFunction should return a function pointer', async t => {
   const Ammo = await loadAmmo()
 
-  if (!Ammo.addFunction) {
-    t.log('skipping (this test requires a build with -DADD_FUNCTION_SUPPORT=1')
-    t.pass()
-    return
-  }
+  if (!shouldTest(t, Ammo)) return
 
   const functi0n = () => true
   const pointer = Ammo.addFunction(functi0n)
@@ -24,11 +28,7 @@ test('Ammo.addFunction should return a function pointer', async t => {
 test('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like a charm', async t => {
   const Ammo = await loadAmmo()
 
-  if (!Ammo.addFunction) {
-    t.log('skipping (this test requires a build with -DADD_FUNCTION_SUPPORT=1')
-    t.pass()
-    return
-  }
+  if (!shouldTest(t, Ammo)) return
 
   const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration()
   const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration)
