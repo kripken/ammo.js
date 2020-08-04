@@ -144,6 +144,7 @@ configuration, for example:
   $ cmake -B builds -DCLOSURE=1                # compile with closure
   $ cmake -B builds -DTOTAL_MEMORY=268435456   # allocate a 256MB heap
   $ cmake -B builds -DALLOW_MEMORY_GROWTH=1    # enable a resizable heap
+  $ cmake -B builds -DADD_FUNCTION_SUPPORT=1   # enable Ammo.addFunction()
   ```
 
 On windows, you can build using cmake's
