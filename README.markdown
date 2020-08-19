@@ -126,13 +126,12 @@ Building
 In order to build ammo.js yourself, you will need
 [Emscripten](http://emscripten.org) and [cmake](https://cmake.org/download).
 
-For more information about setting up Emscripten, see
-<https://emscripten.org/docs/getting_started>
+For more information about setting up Emscripten, see the [getting started
+guide](https://emscripten.org/docs/getting_started).
 
 To configure and build ammo into the `builds` directory, run the following:
 
   ```bash
-  $ export EMSCRIPTEN=$EMSDK/upstream/emscripten
   $ cmake -B builds
   $ cmake --build builds
   ```
@@ -151,11 +150,12 @@ On windows, you can build using cmake's
 [mingw](https://chocolatey.org/packages/mingw) generator:
 
   ```bat
-  > set EMSCRIPTEN=%EMSDK%/upstream/emscripten
   > cmake -B builds -G 'MinGW Makefiles'
   > cmake --build builds
   ```
 
+Note that if you have not installed emscripten via the emsdk, you can configure
+its location with `-DEMSCRIPTEN_ROOT`.
 
 Reducing Build Size
 -------------------
