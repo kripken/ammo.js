@@ -16,8 +16,6 @@ jobs:
       - run: cmake --version
       - run: ${{ matrix.make || 'make' }} --version
       - run: cmake -DCLOSURE=1 ${{ matrix.cmake-args }} ..
-        env:
-          EMSCRIPTEN: ${{ env.EMSDK }}/upstream/emscripten
         working-directory: builds
       - run: ${{ matrix.make || 'make' }}
         working-directory: builds
