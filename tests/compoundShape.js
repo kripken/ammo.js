@@ -55,9 +55,10 @@ test('compound shape', async t => {
   compoundShape.addChildShape(transform, coneShape);
 
   // Create capsule shape
-  var capsuleShape = new Ammo.btCapsuleShape(0.4, 0.5);
-  capsuleShape.setMargin(margin);
-  t.assert(Math.abs(capsuleShape.getMargin() - margin) < delta, "capsuleShape margin" );
+  var radius = 0.4
+  var capsuleShape = new Ammo.btCapsuleShape(radius, 0.5);
+  capsuleShape.setMargin(margin); // No effect since bullet 2.86
+  t.assert(Math.abs(capsuleShape.getMargin() - radius) < delta, "capsuleShape margin" );
   vec.setValue(0, -1, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);

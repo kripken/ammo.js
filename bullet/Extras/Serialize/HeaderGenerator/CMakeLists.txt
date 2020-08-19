@@ -4,7 +4,7 @@ FILE(GLOB cpp_SRC "*.cpp")
 FILE(GLOB h_SRC "*.h")
 
 
-SET(includes 
+SET(includes
   .
 	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
 	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BlenderSerialize
@@ -13,7 +13,7 @@ SET(includes
 
 
 LINK_LIBRARIES(
-	 BulletFileLoader BlenderSerialize LinearMath
+	 BulletFileLoader  LinearMath
 )
 
 INCLUDE_DIRECTORIES(${includes})
@@ -24,7 +24,7 @@ ADD_EXECUTABLE(HeaderGenerator ${cpp_SRC} ${h_SRC})
 
 IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 	ADD_CUSTOM_COMMAND(
-		TARGET HeaderGenerator 
+		TARGET HeaderGenerator
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/HeaderGenerator/createDnaString.bat ${CMAKE_CURRENT_BINARY_DIR}/createDnaString.bat
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/HeaderGenerator/bulletGenerate.py ${CMAKE_CURRENT_BINARY_DIR}/bulletGenerate.py

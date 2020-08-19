@@ -270,7 +270,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces. 
 
-INPUT                  = src
+INPUT                  = src/LinearMath src/BulletCollision src/BulletDynamics src/BulletSoftBody src/btBulletCollisionCommon.h src/btBulletDynamicsCommon.h  Extras/Serialize/BulletWorldImporter Extras/Serialize/BulletFileLoader
 
 
 # If the value of the INPUT tag contains directories, you can use the 
@@ -605,7 +605,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by 
 # the preprocessor. 
 
-INCLUDE_PATH           = src
+INCLUDE_PATH           = 
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard 
 # patterns (like *.h and *.hpp) to filter out the header-files in the 

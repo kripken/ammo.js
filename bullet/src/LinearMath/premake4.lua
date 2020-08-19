@@ -1,11 +1,15 @@
 	project "LinearMath"
-		
+
 	kind "StaticLib"
-	targetdir "../../lib"
+	if os.is("Linux") then
+	    buildoptions{"-fPIC"}
+	end
 	includedirs {
 		"..",
 	}
 	files {
-		"**.cpp",
-		"**.h"
+		"*.cpp",
+		"*.h",
+		"TaskScheduler/*.cpp",
+		"TaskScheduler/*.h"
 	}

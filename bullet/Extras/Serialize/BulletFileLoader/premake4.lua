@@ -1,7 +1,11 @@
 	project "BulletFileLoader"
 		
 	kind "StaticLib"
-	targetdir "../../lib"
+	
+	if os.is("Linux") then
+	    buildoptions{"-fPIC"}
+	end
+	 
 	includedirs {
 		"../../../src"
 	}

@@ -7,7 +7,6 @@ SET(BulletCollision_SRCS
 	BroadphaseCollision/btDbvt.cpp
 	BroadphaseCollision/btDbvtBroadphase.cpp
 	BroadphaseCollision/btDispatcher.cpp
-	BroadphaseCollision/btMultiSapBroadphase.cpp
 	BroadphaseCollision/btOverlappingPairCache.cpp
 	BroadphaseCollision/btQuantizedBvh.cpp
 	BroadphaseCollision/btSimpleBroadphase.cpp
@@ -16,8 +15,10 @@ SET(BulletCollision_SRCS
 	CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp
 	CollisionDispatch/btBoxBoxDetector.cpp
 	CollisionDispatch/btCollisionDispatcher.cpp
+	CollisionDispatch/btCollisionDispatcherMt.cpp
 	CollisionDispatch/btCollisionObject.cpp
 	CollisionDispatch/btCollisionWorld.cpp
+	CollisionDispatch/btCollisionWorldImporter.cpp
 	CollisionDispatch/btCompoundCollisionAlgorithm.cpp
 	CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp
 	CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
@@ -55,12 +56,14 @@ SET(BulletCollision_SRCS
 	CollisionShapes/btCylinderShape.cpp
 	CollisionShapes/btEmptyShape.cpp
 	CollisionShapes/btHeightfieldTerrainShape.cpp
+	CollisionShapes/btMiniSDF.cpp
 	CollisionShapes/btMinkowskiSumShape.cpp
 	CollisionShapes/btMultimaterialTriangleMeshShape.cpp
 	CollisionShapes/btMultiSphereShape.cpp
 	CollisionShapes/btOptimizedBvh.cpp
 	CollisionShapes/btPolyhedralConvexShape.cpp
 	CollisionShapes/btScaledBvhTriangleMeshShape.cpp
+	CollisionShapes/btSdfCollisionShape.cpp
 	CollisionShapes/btShapeHull.cpp
 	CollisionShapes/btSphereShape.cpp
 	CollisionShapes/btStaticPlaneShape.cpp
@@ -102,6 +105,7 @@ SET(Root_HDRS
 	../btBulletCollisionCommon.h
 )
 SET(BroadphaseCollision_HDRS
+    BroadphaseCollision/btAxisSweep3Internal.h
 	BroadphaseCollision/btAxisSweep3.h
 	BroadphaseCollision/btBroadphaseInterface.h
 	BroadphaseCollision/btBroadphaseProxy.h
@@ -109,7 +113,6 @@ SET(BroadphaseCollision_HDRS
 	BroadphaseCollision/btDbvt.h
 	BroadphaseCollision/btDbvtBroadphase.h
 	BroadphaseCollision/btDispatcher.h
-	BroadphaseCollision/btMultiSapBroadphase.h
 	BroadphaseCollision/btOverlappingPairCache.h
 	BroadphaseCollision/btOverlappingPairCallback.h
 	BroadphaseCollision/btQuantizedBvh.h
@@ -123,9 +126,11 @@ SET(CollisionDispatch_HDRS
 	CollisionDispatch/btCollisionConfiguration.h
 	CollisionDispatch/btCollisionCreateFunc.h
 	CollisionDispatch/btCollisionDispatcher.h
+	CollisionDispatch/btCollisionDispatcherMt.h
 	CollisionDispatch/btCollisionObject.h
 	CollisionDispatch/btCollisionObjectWrapper.h
 	CollisionDispatch/btCollisionWorld.h
+	CollisionDispatch/btCollisionWorldImporter.h
 	CollisionDispatch/btCompoundCollisionAlgorithm.h
 	CollisionDispatch/btCompoundCompoundCollisionAlgorithm.h
 	CollisionDispatch/btConvexConcaveCollisionAlgorithm.h
@@ -189,12 +194,15 @@ SET(CollisionShapes_HDRS
 SET(Gimpact_HDRS
 	Gimpact/btBoxCollision.h
 	Gimpact/btClipPolygon.h
+	Gimpact/btContactProcessingStructs.h
 	Gimpact/btContactProcessing.h
 	Gimpact/btGenericPoolAllocator.h
 	Gimpact/btGeometryOperations.h
+	Gimpact/btGImpactBvhStructs.h
 	Gimpact/btGImpactBvh.h
 	Gimpact/btGImpactCollisionAlgorithm.h
 	Gimpact/btGImpactMassUtil.h
+	Gimpact/btGImpactQuantizedBvhStructs.h
 	Gimpact/btGImpactQuantizedBvh.h
 	Gimpact/btGImpactShape.h
 	Gimpact/btQuantization.h
@@ -269,10 +277,10 @@ DESTINATION ${INCLUDE_INSTALL_DIR} FILES_MATCHING PATTERN "*.h" PATTERN ".svn" E
 DESTINATION ${INCLUDE_INSTALL_DIR}/BulletCollision)
 			ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 		ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
-		
+
 		IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 			SET_TARGET_PROPERTIES(BulletCollision PROPERTIES FRAMEWORK true)
-		
+
 			SET_TARGET_PROPERTIES(BulletCollision PROPERTIES PUBLIC_HEADER "${Root_HDRS}")
 			# Have to list out sub-directories manually:
 			SET_PROPERTY(SOURCE ${BroadphaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/BroadphaseCollision)
@@ -280,7 +288,7 @@ DESTINATION ${INCLUDE_INSTALL_DIR}/BulletCollision)
 			SET_PROPERTY(SOURCE ${CollisionShapes_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/CollisionShapes)
 			SET_PROPERTY(SOURCE ${Gimpact_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/Gimpact)
 			SET_PROPERTY(SOURCE ${NarrowPhaseCollision_HDRS} PROPERTY MACOSX_PACKAGE_LOCATION Headers/NarrowPhaseCollision)
-		
+
 		ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
 	ENDIF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 ENDIF (INSTALL_LIBS)

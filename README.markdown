@@ -245,4 +245,4 @@ following steps:
 Upstream Version
 ----------------
 
-Bullet 2.82 patched with [raycast fix from 2.83](https://github.com/bulletphysics/bullet3/commit/7151865c16ba996996206e1fd7869cbb1e7edd8d)
+[Bullet 2.89](https://github.com/bulletphysics/bullet3/releases/tag/2.89)
