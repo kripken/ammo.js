@@ -6,6 +6,7 @@ set(WEBIDL_BINDER_SCRIPT $ENV{EMSCRIPTEN}/tools/webidl_binder.py)
 set(AMMO_FRONT_MATTER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/front-matter.js)
 set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
+set(AMMO_ONLOAD_FILE ${CMAKE_CURRENT_SOURCE_DIR}/onload.js)
 set(BULLET_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet/src/)
 
 set(BULLET_TARGETS BulletCollision BulletDynamics BulletSoftBody LinearMath)
@@ -32,6 +33,7 @@ set(EMCC_ARGS
   --extern-pre-js ${AMMO_FRONT_MATTER_FILE}
   --llvm-lto 1
   --post-js glue.js
+  --post-js ${AMMO_ONLOAD_FILE}
   -O3
   -s ALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
   -s EXPORTED_RUNTIME_METHODS=["UTF8ToString"]
@@ -101,7 +103,7 @@ add_custom_target(ammo-bindings ALL DEPENDS glue.js glue.o)
 add_custom_command(
   OUTPUT ammo.js
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_JS_ARGS} -o ammo.js
-  DEPENDS ammo-bindings ${BULLET_TARGETS}
+  DEPENDS ammo-bindings ${AMMO_FRONT_MATTER_FILE} ${AMMO_ONLOAD_FILE} ${BULLET_TARGETS}
   COMMENT "Building ammo javascript"
   VERBATIM)
 add_custom_target(ammo-javascript ALL DEPENDS ammo.js)
@@ -111,7 +113,7 @@ add_custom_target(ammo-javascript ALL DEPENDS ammo.js)
 add_custom_command(
   OUTPUT ammo.wasm.js ammo.wasm.wasm
   COMMAND emcc glue.o ${BULLET_LIBS} ${EMCC_WASM_ARGS} -o ammo.wasm.js
-  DEPENDS ammo-bindings ${BULLET_TARGETS}
+  DEPENDS ammo-bindings ${AMMO_FRONT_MATTER_FILE} ${AMMO_ONLOAD_FILE} ${BULLET_TARGETS}
   COMMENT "Building ammo webassembly"
   VERBATIM)
 add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
