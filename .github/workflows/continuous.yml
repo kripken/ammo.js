@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: '^2.7.12'
+          python-version: '^3.5'
       - uses: mymindstorm/setup-emsdk@v6
         with:
           version: 'latest'
