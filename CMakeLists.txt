@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
+FIND_PACKAGE(Python3)
+set(PYTHON ${PYTHON3_EXECUTABLE} CACHE STRING "Python path")
 set(EMSCRIPTEN_ROOT $ENV{EMSDK}/upstream/emscripten CACHE STRING "Emscripten path")
 set(CMAKE_TOOLCHAIN_FILE ${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT ${EMSCRIPTEN_ROOT}/tools/webidl_binder.py)
@@ -9,6 +11,7 @@ set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
 set(AMMO_ONLOAD_FILE ${CMAKE_CURRENT_SOURCE_DIR}/onload.js)
 set(BULLET_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet/src/)
+
 
 set(BULLET_TARGETS BulletCollision BulletDynamics BulletSoftBody LinearMath)
 foreach(_TARGET ${BULLET_TARGETS})
@@ -87,7 +90,7 @@ add_subdirectory(bullet EXCLUDE_FROM_ALL)
 add_custom_command(
   OUTPUT glue.cpp glue.js
   BYPRODUCTS parser.out WebIDLGrammar.pkl
-  COMMAND python ${WEBIDL_BINDER_SCRIPT} ${AMMO_IDL_FILE} glue
+  COMMAND ${PYTHON} ${WEBIDL_BINDER_SCRIPT} ${AMMO_IDL_FILE} glue
   DEPENDS ${AMMO_IDL_FILE}
   COMMENT "Generating ammo bindings"
   VERBATIM)
