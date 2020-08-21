@@ -737,13 +737,11 @@ interface btContactSolverInfo {
   attribute long m_numIterations;
 };
 
-callback btInternalTickCallback = void (btDynamicsWorld world, float timeStep);
-
 interface btDynamicsWorld {
   void addAction(btActionInterface action);
   void removeAction(btActionInterface action);
   [Ref] btContactSolverInfo getSolverInfo();
-  void setInternalTickCallback(btInternalTickCallback cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
+  void setInternalTickCallback(VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 btDynamicsWorld implements btCollisionWorld;
 
