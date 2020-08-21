@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 FIND_PACKAGE(Python3)
-set(PYTHON ${PYTHON3_EXECUTABLE} CACHE STRING "Python path")
+set(PYTHON ${Python3_EXECUTABLE} CACHE STRING "Python path")
 set(EMSCRIPTEN_ROOT $ENV{EMSDK}/upstream/emscripten CACHE STRING "Emscripten path")
 set(CMAKE_TOOLCHAIN_FILE ${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT ${EMSCRIPTEN_ROOT}/tools/webidl_binder.py)
