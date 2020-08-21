@@ -119,6 +119,11 @@ public:
 			m_worldUserInfo = worldUserInfo;
 		}
 
+		// XXX AMMO overloaded for callback type compatibility with emscripten WebIDL
+		void setInternalTickCallback(void* cb, void* worldUserInfo=0, bool isPreTick=false) {
+			setInternalTickCallback((btInternalTickCallback)cb, worldUserInfo, isPreTick);
+		}
+
 		void	setWorldUserInfo(void* worldUserInfo)
 		{
 			m_worldUserInfo = worldUserInfo;

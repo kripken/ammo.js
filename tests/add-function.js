@@ -3,7 +3,6 @@ const createUnitBox = require('./helpers/create-unit-box.js')
 const loadAmmo = require('./helpers/load-ammo.js')
 
 const CF_CUSTOM_MATERIAL_CALLBACK = 8
-const DISABLE_DEACTIVATION = 4
 
 
 function shouldTest(t, Ammo) {
@@ -77,4 +76,39 @@ test('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like
   // Step the simulation and assert the behavior:
   dynamicsWorld.stepSimulation(1)
   t.is(callbackInvocationCount, 4)
+})
+
+
+test('btDynamicsWorld.prototype.setInternalTickCallback should work like a charm', async t => {
+  const Ammo = await loadAmmo()
+
+  if (!shouldTest(t, Ammo)) return
+
+  const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration()
+  const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration)
+  const broadphase = new Ammo.btDbvtBroadphase()
+  const solver = new Ammo.btSequentialImpulseConstraintSolver()
+  const dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(
+    dispatcher,
+    broadphase,
+    solver,
+    collisionConfiguration
+  )
+  const timestep = 1 // integer is easy to assert
+  const maxSubSteps = 0 // required for a stable callback timestep
+
+  // Set up the callback:
+  let callbackInvocationCount = 0
+  const callback = (_world, _timestep) => {
+    callbackInvocationCount++
+    _world = Ammo.wrapPointer(_world, Ammo.btDiscreteDynamicsWorld)
+    t.assert(Ammo.compare(_world, dynamicsWorld))
+    t.is(_timestep, timestep)
+  }
+  const callbackPointer = Ammo.addFunction(callback)
+  dynamicsWorld.setInternalTickCallback(callbackPointer)
+
+  // Step the simulation and assert the behavior:
+  dynamicsWorld.stepSimulation(timestep, maxSubSteps)
+  t.is(callbackInvocationCount, 1)
 })
