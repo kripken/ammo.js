@@ -1,8 +1,10 @@
 const test = require('ava');
 const loadAmmo = require('./helpers/load-ammo.js');
 
-test('basics', async t => {
-  const Ammo = await loadAmmo()
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
+test('basics', t => {
 
   var vec = new Ammo.btVector3(4, 5, 6);
   t.is([vec.x(), vec.y(), vec.z()].toString(), '4,5,6');

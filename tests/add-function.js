@@ -12,9 +12,10 @@ function shouldTest(t, Ammo) {
   return false
 }
 
+// Load global Ammo once for all tests:
+test.before(async t => await loadAmmo())
 
-test('Ammo.addFunction should return a function pointer', async t => {
-  const Ammo = await loadAmmo()
+test('Ammo.addFunction should return a function pointer', t => {
 
   if (!shouldTest(t, Ammo)) return
 
@@ -24,8 +25,7 @@ test('Ammo.addFunction should return a function pointer', async t => {
 })
 
 
-test('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like a charm', async t => {
-  const Ammo = await loadAmmo()
+test('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like a charm', t => {
 
   if (!shouldTest(t, Ammo)) return
 
@@ -79,8 +79,7 @@ test('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like
 })
 
 
-test('btDynamicsWorld.prototype.setInternalTickCallback should work like a charm', async t => {
-  const Ammo = await loadAmmo()
+test('btDynamicsWorld.prototype.setInternalTickCallback should work like a charm', t => {
 
   if (!shouldTest(t, Ammo)) return
 
