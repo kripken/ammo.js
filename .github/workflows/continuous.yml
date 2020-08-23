@@ -15,7 +15,7 @@ jobs:
       - run: python -V
       - run: cmake --version
       - run: ${{ matrix.make || 'make' }} --version
-      - run: cmake -B builds -DCLOSURE=1 ${{ matrix.cmake-args }}
+      - run: cmake -B builds -DCLOSURE=1 -DADD_FUNCTION_SUPPORT=1 ${{ matrix.cmake-args }}
       - run: cmake --build builds -- VERBOSE=1
       - run: npm ci
       - name: Test Ammo Javascript
