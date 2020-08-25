@@ -5,12 +5,9 @@ const loadAmmo = require('./helpers/load-ammo.js')
 
 const CF_CUSTOM_MATERIAL_CALLBACK = 8
 
-function shouldTest(t, Ammo) {
-  if (Ammo.addFunction) return true
-  t.log(`Passed '${t.title}' without testing (requires ammo with addFunction support)`)
-  t.pass()
-  return false
-}
+// Load global Ammo once for all tests:
+test.before(async t => await loadAmmo())
+
 
 // Test contact callbacks serially:
 // Each btManifoldResult callback is a global extern in bullet, however ammo
@@ -18,13 +15,7 @@ function shouldTest(t, Ammo) {
 // Since all instances share the same global, concurrent testing is unsafe.
 const testContactCallback = test.serial.cb
 
-// Load global Ammo once for all tests:
-test.before(async t => await loadAmmo())
-
-
 testContactCallback('btDiscreteDynamicsWorld.prototype.setContactAddedCallback should work like a charm', t => {
-
-  if (!shouldTest(t, Ammo)) return
 
   const world = createDiscreteDynamicsWorld()
   const timestep = 1
@@ -70,8 +61,6 @@ testContactCallback('btDiscreteDynamicsWorld.prototype.setContactAddedCallback s
 
 
 testContactCallback('btDiscreteDynamicsWorld.prototype.setContactDestroyedCallback should work like a charm', t => {
-
-  if (!shouldTest(t, Ammo)) return
 
   const world = createDiscreteDynamicsWorld()
   const timestep = 1
@@ -125,8 +114,6 @@ testContactCallback('btDiscreteDynamicsWorld.prototype.setContactDestroyedCallba
 
 testContactCallback('btDiscreteDynamicsWorld.prototype.setContactProcessedCallback should work like a charm', t => {
 
-  if (!shouldTest(t, Ammo)) return
-
   const world = createDiscreteDynamicsWorld()
   const timestep = 1
   const maxSubsteps = 0
@@ -163,8 +150,6 @@ testContactCallback('btDiscreteDynamicsWorld.prototype.setContactProcessedCallba
 
 
 test.cb('btDynamicsWorld.prototype.setInternalTickCallback should work like a charm', t => {
-
-  if (!shouldTest(t, Ammo)) return
 
   const world = createDiscreteDynamicsWorld()
   const timestep = 1 // integer is easy to assert
