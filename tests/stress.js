@@ -2,8 +2,10 @@ const test = require('ava');
 const getClosureMapping = require('./helpers/get-closure-mapping.js');
 const loadAmmo = require('./helpers/load-ammo.js');
 
-test('stress', async t => {
-  const Ammo = await loadAmmo();
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
+test('stress', t => {
 
   var TEST_MEMORY = 0;
 

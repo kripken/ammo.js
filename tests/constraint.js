@@ -1,8 +1,10 @@
 const test = require('ava');
 const loadAmmo = require('./helpers/load-ammo.js');
 
-test('constraint', async t => {
-  const Ammo = await loadAmmo();
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
+test('constraint', t => {
 
   function testConstraint() {
 

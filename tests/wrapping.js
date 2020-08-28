@@ -1,8 +1,10 @@
 const test = require('ava');
 const loadAmmo = require('./helpers/load-ammo.js');
 
-test('tests for caching, comparing, wrapping, etc.', async t => {
-  const Ammo = await loadAmmo();
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
+test('tests for caching, comparing, wrapping, etc.', t => {
 
   var vec1 = new Ammo.btVector3(0, 0, 0);
   var vec2 = new Ammo.btVector3(1, 3, 17);

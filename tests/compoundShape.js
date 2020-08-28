@@ -1,8 +1,10 @@
 const test = require('ava')
 const loadAmmo = require('./helpers/load-ammo.js');
 
-test('compound shape', async t => {
-  const Ammo = await loadAmmo()
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
+test('compound shape', t => {
 
   var compoundShape = new Ammo.btCompoundShape();
 

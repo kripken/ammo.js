@@ -1,9 +1,11 @@
 const test = require('ava');
 const loadAmmo = require('./helpers/load-ammo.js');
 
+// Initialize global Ammo once for all tests:
+test.before(async t => loadAmmo())
+
 // Skipped to reflect current state
-test.skip('userData', async t => {
-  const Ammo = await loadAmmo();
+test.skip('userData', t => {
 
   var transform = new Ammo.btTransform();
   transform.setIdentity();
