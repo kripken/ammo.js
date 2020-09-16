@@ -15,7 +15,11 @@ jobs:
       - run: python -V
       - run: cmake --version
       - run: ${{ matrix.make || 'make' }} --version
-      - run: cmake -B builds -DCLOSURE=1 ${{ matrix.cmake-args }}
+      - run: cmake
+          -B builds
+          -D CLOSURE=1
+          -D TOTAL_MEMORY=134217728
+          ${{ matrix.cmake-args }}
       - run: cmake --build builds -- VERBOSE=1
       - run: npm ci
       - name: Test Ammo Javascript
