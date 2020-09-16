@@ -10,7 +10,7 @@ set(AMMO_FRONT_MATTER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/front-matter.js)
 set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
 set(AMMO_ONLOAD_FILE ${CMAKE_CURRENT_SOURCE_DIR}/onload.js)
-set(BULLET_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet/src/)
+set(BULLET_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet)
 
 
 set(BULLET_TARGETS BulletCollision BulletDynamics BulletSoftBody LinearMath)
@@ -74,7 +74,7 @@ set(EMCC_WASM_ARGS ${EMCC_ARGS}
 
 set(EMCC_GLUE_ARGS
   -c
-  -I${BULLET_SRC_DIR}
+  -I${BULLET_DIR}/src
   -include${AMMO_HEADER_FILE})
 
 
@@ -118,3 +118,38 @@ add_custom_command(
   COMMENT "Building ammo webassembly"
   VERBATIM)
 add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
+
+
+#######################################
+# Legacy bullet benchmarks
+#######################################
+set(BENCHMARK_SOURCES
+  ${BULLET_DIR}/Demos/Benchmarks/main.cpp
+  ${BULLET_DIR}/Demos/Benchmarks/BenchmarkDemo.cpp)
+set(BENCHMARK_CFLAGS
+  -I${BULLET_DIR}/src)
+set(BENCHMARK_LDFLAGS
+  -O3
+  -sALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
+  -sTOTAL_MEMORY=${TOTAL_MEMORY})
+set(BENCHMARK_JS_LDFLAGS ${BENCHMARK_LDFLAGS}
+  -sAGGRESSIVE_VARIABLE_ELIMINATION=1
+  -sELIMINATE_DUPLICATE_FUNCTIONS=1
+  -sSINGLE_FILE=1
+  -sWASM=0)
+set(BENCHMARK_WASM_LDFLAGS ${BENCHMARK_LDFLAGS}
+  -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1
+  -sWASM=1)
+
+add_library(benchmark-objects OBJECT ${BENCHMARK_SOURCES})
+target_compile_options(benchmark-objects PUBLIC ${BENCHMARK_CFLAGS})
+
+add_executable(benchmark.js $<TARGET_OBJECTS:benchmark-objects>)
+set_target_properties(benchmark.js PROPERTIES OUTPUT_NAME benchmark)
+target_link_libraries(benchmark.js ${BULLET_TARGETS})
+target_link_options(benchmark.js PUBLIC ${BENCHMARK_JS_LDFLAGS})
+
+add_executable(benchmark.wasm.js $<TARGET_OBJECTS:benchmark-objects>)
+set_target_properties(benchmark.wasm.js PROPERTIES OUTPUT_NAME benchmark.wasm)
+target_link_libraries(benchmark.wasm.js ${BULLET_TARGETS})
+target_link_options(benchmark.wasm.js PUBLIC ${BENCHMARK_WASM_LDFLAGS})
