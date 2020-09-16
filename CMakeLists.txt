@@ -121,13 +121,8 @@ add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
 
 
 #######################################
-# Legacy bullet benchmarks
+# legacy benchmark emscripten targets
 #######################################
-set(BENCHMARK_SOURCES
-  ${BULLET_DIR}/Demos/Benchmarks/main.cpp
-  ${BULLET_DIR}/Demos/Benchmarks/BenchmarkDemo.cpp)
-set(BENCHMARK_CFLAGS
-  -I${BULLET_DIR}/src)
 set(BENCHMARK_LDFLAGS
   -O3
   -sALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
@@ -141,18 +136,19 @@ set(BENCHMARK_WASM_LDFLAGS ${BENCHMARK_LDFLAGS}
   -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1
   -sWASM=1)
 
-add_library(benchmark-objects OBJECT ${BENCHMARK_SOURCES})
-target_compile_options(benchmark-objects PUBLIC ${BENCHMARK_CFLAGS})
+add_library(benchmarks-objects OBJECT $<TARGET_PROPERTY:benchmarks,SOURCES>)
+target_include_directories(benchmarks-objects PUBLIC $<TARGET_PROPERTY:benchmarks,INCLUDE_DIRECTORIES>)
+target_compile_options(benchmarks-objects PUBLIC $<TARGET_PROPERTY:benchmarks,COMPILE_OPTIONS>)
 
-add_executable(benchmark.js $<TARGET_OBJECTS:benchmark-objects>)
-set_target_properties(benchmark.js PROPERTIES OUTPUT_NAME benchmark)
-target_link_libraries(benchmark.js ${BULLET_TARGETS})
-target_link_options(benchmark.js PUBLIC ${BENCHMARK_JS_LDFLAGS})
+add_executable(benchmarks.js $<TARGET_OBJECTS:benchmarks-objects>)
+set_target_properties(benchmarks.js PROPERTIES OUTPUT_NAME benchmarks)
+target_link_libraries(benchmarks.js $<TARGET_PROPERTY:benchmarks,LINK_LIBRARIES>)
+target_link_options(benchmarks.js PUBLIC ${BENCHMARK_JS_LDFLAGS})
 
-add_executable(benchmark.wasm.js $<TARGET_OBJECTS:benchmark-objects>)
-set_target_properties(benchmark.wasm.js PROPERTIES OUTPUT_NAME benchmark.wasm)
-target_link_libraries(benchmark.wasm.js ${BULLET_TARGETS})
-target_link_options(benchmark.wasm.js PUBLIC ${BENCHMARK_WASM_LDFLAGS})
+add_executable(benchmarks.wasm.js $<TARGET_OBJECTS:benchmarks-objects>)
+set_target_properties(benchmarks.wasm.js PROPERTIES OUTPUT_NAME benchmarks.wasm)
+target_link_libraries(benchmarks.wasm.js $<TARGET_PROPERTY:benchmarks,LINK_LIBRARIES>)
+target_link_options(benchmarks.wasm.js PUBLIC ${BENCHMARK_WASM_LDFLAGS})
 
 
 #######################################
