@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.17)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(CMAKE_BUILD_TYPE Release CACHE STRING "bammo build type")
