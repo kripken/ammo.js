@@ -4,12 +4,14 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "bammo build type")
 
 ########################################
-set(BUILD_EXTRAS OFF)
-set(BUILD_MULTITHREADING OFF)
-set(BUILD_UNIT_TESTS OFF)
-set(USE_GRAPHICAL_BENCHMARK OFF)
-set(USE_GLUT OFF)
-add_subdirectory(../bullet bullet EXCLUDE_FROM_ALL)
+if(NOT TARGET BulletCollision)
+  set(BUILD_EXTRAS OFF)
+  set(BUILD_MULTITHREADING OFF)
+  set(BUILD_UNIT_TESTS OFF)
+  set(USE_GRAPHICAL_BENCHMARK OFF)
+  set(USE_GLUT OFF)
+  add_subdirectory(../bullet bullet EXCLUDE_FROM_ALL)
+endif()
 
 
 ########################################
@@ -20,10 +22,12 @@ add_subdirectory(benchmark EXCLUDE_FROM_ALL)
 ########################################
 project(bammo)
 
+set(BAMMO_DIR
+  ${CMAKE_CURRENT_SOURCE_DIR})
 set(BULLET_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}/../bullet)
 set(BAMMO_SOURCES
-  main.cpp
+  ${BAMMO_DIR}/main.cpp
   ${BULLET_DIR}/Demos/Benchmarks/BenchmarkDemo.cpp)
 set(BAMMO_CFLAGS
   -std=c++11

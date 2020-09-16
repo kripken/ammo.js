@@ -153,3 +153,35 @@ add_executable(benchmark.wasm.js $<TARGET_OBJECTS:benchmark-objects>)
 set_target_properties(benchmark.wasm.js PROPERTIES OUTPUT_NAME benchmark.wasm)
 target_link_libraries(benchmark.wasm.js ${BULLET_TARGETS})
 target_link_options(benchmark.wasm.js PUBLIC ${BENCHMARK_WASM_LDFLAGS})
+
+
+#######################################
+# bammo emscripten targets
+#######################################
+add_subdirectory(bammo)
+set(BAMMO_LDFLAGS
+  -O3
+  -sALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
+  -sTOTAL_MEMORY=${TOTAL_MEMORY})
+set(BAMMO_JS_LDFLAGS ${BAMMO_LDFLAGS}
+  -sAGGRESSIVE_VARIABLE_ELIMINATION=1
+  -sELIMINATE_DUPLICATE_FUNCTIONS=1
+  -sSINGLE_FILE=1
+  -sWASM=0)
+set(BAMMO_WASM_LDFLAGS ${BAMMO_LDFLAGS}
+  -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1
+  -sWASM=1)
+
+add_library(bammo-objects OBJECT $<TARGET_PROPERTY:bammo,SOURCES>)
+target_include_directories(bammo-objects PUBLIC $<TARGET_PROPERTY:bammo,INCLUDE_DIRECTORIES>)
+target_compile_options(bammo-objects PUBLIC $<TARGET_PROPERTY:bammo,COMPILE_OPTIONS>)
+
+add_executable(bammo.js $<TARGET_OBJECTS:bammo-objects>)
+set_target_properties(bammo.js PROPERTIES OUTPUT_NAME bammo)
+target_link_libraries(bammo.js $<TARGET_PROPERTY:bammo,LINK_LIBRARIES>)
+target_link_options(bammo.js PUBLIC ${BAMMO_JS_LDFLAGS})
+
+add_executable(bammo.wasm.js $<TARGET_OBJECTS:bammo-objects>)
+set_target_properties(bammo.wasm.js PROPERTIES OUTPUT_NAME bammo.wasm)
+target_link_libraries(bammo.wasm.js $<TARGET_PROPERTY:bammo,LINK_LIBRARIES>)
+target_link_options(bammo.wasm.js PUBLIC ${BAMMO_WASM_LDFLAGS})
