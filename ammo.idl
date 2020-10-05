@@ -585,6 +585,8 @@ interface btRigidBody {
   void setGravity([Const, Ref] btVector3 acceleration);
   [Const] btBroadphaseProxy getBroadphaseProxy();
   void clearForces();
+  [Const, Ref] btVector3 getTotalForce();
+  [Const, Ref] btVector3 getTotalTorque();
 };
 btRigidBody implements btCollisionObject;
 
