@@ -587,6 +587,7 @@ interface btRigidBody {
   void clearForces();
   [Const, Ref] btVector3 getTotalForce();
   [Const, Ref] btVector3 getTotalTorque();
+  [Const] float getInvMass();
 };
 btRigidBody implements btCollisionObject;
 
