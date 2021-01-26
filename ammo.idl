@@ -216,6 +216,8 @@ interface btManifoldPoint {
 
 [Prefix="btCollisionWorld::"]
 interface ContactResultCallback {
+  attribute short m_collisionFilterGroup;
+  attribute short m_collisionFilterMask;
   float addSingleResult([Ref] btManifoldPoint cp, [Const] btCollisionObjectWrapper colObj0Wrap, long partId0, long index0, [Const] btCollisionObjectWrapper colObj1Wrap, long partId1, long index1);
 };
 
