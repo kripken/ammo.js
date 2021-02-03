@@ -14,19 +14,11 @@
   "homepage": "https://github.com/kripken/ammo.js",
   "devDependencies": {
     "ava": "^3.11.0",
-    "http-server": "^0.12.3",
-    "npm-run-all": "^4.1.5"
+    "http-server": "^0.12.3"
   },
   "scripts": {
     "test": "npm run test-js && npm run test-wasm",
     "test-js": "AMMO_PATH=builds/ammo.js ava",
-    "test-wasm": "AMMO_PATH=builds/ammo.wasm.js ava",
-    "clean": "clear && rm -rf echo $(pwd)/builds",
-    "docker:build": "docker build -t ammo .",
-    "docker:run": "docker run -d --name ammo-container ammo",
-    "docker:cp": "docker cp ammo-container:/src/builds $(echo $(pwd)/builds)",
-    "docker:stop": "docker stop ammo-container",
-    "docker:rm": "docker rm ammo-container",
-    "docker": "run-s clean docker:*"
+    "test-wasm": "AMMO_PATH=builds/ammo.wasm.js ava"
   }
 }
