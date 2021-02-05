@@ -714,6 +714,7 @@ interface btDispatcherInfo {
 };
 
 interface btCollisionWorld {
+  void btCollisionWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btCollisionConfiguration collisionConfiguration);
   btDispatcher getDispatcher();
   void rayTest([Const, Ref] btVector3 rayFromWorld, [Const, Ref] btVector3 rayToWorld, [Ref] RayResultCallback resultCallback);
   btOverlappingPairCache getPairCache();
