@@ -5,4 +5,4 @@ services:
     build: .
     volumes:
       - .:/code
-    command: sh build.sh 
+    command: bash -c "rm builds/ammo.* && cmake -B builds && cmake --build builds"
