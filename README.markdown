@@ -156,6 +156,19 @@ On windows, you can build using cmake's
 Note that if you have not installed emscripten via the emsdk, you can configure
 its location with `-DEMSCRIPTEN_ROOT`.
 
+### Building using Docker
+
+ammo.js can also be built with [Docker](https://www.docker.com).
+This offers many advantages (keeping its native environment clean, portability, etc.).
+To do this, you just have to install Docker and run:
+
+  ```bash
+  $ docker-compose build  # to create the Docker image
+  $ docker-compose up     # to create the Docker container and build ammo.js
+  ```
+
+If you want to add arguments to cmake, you have to edit the `docker-compose.yml` file. 
+
 Reducing Build Size
 -------------------
 
