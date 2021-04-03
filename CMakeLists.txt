@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.17)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 FIND_PACKAGE(Python3)
@@ -10,7 +10,7 @@ set(AMMO_FRONT_MATTER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/front-matter.js)
 set(AMMO_HEADER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.h)
 set(AMMO_IDL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ammo.idl)
 set(AMMO_ONLOAD_FILE ${CMAKE_CURRENT_SOURCE_DIR}/onload.js)
-set(BULLET_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet/src/)
+set(BULLET_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet)
 
 
 set(BULLET_TARGETS BulletCollision BulletDynamics BulletSoftBody LinearMath)
@@ -74,7 +74,7 @@ set(EMCC_WASM_ARGS ${EMCC_ARGS}
 
 set(EMCC_GLUE_ARGS
   -c
-  -I${BULLET_SRC_DIR}
+  -I${BULLET_DIR}/src
   -include${AMMO_HEADER_FILE})
 
 
@@ -118,3 +118,66 @@ add_custom_command(
   COMMENT "Building ammo webassembly"
   VERBATIM)
 add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
+
+
+#######################################
+# legacy benchmark emscripten targets
+#######################################
+set(BENCHMARK_LDFLAGS
+  -O3
+  -sALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
+  -sTOTAL_MEMORY=${TOTAL_MEMORY})
+set(BENCHMARK_JS_LDFLAGS ${BENCHMARK_LDFLAGS}
+  -sAGGRESSIVE_VARIABLE_ELIMINATION=1
+  -sELIMINATE_DUPLICATE_FUNCTIONS=1
+  -sSINGLE_FILE=1
+  -sWASM=0)
+set(BENCHMARK_WASM_LDFLAGS ${BENCHMARK_LDFLAGS}
+  -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1
+  -sWASM=1)
+
+add_library(benchmarks-objects OBJECT $<TARGET_PROPERTY:benchmarks,SOURCES>)
+target_include_directories(benchmarks-objects PUBLIC $<TARGET_PROPERTY:benchmarks,INCLUDE_DIRECTORIES>)
+target_compile_options(benchmarks-objects PUBLIC $<TARGET_PROPERTY:benchmarks,COMPILE_OPTIONS>)
+
+add_executable(benchmarks.js $<TARGET_OBJECTS:benchmarks-objects>)
+set_target_properties(benchmarks.js PROPERTIES OUTPUT_NAME benchmarks)
+target_link_libraries(benchmarks.js $<TARGET_PROPERTY:benchmarks,LINK_LIBRARIES>)
+target_link_options(benchmarks.js PUBLIC ${BENCHMARK_JS_LDFLAGS})
+
+add_executable(benchmarks.wasm.js $<TARGET_OBJECTS:benchmarks-objects>)
+set_target_properties(benchmarks.wasm.js PROPERTIES OUTPUT_NAME benchmarks.wasm)
+target_link_libraries(benchmarks.wasm.js $<TARGET_PROPERTY:benchmarks,LINK_LIBRARIES>)
+target_link_options(benchmarks.wasm.js PUBLIC ${BENCHMARK_WASM_LDFLAGS})
+
+
+#######################################
+# bammo emscripten targets
+#######################################
+add_subdirectory(bammo)
+set(BAMMO_LDFLAGS
+  -O3
+  -sALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
+  -sTOTAL_MEMORY=${TOTAL_MEMORY})
+set(BAMMO_JS_LDFLAGS ${BAMMO_LDFLAGS}
+  -sAGGRESSIVE_VARIABLE_ELIMINATION=1
+  -sELIMINATE_DUPLICATE_FUNCTIONS=1
+  -sSINGLE_FILE=1
+  -sWASM=0)
+set(BAMMO_WASM_LDFLAGS ${BAMMO_LDFLAGS}
+  -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1
+  -sWASM=1)
+
+add_library(bammo-objects OBJECT $<TARGET_PROPERTY:bammo,SOURCES>)
+target_include_directories(bammo-objects PUBLIC $<TARGET_PROPERTY:bammo,INCLUDE_DIRECTORIES>)
+target_compile_options(bammo-objects PUBLIC $<TARGET_PROPERTY:bammo,COMPILE_OPTIONS>)
+
+add_executable(bammo.js $<TARGET_OBJECTS:bammo-objects>)
+set_target_properties(bammo.js PROPERTIES OUTPUT_NAME bammo)
+target_link_libraries(bammo.js $<TARGET_PROPERTY:bammo,LINK_LIBRARIES>)
+target_link_options(bammo.js PUBLIC ${BAMMO_JS_LDFLAGS})
+
+add_executable(bammo.wasm.js $<TARGET_OBJECTS:bammo-objects>)
+set_target_properties(bammo.wasm.js PROPERTIES OUTPUT_NAME bammo.wasm)
+target_link_libraries(bammo.wasm.js $<TARGET_PROPERTY:bammo,LINK_LIBRARIES>)
+target_link_options(bammo.wasm.js PUBLIC ${BAMMO_WASM_LDFLAGS})
