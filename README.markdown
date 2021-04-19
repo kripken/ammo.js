@@ -5,13 +5,13 @@ ammo.js
 Demos
 -----
 
- * [Cubes](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.html)
- * [Cubes (WebAssembly)](http://kripken.github.com/ammo.js/examples/webgl_demo/ammo.wasm.html)
- * [SoftBody-Rope](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_rope/index.html)
- * [SoftBody-Cloth](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_cloth/index.html)
- * [SoftBody-Volume](http://kripken.github.com/ammo.js/examples/webgl_demo_softbody_volume/index.html)
- * [Heightmap](http://kripken.github.com/ammo.js/examples/webgl_demo_terrain/index.html)
- * [Vehicle](http://kripken.github.io/ammo.js/examples/webgl_demo_vehicle/index.html)
+ * [Cubes](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo/ammo.html)
+ * [Cubes (WebAssembly)](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo/ammo.wasm.html)
+ * [SoftBody-Rope](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo_softbody_rope/index.html)
+ * [SoftBody-Cloth](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo_softbody_cloth/index.html)
+ * [SoftBody-Volume](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo_softbody_volume/index.html)
+ * [Heightmap](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo_terrain/index.html)
+ * [Vehicle](https://rawcdn.githack.com/kripken/ammo.js/99d0ec0b1e26d7ccc13e013caba8e8a5c98d953b/examples/webgl_demo_vehicle/index.html)
 
 
 Overview
