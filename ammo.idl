@@ -552,39 +552,86 @@ interface btRigidBodyConstructionInfo {
 interface btRigidBody {
   void btRigidBody([Const, Ref] btRigidBodyConstructionInfo constructionInfo);
 
-  [Const, Ref] btTransform getCenterOfMassTransform();
-  void setCenterOfMassTransform([Const, Ref] btTransform xform);
-  void setSleepingThresholds(float linear, float angular);
+  void proceedToTransform([Const, Ref] btTransform newTrans);
+  btRigidBody upcast(btCollisionObject colObj);
+  void predictIntegratedTransform(float step, [Ref] btTransform predictedTransform);
+  void saveKinematicState(float step);
+  void applyGravity();
+  void clearGravity();
+  void setGravity([Const, Ref] btVector3 acceleration);
+  [Const, Ref] btVector3 getGravity();
+  void setDamping(float lin_damping, float ang_damping);
   [Const] float getLinearDamping();
   [Const] float getAngularDamping();
-  void setDamping(float lin_damping, float ang_damping);
+  float getLinearSleepingThreshold();
+  float getAngularSleepingThreshold();
+  void applyDamping(float timeStep);
+  btCollisionShape getCollisionShape();
   void setMassProps(float mass, [Const, Ref] btVector3 inertia);
   [Const, Ref] btVector3 getLinearFactor();
   void setLinearFactor([Const, Ref] btVector3 linearFactor);
-  void applyTorque([Const, Ref] btVector3 torque);
-  void applyLocalTorque([Const, Ref] btVector3 torque);
-  void applyForce([Const, Ref] btVector3 force, [Const, Ref] btVector3 rel_pos);
+  float getInvMass();
+  float getMass();
+  [Const, Ref] btMatrix3x3 getInvInertiaTensorWorld();
+  void integrateVelocities(float step);
+  void setCenterOfMassTransform([Const, Ref] btTransform xform);
   void applyCentralForce([Const, Ref] btVector3 force);
-  void applyCentralLocalForce([Const, Ref] btVector3 force);
+  [Const, Ref] btVector3 getTotalForce();
+  [Const, Ref] btVector3 getTotalTorque();
+  [Const, Ref] btVector3 getInvInertiaDiagLocal();
+  void setInvInertiaDiagLocal([Const, Ref] btVector3 diagInvInertia);
+  void setSleepingThresholds(float linear, float angular);
+  void applyTorque([Const, Ref] btVector3 torque);
+  void applyForce([Const, Ref] btVector3 force, [Const, Ref] btVector3 rel_pos);
+  void applyCentralImpulse([Const, Ref] btVector3 impulse);
   void applyTorqueImpulse([Const, Ref] btVector3 torque);
   void applyImpulse([Const, Ref] btVector3 impulse, [Const, Ref] btVector3 rel_pos);
-  void applyCentralImpulse([Const, Ref] btVector3 impulse);
+  void applyPushImpulse([Const, Ref] btVector3 impulse, [Const, Ref] btVector3 rel_pos);
+  [Value] btVector3 getPushVelocity();
+  [Value] btVector3 getTurnVelocity();
+  void setPushVelocity([Const, Ref] btVector3 v);
+  void setTurnVelocity([Const, Ref] btVector3 v);
+  void applyCentralPushImpulse([Const, Ref] btVector3 impulse);
+  void applyTorqueTurnImpulse([Const, Ref] btVector3 torque);
+  void clearForces();
   void updateInertiaTensor();
+  [Const, Ref] btVector3 getCenterOfMassPosition();
+  [Value] btQuaternion getOrientation();
+  [Const, Ref] btTransform getCenterOfMassTransform();
   [Const, Ref] btVector3 getLinearVelocity();
   [Const, Ref] btVector3 getAngularVelocity();
   void setLinearVelocity([Const, Ref] btVector3 lin_vel);
   void setAngularVelocity([Const, Ref] btVector3 ang_vel);
-  btMotionState getMotionState();
-  void setMotionState(btMotionState motionState);
-  [Const, Ref] btVector3 getAngularFactor();
-  void setAngularFactor([Const, Ref] btVector3 angularFactor);
-  btRigidBody upcast(btCollisionObject colObj);
+  [Value] btVector3 getVelocityInLocalPoint([Const, Ref] btVector3 rel_pos);
+  [Value] btVector3 getPushVelocityInLocalPoint([Const, Ref] btVector3 rel_pos);
+  void translate([Const, Ref] btVector3 v);
   void getAabb([Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
-  void applyGravity();
-  [Const, Ref] btVector3 getGravity();
-  void setGravity([Const, Ref] btVector3 acceleration);
-  [Const] btBroadphaseProxy getBroadphaseProxy();
-  void clearForces();
+  float computeImpulseDenominator([Const, Ref] btVector3 pos, [Const, Ref] btVector3 normal);
+  float computeAngularImpulseDenominator([Const, Ref] btVector3 axis);
+  void updateDeactivation(float timeStep);
+  boolean wantsSleeping();
+  [Const] btBroadphaseProxy getBroadphaseProxy(); // const ? non-const
+  void setNewBroadphaseProxy(btBroadphaseProxy broadphaseProxy);
+  btMotionState getMotionState(); // const ? non-const
+  void setMotionState(btMotionState motionState);
+  void setAngularFactor([Const, Ref] btVector3 angFac);
+  // void setAngularFactor(float angFac);
+  [Const, Ref] btVector3 getAngularFactor();
+  boolean isInWorld();
+  void addConstraintRef(btTypedConstraint c);
+  void removeConstraintRef(btTypedConstraint c);
+  btTypedConstraint getConstraintRef(long index);
+  long getNumConstraintRefs();
+  void setFlags(long flags);
+  long getFlags();
+  [Value] btVector3 computeGyroscopicImpulseImplicit_World(float dt);
+  [Value] btVector3 computeGyroscopicImpulseImplicit_Body(float step);
+  [Value] btVector3 computeGyroscopicForceExplicit(float maxGyroscopicForce);
+  [Value] btVector3 getLocalInertia();
+  long calculateSerializeBufferSize();
+  //TODO figure out btSerializer
+  // [Const] DOMString serialize(VoidPtr dataBuffer, btSerializer serializer);
+  // void serializeSingleObject(btSerializer serializer);
 };
 btRigidBody implements btCollisionObject;
 
@@ -741,7 +788,7 @@ interface btDynamicsWorld {
   void addAction(btActionInterface action);
   void removeAction(btActionInterface action);
   [Ref] btContactSolverInfo getSolverInfo();
-  void setInternalTickCallback(VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
+  // void setInternalTickCallback(VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 btDynamicsWorld implements btCollisionWorld;
 
@@ -761,9 +808,9 @@ interface btDiscreteDynamicsWorld {
   long stepSimulation(float timeStep, optional long maxSubSteps, optional float fixedTimeStep);
 
 	// Contact callback support
-  void setContactAddedCallback(long funcpointer);
-  void setContactProcessedCallback(long funcpointer);
-  void setContactDestroyedCallback(long funcpointer);
+  // void setContactAddedCallback(long funcpointer);
+  // void setContactProcessedCallback(long funcpointer);
+  // void setContactDestroyedCallback(long funcpointer);
 };
 btDiscreteDynamicsWorld implements btDynamicsWorld;
 
@@ -856,28 +903,44 @@ interface btActionInterface {
 };
 
 interface btKinematicCharacterController {
-  void btKinematicCharacterController(btPairCachingGhostObject ghostObject, btConvexShape convexShape, float stepHeight, optional long upAxis);
-
-  void setUpAxis (long axis);
+  void btKinematicCharacterController(btPairCachingGhostObject ghostObject, btConvexShape convexShape, float stepHeight, [Const, Ref] optional btVector3 up);
+  void updateAction(btCollisionWorld collisionWorld, float deltaTime);
+  void debugDraw(btIDebugDraw debugDrawer);
+  void setUp ([Const, Ref] btVector3 up);
+  [Const, Ref] btVector3 getUp ();
   void setWalkDirection ([Const,Ref] btVector3 walkDirection);
   void setVelocityForTimeInterval ([Const,Ref] btVector3 velocity, float timeInterval);
-  //void reset ();
+  void setAngularVelocity([Const, Ref] btVector3 velocity);
+  void setLinearVelocity([Const, Ref] btVector3 velocity);
+  [Value] btVector3 getLinearVelocity();
+  void setLinearDamping(float d);
+  float getLinearDamping();
+  void setAngularDamping(float d);
+  float getAngularDamping();
+  void reset (btCollisionWorld collisionWorld);
   void warp ([Const, Ref]btVector3 origin);
   void preStep (btCollisionWorld collisionWorld);
   void playerStep (btCollisionWorld collisionWorld, float dt);
-  void setFallSpeed (float fallSpeed);
-  void setJumpSpeed (float jumpSpeed);
+  void setStepHeight(float h);
+  float getStepHeight();
+  void setFallSpeed(float fallSpeed);
+  float getFallSpeed();
+  void setJumpSpeed(float jumpSpeed);
+  float getJumpSpeed();
   void setMaxJumpHeight (float maxJumpHeight);
-  boolean canJump ();
-  void jump ();
-  void setGravity (float gravity);
-  float getGravity ();
-  void setMaxSlope (float slopeRadians);
-  float getMaxSlope ();
-  btPairCachingGhostObject getGhostObject ();
-  void setUseGhostSweepTest (boolean useGhostObjectSweepTest);
-  boolean onGround ();
-  void setUpInterpolate (boolean value);
+  boolean canJump();
+  void jump([Const, Ref] optional btVector3 v);
+  void applyImpulse([Const, Ref] btVector3 v);
+  void setGravity([Const, Ref] btVector3 gravity);
+  [Value] btVector3 getGravity();
+  void setMaxSlope(float slopeRadians);
+  float getMaxSlope();
+  void setMaxPenetrationDepth(float d);
+  float getMaxPenetrationDepth();
+  btPairCachingGhostObject getGhostObject();
+  void setUseGhostSweepTest(boolean useGhostObjectSweepTest);
+  boolean onGround();
+  void setUpInterpolate(boolean value);
 };
 btKinematicCharacterController implements btActionInterface;
 
@@ -1107,9 +1170,10 @@ interface btSoftBodyHelpers {
   void btSoftBodyHelpers();
 
   btSoftBody CreateRope([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 from, [Const, Ref] btVector3 to, long res, long fixeds);
-  btSoftBody CreatePatch([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags);
-  btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, float[] tex_coords);
+  btSoftBody CreatePatch([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, optional float perturbation);
+  btSoftBody CreatePatchUV([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 corner00, [Const, Ref] btVector3 corner10, [Const, Ref] btVector3 corner01, [Const, Ref] btVector3 corner11, long resx, long resy, long fixeds, boolean gendiags, optional float[] tex_coords);
+  float CalculateUV(long resx, long resy, long ix, long iy, long id);
   btSoftBody CreateEllipsoid([Ref] btSoftBodyWorldInfo worldInfo, [Const, Ref] btVector3 center, [Const, Ref] btVector3 radius, long res);
-  btSoftBody CreateFromTriMesh([Ref] btSoftBodyWorldInfo worldInfo, float[] vertices, long[] triangles, long ntriangles, boolean randomizeConstraints);
-  btSoftBody CreateFromConvexHull([Ref] btSoftBodyWorldInfo worldInfo, [Const] btVector3 vertices, long nvertices, boolean randomizeConstraints);
+  btSoftBody CreateFromTriMesh([Ref] btSoftBodyWorldInfo worldInfo, [Const] float[] vertices, [Const] long[] triangles, long ntriangles, optional boolean randomizeConstraints);
+  btSoftBody CreateFromConvexHull([Ref] btSoftBodyWorldInfo worldInfo, [Const] btVector3 vertices, long nvertices, optional boolean randomizeConstraints);
 };

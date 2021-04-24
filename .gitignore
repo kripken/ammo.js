@@ -1,13 +1,24 @@
+# Builds
 builds/CMakeCache.txt
 builds/CMakeFiles/
-builds/Makefile
-builds/WebIDLGrammar.pkl
+builds/.cmake
 builds/bullet/
 builds/cmake_install.cmake
+
+builds/WebIDLGrammar.pkl
 builds/glue.cpp
 builds/glue.js
 builds/glue.o
 builds/parser.out
+
+# Make generator
+builds/Makefile
+# Ninja generator
+builds/.ninja_deps
+builds/.ninja_log
+builds/build.ninja
+builds/rules.ninja
+
 node_modules
 *.diff
 
@@ -16,3 +27,7 @@ node_modules
 [._]*.sw[a-p]
 [._]s[a-v][a-z]
 [._]sw[a-p]
+
+# vscode
+.vscode/
+builds/compile_commands.json

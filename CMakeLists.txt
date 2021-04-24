@@ -118,3 +118,11 @@ add_custom_command(
   COMMENT "Building ammo webassembly"
   VERBATIM)
 add_custom_target(ammo-wasm ALL DEPENDS ammo.wasm.js ammo.wasm.wasm)
+
+
+# The bullet library generates with unix makefiles, but with this, Ninja can be used alternatively
+# But the cmake configuration has to be run twice, so bullet notices the cache
+# It would be better if there was a simple option to disable install
+if("${CMAKE_GENERATOR}" MATCHES "Ninja")
+  set(PKGCONFIG_INSTALL_PREFIX "lib/pkgconfig/" CACHE STRING "Base directory for pkgconfig files")
+endif()
