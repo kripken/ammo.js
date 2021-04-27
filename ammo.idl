@@ -1,23 +1,3 @@
-// interface btIDebugDraw {
-//   void drawLine([Const, Ref] btVector3 from, [Const, Ref] btVector3 to, [Const, Ref] btVector3 color);
-//   void drawContactPoint([Const, Ref] btVector3 pointOnB, [Const, Ref] btVector3 normalOnB, float distance, long lifeTime, [Const, Ref] btVector3 color);
-//   void reportErrorWarning([Const] DOMString warningString);
-//   void draw3dText([Const, Ref] btVector3 location, [Const] DOMString textString);
-//   void setDebugMode(long debugMode);
-//   long getDebugMode();
-// };
-
-// [JSImplementation="btIDebugDraw"]
-// interface DebugDrawer {
-//   void DebugDrawer();
-//   void drawLine([Const, Ref] btVector3 from, [Const, Ref] btVector3 to, [Const, Ref] btVector3 color);
-//   void drawContactPoint([Const, Ref] btVector3 pointOnB, [Const, Ref] btVector3 normalOnB, float distance, long lifeTime, [Const, Ref] btVector3 color);
-//   void reportErrorWarning([Const] DOMString warningString);
-//   void draw3dText([Const, Ref] btVector3 location, [Const] DOMString textString);
-//   void setDebugMode(long debugMode);
-//   [Const] long getDebugMode();
-// };
-
 // Linear Math
 
 interface btVector3 {
@@ -197,6 +177,12 @@ interface btTransform {
   [Value] btTransform inverse();
   [Value] btTransform inverseTimes([Const, Ref] btTransform t);
   [Const, Ref] btTransform getIdentity();
+};
+
+interface btTypedObject {
+  void btTypedObject(long objectType);
+  attribute long m_objectType;
+  long getObjectType();
 };
 
 interface btMotionState {
@@ -1030,7 +1016,6 @@ interface btDbvtNode {
   boolean isinternal();
 };
 
-
 // Dynamics
 
 [Prefix="btRigidBody::"]
@@ -1131,19 +1116,27 @@ interface btRigidBody {
 };
 btRigidBody implements btCollisionObject;
 
-interface btConstraintSetting {
-  void btConstraintSetting();
-  attribute float m_tau;
-  attribute float m_damping;
-  attribute float m_impulseClamp;
+// Constraints
+
+interface btSequentialImpulseConstraintSolver {
+  void btSequentialImpulseConstraintSolver();
+  void reset();
+  void setRandSeed(unsigned long seed);
+  unsigned long getRandSeed();
 };
 
-interface btTypedConstraint {
-  void enableFeedback(boolean needsFeedback);
-  [Const] float getBreakingImpulseThreshold();
-  void setBreakingImpulseThreshold([Const] float threshold);
-  [Const] float getParam(long num, long axis);
-  void setParam(long num, float value, long axis);
+enum btTypedConstraintType {
+  "POINT2POINT_CONSTRAINT_TYPE",
+  "HINGE_CONSTRAINT_TYPE",
+  "CONETWIST_CONSTRAINT_TYPE",
+  "D6_CONSTRAINT_TYPE",
+  "SLIDER_CONSTRAINT_TYPE",
+  "CONTACT_CONSTRAINT_TYPE", // internal
+  "D6_SPRING_CONSTRAINT_TYPE",
+  "GEAR_CONSTRAINT_TYPE",
+  "FIXED_CONSTRAINT_TYPE",
+  "D6_SPRING_2_CONSTRAINT_TYPE",
+  "MAX_CONSTRAINT_TYPE"
 };
 
 enum btConstraintParams {
@@ -1153,94 +1146,566 @@ enum btConstraintParams {
   "BT_CONSTRAINT_STOP_CFM"
 };
 
+interface btJointFeedback {
+  [Value] attribute btVector3 m_appliedForceBodyA;
+  [Value] attribute btVector3 m_appliedTorqueBodyA;
+  [Value] attribute btVector3 m_appliedForceBodyB;
+  [Value] attribute btVector3 m_appliedTorqueBodyB;
+};
+
+interface btTypedConstraint {
+  [Ref] btRigidBody getFixedBody();
+  long getOverrideNumSolverIterations();
+  void setOverrideNumSolverIterations(long overideNumIterations);
+  float getBreakingImpulseThreshold();
+  void setBreakingImpulseThreshold([Const] float threshold);
+  boolean isEnabled();
+  void setEnabled(boolean enabled);
+  [Const, Ref] btRigidBody getRigidBodyA();
+  [Const, Ref] btRigidBody getRigidBodyB();
+  long getUserConstraintType();
+  void setUserConstraintType(long userConstraintType);
+  void setUserConstraintId(long uid);
+  long getUserConstraintId();
+  void setUserConstraintPtr(VoidPtr ptr);
+  VoidPtr getUserConstraintPtr();
+  void setJointFeedback(btJointFeedback jointFeedback);
+  btJointFeedback getJointFeedback();
+  long getUid();
+  boolean needsFeedback();
+  void enableFeedback(boolean needsFeedback);
+  float getAppliedImpulse();
+  btTypedConstraintType getConstraintType();
+  void setParam(long num, float value, long axis);
+  float getParam(long num, long axis);
+};
+btTypedConstraint implements btTypedObject;
+
+interface btConstraintSetting {
+  void btConstraintSetting();
+  attribute float m_tau;
+  attribute float m_damping;
+  attribute float m_impulseClamp;
+};
+
+enum btPoint2PointFlags {
+  "BT_P2P_FLAGS_ERP",
+  "BT_P2P_FLAGS_CFM"
+};
+
 interface btPoint2PointConstraint {
-  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB);
-  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btVector3 pivotInA);
+  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
+  void btPoint2PointConstraint([Ref] btRigidBody rbA, [Const, Ref] btVector3 pivotInA);
+  [Value] attribute btConstraintSetting m_setting;
+  void buildJacobian();
+  void updateRHS(float timeStep);
   void setPivotA([Const, Ref] btVector3 pivotA);
   void setPivotB([Const, Ref] btVector3 pivotB);
   [Const, Ref] btVector3 getPivotInA();
   [Const, Ref] btVector3 getPivotInB();
-
-  [Value] attribute btConstraintSetting m_setting;
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
+  long getFlags();
 };
 btPoint2PointConstraint implements btTypedConstraint;
 
-interface btGeneric6DofConstraint {
-  void btGeneric6DofConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform frameInA, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
-  void btGeneric6DofConstraint([Ref] btRigidBody rbB, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameB);
-  void setLinearLowerLimit([Const, Ref] btVector3 linearLower);
-  void setLinearUpperLimit([Const, Ref] btVector3 linearUpper);
-  void setAngularLowerLimit([Const, Ref] btVector3 angularLower);
-  void setAngularUpperLimit([Const, Ref] btVector3 angularUpper);
+interface btAngularLimit {
+  void btAngularLimit();
+  void set(float low, float high, optional float _softness, optional float _biasFactor, optional float _relaxationFactor);
+  float getSoftness();
+  float getBiasFactor();
+  float getRelaxationFactor();
+  float getCorrection();
+  float getSign();
+  float getHalfRange();
+  boolean isLimit();
+  void fit([Ref] float[] angle);
+  float getError();
+  float getLow();
+  float getHigh();
+};
+
+enum btHingeFlags {
+  "BT_HINGE_FLAGS_CFM_STOP",
+  "BT_HINGE_FLAGS_ERP_STOP",
+  "BT_HINGE_FLAGS_CFM_NORM",
+  "BT_HINGE_FLAGS_ERP_NORM"
+};
+
+interface btHingeConstraint {
+  void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB, [Const, Ref] btVector3 axisInA, [Const, Ref] btVector3 axisInB, optional boolean useReferenceFrameA);
+  // void btHingeConstraint ([Ref] btRigidBody rbA, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 axisInA, optional boolean useReferenceFrameA);
+  void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform rbAFrame, [Const, Ref] btTransform rbBFrame, optional boolean useReferenceFrameA);
+  void btHingeConstraint ([Ref] btRigidBody rbA, [Const, Ref] btTransform rbAFrame, optional boolean useReferenceFrameA);
+  void buildJacobian();
+  void updateRHS(float timeStep);
+  [Const, Ref] btRigidBody getRigidBodyA();
+  [Const, Ref] btRigidBody getRigidBodyB();
+  [Ref] btTransform getFrameOffsetA();
+  [Ref] btTransform getFrameOffsetB();
+  void setFrames([Const, Ref] btTransform frameA, [Const, Ref] btTransform frameB);
+  void setAngularOnly(boolean angularOnly);
+  void enableAngularMotor(boolean enableMotor, float targetVelocity, float maxMotorImpulse);
+  void enableMotor(boolean enableMotor);
+  void setMaxMotorImpulse(float maxMotorImpulse);
+  void setMotorTargetVelocity(float motorTargetVelocity);
+  // void setMotorTarget([Const,Ref] btQuaternion qAinB, float dt);
+  void setMotorTarget(float targetAngle, float dt);
+  void setLimit(float low, float high, float softness, float biasFactor, optional float relaxationFactor);
+  float getLimitSoftness();
+  float getLimitBiasFactor();
+  float getLimitRelaxationFactor();
+  void setAxis([Ref] btVector3 axisInA);
+  boolean hasLimit();
+  float getLowerLimit();
+  float getUpperLimit();
+  float getHingeAngle();
+  float getHingeAngle([Const, Ref] btTransform transA, [Const, Ref] btTransform transB);
+  void testLimit([Const, Ref] btTransform transA, [Const, Ref] btTransform transB);
+  [Const, Ref] btTransform getAFrame();
+  [Const, Ref] btTransform getBFrame();
+  long getSolveLimit();
+  float getLimitSign();
+  boolean getAngularOnly();
+  boolean getEnableAngularMotor();
+  float getMotorTargetVelocity();
+  float getMaxMotorImpulse();
+  boolean getUseFrameOffset();
+  void setUseFrameOffset(boolean frameOffsetOnOff);
+  boolean getUseReferenceFrameA();
+  void setUseReferenceFrameA(boolean useReferenceFrameA);
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
+  long getFlags();
+};
+btHingeConstraint implements btTypedConstraint;
+
+enum btConeTwistFlags {
+  "BT_CONETWIST_FLAGS_LIN_CFM",
+  "BT_CONETWIST_FLAGS_LIN_ERP",
+  "BT_CONETWIST_FLAGS_ANG_CFM"
+};
+
+interface btConeTwistConstraint {
+  void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform rbAFrame, [Const, Ref] btTransform rbBFrame);
+  void btConeTwistConstraint([Ref] btRigidBody rbA, [Const, Ref] btTransform rbAFrame);
+  void buildJacobian();
+  void updateRHS(float timeStep);
+  [Const, Ref] btRigidBody getRigidBodyA();
+  [Const, Ref] btRigidBody getRigidBodyB();
+  void setAngularOnly(boolean angularOnly);
+  boolean getAngularOnly();
+  void setLimit(long limitIndex, float limitValue);
+  float getLimit(long limitIndex);
+  void setLimit(float _swingSpan1, float _swingSpan2, float _twistSpan, optional float _softness, optional float _biasFactor, optional float _relaxationFactor);
+  [Const, Ref] btTransform getAFrame();
+  [Const, Ref] btTransform getBFrame();
+  long getSolveTwistLimit();
+  long getSolveSwingLimit();
+  float getTwistLimitSign();
+  void calcAngleInfo();
+  void calcAngleInfo2([Const, Ref] btTransform transA, [Const, Ref] btTransform transB, [Const, Ref] btMatrix3x3 invInertiaWorldA, [Const, Ref] btMatrix3x3 invInertiaWorldB);
+  float getSwingSpan1();
+  float getSwingSpan2();
+  float getTwistSpan();
+  float getLimitSoftness();
+  float getBiasFactor();
+  float getRelaxationFactor();
+  float getTwistAngle();
+  boolean isPastSwingLimit();
+  float getDamping();
+  void setDamping(float damping);
+  void enableMotor(boolean b);
+  boolean isMotorEnabled();
+  float getMaxMotorImpulse();
+  boolean isMaxMotorImpulseNormalized();
+  void setMaxMotorImpulse(float maxMotorImpulse);
+  void setMaxMotorImpulseNormalized(float maxMotorImpulse);
+  float getFixThresh();
+  void setFixThresh(float fixThresh);
+  void setMotorTarget([Const,Ref] btQuaternion q);
+  [Const,Ref] btQuaternion getMotorTarget();
+  void setMotorTargetInConstraintSpace([Const,Ref] btQuaternion q);
+  [Value] btVector3 GetPointForAngle(float fAngleInRadians, float fLength);
+  void setParam(long num, float value, optional long axis);
   [Const, Ref] btTransform getFrameOffsetA();
+  [Const, Ref] btTransform getFrameOffsetB();
+  float getParam(long num, optional long axis);
+  long getFlags();
+};
+btConeTwistConstraint implements btTypedConstraint;
+
+interface btRotationalLimitMotor {
+  void btRotationalLimitMotor();
+  attribute float m_loLimit;
+  attribute float m_hiLimit;
+  attribute float m_targetVelocity;
+  attribute float m_maxMotorForce;
+  attribute float m_maxLimitForce;
+  attribute float m_damping;
+  attribute float m_limitSoftness;
+  attribute float m_normalCFM;
+  attribute float m_stopERP;
+  attribute float m_stopCFM;
+  attribute float m_bounce;
+  attribute boolean m_enableMotor;
+  attribute float m_currentLimitError;
+  attribute float m_currentPosition;
+  attribute long m_currentLimit;
+  attribute float m_accumulatedImpulse;
+  boolean isLimited();
+  boolean needApplyTorques();
+  long testLimitValue(float test_value);
+  float solveAngularLimits(float timeStep, [Ref] btVector3 axis, float jacDiagABInv, btRigidBody body0, btRigidBody body1);
+};
+
+interface btTranslationalLimitMotor {
+  void btTranslationalLimitMotor();
+  [Value] attribute btVector3 m_lowerLimit;
+  [Value] attribute btVector3 m_upperLimit;
+  [Value] attribute btVector3 m_accumulatedImpulse;
+  attribute float m_limitSoftness;
+  attribute float m_damping;
+  attribute float m_restitution;
+  [Value] attribute btVector3 m_normalCFM;
+  [Value] attribute btVector3 m_stopERP;
+  [Value] attribute btVector3 m_stopCFM;
+  attribute boolean[] m_enableMotor;
+  [Value] attribute btVector3 m_targetVelocity;
+  [Value] attribute btVector3 m_maxMotorForce;
+  [Value] attribute btVector3 m_currentLimitError;
+  [Value] attribute btVector3 m_currentLinearDiff;
+  attribute long[] m_currentLimit; 
+  boolean isLimited(long limitIndex);
+  boolean needApplyForce(long limitIndex);
+  long testLimitValue(long limitIndex, float test_value);
+  float solveLinearAxis(
+    float timeStep,
+    float jacDiagABInv,
+    [Ref] btRigidBody body1, [Const, Ref] btVector3 pointInA,
+    [Ref] btRigidBody body2, [Const, Ref] btVector3 pointInB,
+    long limit_index,
+    [Const, Ref] btVector3 axis_normal_on_a,
+    [Const, Ref] btVector3 anchorPos);
+};
+
+enum bt6DofFlags {
+  "BT_6DOF_FLAGS_CFM_NORM",
+  "BT_6DOF_FLAGS_CFM_STOP",
+  "BT_6DOF_FLAGS_ERP_STOP"
+};
+
+interface btGeneric6DofConstraint {
+  void btGeneric6DofConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform frameInA, [Const, Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
+  void btGeneric6DofConstraint([Ref] btRigidBody rbB, [Const, Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameB);
+  void calculateTransforms([Const, Ref] btTransform transA, [Const, Ref] btTransform transB);
+  void calculateTransforms();
+  [Const, Ref] btTransform getCalculatedTransformA();
+  [Const, Ref] btTransform getCalculatedTransformB();
+  [Ref] btTransform getFrameOffsetA();
+  [Ref] btTransform getFrameOffsetB();
+  void buildJacobian();
+  void updateRHS(float timeStep);
+  [Value] btVector3 getAxis(long axis_index);
+  float getAngle(long axis_index);
+  float getRelativePivotPosition(long axis_index);
+  void setFrames([Const, Ref] btTransform frameA, [Const, Ref] btTransform frameB);
+  void setLinearLowerLimit([Const, Ref] btVector3 linearLower);
+  void getLinearLowerLimit([Ref] btVector3 linearLower);
+  void setLinearUpperLimit([Const, Ref] btVector3 linearUpper);
+  void getLinearUpperLimit([Ref] btVector3 linearUpper);
+  void setAngularLowerLimit([Const, Ref] btVector3 angularLower);
+  void getAngularLowerLimit([Ref] btVector3 angularLower);
+  void setAngularUpperLimit([Const, Ref] btVector3 angularUpper);
+  void getAngularUpperLimit([Ref] btVector3 angularUpper);
+  btRotationalLimitMotor getRotationalLimitMotor(long index);
+  btTranslationalLimitMotor getTranslationalLimitMotor();
+  void setLimit(long axis, float lo, float hi);
+  boolean isLimited(long limitIndex);
+  void calcAnchorPos();
+  boolean getUseFrameOffset();
+  void setUseFrameOffset(boolean frameOffsetOnOff);
+  boolean getUseLinearReferenceFrameA();
+  void setUseLinearReferenceFrameA(boolean linearReferenceFrameA);
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
+  void setAxis([Const, Ref] btVector3 axis1, [Const, Ref] btVector3 axis2);
+  long getFlags();
 };
 btGeneric6DofConstraint implements btTypedConstraint;
 
+enum btSliderFlags {
+  "BT_SLIDER_FLAGS_CFM_DIRLIN",
+  "BT_SLIDER_FLAGS_ERP_DIRLIN",
+  "BT_SLIDER_FLAGS_CFM_DIRANG",
+  "BT_SLIDER_FLAGS_ERP_DIRANG",
+  "BT_SLIDER_FLAGS_CFM_ORTLIN",
+  "BT_SLIDER_FLAGS_ERP_ORTLIN",
+  "BT_SLIDER_FLAGS_CFM_ORTANG",
+  "BT_SLIDER_FLAGS_ERP_ORTANG",
+  "BT_SLIDER_FLAGS_CFM_LIMLIN",
+  "BT_SLIDER_FLAGS_ERP_LIMLIN",
+  "BT_SLIDER_FLAGS_CFM_LIMANG",
+  "BT_SLIDER_FLAGS_ERP_LIMANG"
+};
+
+interface btSliderConstraint {
+  void btSliderConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform frameInA, [Const, Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
+  void btSliderConstraint([Ref] btRigidBody rbB, [Const, Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
+  [Const, Ref] btRigidBody getRigidBodyA();
+  [Const, Ref] btRigidBody getRigidBodyB();
+  [Const, Ref] btTransform getCalculatedTransformA();
+  [Const, Ref] btTransform getCalculatedTransformB();
+  [Const, Ref] btTransform getFrameOffsetA();
+  [Const, Ref] btTransform getFrameOffsetB();
+  float getLowerLinLimit();
+  void setLowerLinLimit(float lowerLimit);
+  float getUpperLinLimit();
+  void setUpperLinLimit(float upperLimit);
+  float getLowerAngLimit();
+  void setLowerAngLimit(float lowerAngLimit);
+  float getUpperAngLimit();
+  void setUpperAngLimit(float upperAngLimit);
+  boolean getUseLinearReferenceFrameA();
+  float getSoftnessDirLin();
+  float getRestitutionDirLin();
+  float getDampingDirLin();
+  float getSoftnessDirAng();
+  float getRestitutionDirAng();
+  float getDampingDirAng();
+  float getSoftnessLimLin();
+  float getRestitutionLimLin();
+  float getDampingLimLin();
+  float getSoftnessLimAng();
+  float getRestitutionLimAng();
+  float getDampingLimAng();
+  float getSoftnessOrthoLin();
+  float getRestitutionOrthoLin();
+  float getDampingOrthoLin();
+  float getSoftnessOrthoAng();
+  float getRestitutionOrthoAng();
+  float getDampingOrthoAng();
+  void setSoftnessDirLin(float softnessDirLin);
+  void setRestitutionDirLin(float restitutionDirLin);
+  void setDampingDirLin(float dampingDirLin);
+  void setSoftnessDirAng(float softnessDirAng);
+  void setRestitutionDirAng(float restitutionDirAng);
+  void setDampingDirAng(float dampingDirAng);
+  void setSoftnessLimLin(float softnessLimLin);
+  void setRestitutionLimLin(float restitutionLimLin);
+  void setDampingLimLin(float dampingLimLin);
+  void setSoftnessLimAng(float softnessLimAng);
+  void setRestitutionLimAng(float restitutionLimAng);
+  void setDampingLimAng(float dampingLimAng);
+  void setSoftnessOrthoLin(float softnessOrthoLin);
+  void setRestitutionOrthoLin(float restitutionOrthoLin);
+  void setDampingOrthoLin(float dampingOrthoLin);
+  void setSoftnessOrthoAng(float softnessOrthoAng);
+  void setRestitutionOrthoAng(float restitutionOrthoAng);
+  void setDampingOrthoAng(float dampingOrthoAng);
+  void setPoweredLinMotor(boolean onOff);
+  boolean getPoweredLinMotor();
+  void setTargetLinMotorVelocity(float targetLinMotorVelocity);
+  float getTargetLinMotorVelocity();
+  void setMaxLinMotorForce(float maxLinMotorForce);
+  float getMaxLinMotorForce();
+  void setPoweredAngMotor(boolean onOff);
+  boolean getPoweredAngMotor();
+  void setTargetAngMotorVelocity(float targetAngMotorVelocity);
+  float getTargetAngMotorVelocity();
+  void setMaxAngMotorForce(float maxAngMotorForce);
+  float getMaxAngMotorForce();
+  float getLinearPos();
+  float getAngularPos();
+  boolean getUseFrameOffset();
+  void setUseFrameOffset(boolean frameOffsetOnOff);
+  void setFrames([Const, Ref] btTransform frameA, [Const, Ref] btTransform frameB);
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
+  long getFlags();
+};
+btSliderConstraint implements btTypedConstraint;
+
 interface btGeneric6DofSpringConstraint {
-  void btGeneric6DofSpringConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform frameInA, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
+  void btGeneric6DofSpringConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform frameInA, [Const, Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameA);
   void btGeneric6DofSpringConstraint([Ref] btRigidBody rbB, [Ref] btTransform frameInB, boolean useLinearFrameReferenceFrameB);
   void enableSpring(long index, boolean onOff);
   void setStiffness(long index, float stiffness);
   void setDamping(long index, float damping);
-  void setEquilibriumPoint(long index, float val);
-  void setEquilibriumPoint(long index);
   void setEquilibriumPoint();
+  void setEquilibriumPoint(long index);
+  void setEquilibriumPoint(long index, float val);
+  boolean isSpringEnabled(long index);
+  float getStiffness(long index);
+  float getDamping(long index);
+  float getEquilibriumPoint(long index);
+  void setAxis([Const, Ref] btVector3 axis1, [Const, Ref] btVector3 axis2);
 };
 btGeneric6DofSpringConstraint implements btGeneric6DofConstraint;
 
-interface btSequentialImpulseConstraintSolver {
-  void btSequentialImpulseConstraintSolver();
+interface btGearConstraint {
+  void btGearConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btVector3 axisInA, [Const, Ref] btVector3 axisInB, optional float ratio);
+  void setAxisA([Ref] btVector3 axisA);
+  void setAxisB([Ref] btVector3 axisB);
+  void setRatio(float ratio);
+  [Const, Ref] btVector3 getAxisA();
+  [Const, Ref] btVector3 getAxisB();
+  float getRatio();
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
 };
-
-interface btConeTwistConstraint {
-  void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame);
-  void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame);
-
-  void setLimit(long limitIndex, float limitValue);
-  void setAngularOnly(boolean angularOnly);
-  void setDamping(float damping);
-  void enableMotor(boolean b);
-  void setMaxMotorImpulse(float maxMotorImpulse);
-  void setMaxMotorImpulseNormalized(float maxMotorImpulse);
-  void setMotorTarget([Const,Ref] btQuaternion q);
-  void setMotorTargetInConstraintSpace([Const,Ref] btQuaternion q);
-};
-btConeTwistConstraint implements btTypedConstraint;
-
-interface btHingeConstraint {
-  void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 pivotInA, [Ref] btVector3 pivotInB, [Ref] btVector3 axisInA, [Ref] btVector3 axisInB, optional boolean useReferenceFrameA);
-  //void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btVector3 pivotInA, [Ref] btVector3 axisInA, optional boolean useReferenceFrameA);
-  void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame, optional boolean useReferenceFrameA);
-  void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame, optional boolean useReferenceFrameA);
-
-  void setLimit(float low, float high, float softness, float biasFactor, optional float relaxationFactor);
-  void enableAngularMotor(boolean enableMotor, float targetVelocity, float maxMotorImpulse);
-  void setAngularOnly(boolean angularOnly);
-
-  void enableMotor(boolean enableMotor);
-  void setMaxMotorImpulse(float maxMotorImpulse);
-  //void setMotorTarget([Const,Ref] btQuaternion qAinB, float dt);
-  void setMotorTarget(float targetAngle, float dt);
-};
-btHingeConstraint implements btTypedConstraint;
-
-interface btSliderConstraint {
-  void btSliderConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btTransform frameInA, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
-  void btSliderConstraint([Ref] btRigidBody rbB, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
-  void setLowerLinLimit(float lowerLimit);
-  void setUpperLinLimit(float upperLimit);
-  void setLowerAngLimit(float lowerAngLimit);
-  void setUpperAngLimit(float upperAngLimit);
-};
-btSliderConstraint implements btTypedConstraint;
+btGearConstraint implements btTypedConstraint;
 
 interface btFixedConstraint {
   void btFixedConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btTransform frameInA, [Const,Ref] btTransform frameInB);
 };
-btFixedConstraint implements btTypedConstraint;
+btFixedConstraint implements btGeneric6DofSpring2Constraint;
 
-interface btConstraintSolver {
+enum RotateOrder {
+  "RO_XYZ",
+  "RO_XZY",
+  "RO_YXZ",
+  "RO_YZX",
+  "RO_ZXY",
+  "RO_ZYX"
 };
+
+interface btRotationalLimitMotor2 {
+  void btRotationalLimitMotor2();
+  attribute float m_loLimit;
+  attribute float m_hiLimit;
+  attribute float m_bounce;
+  attribute float m_stopERP;
+  attribute float m_stopCFM;
+  attribute float m_motorERP;
+  attribute float m_motorCFM;
+  attribute boolean m_enableMotor;
+  attribute float m_targetVelocity;
+  attribute float m_maxMotorForce;
+  attribute boolean m_servoMotor;
+  attribute float m_servoTarget;
+  attribute boolean m_enableSpring;
+  attribute float m_springStiffness;
+  attribute boolean m_springStiffnessLimited;
+  attribute float m_springDamping;
+  attribute boolean m_springDampingLimited;
+  attribute float m_equilibriumPoint;
+  attribute float m_currentLimitError;
+  attribute float m_currentLimitErrorHi;
+  attribute float m_currentPosition;
+  attribute long m_currentLimit;
+  boolean isLimited();
+  void testLimitValue(float test_value);
+};
+
+interface btTranslationalLimitMotor2 {
+  void btTranslationalLimitMotor2();
+  [Value] attribute btVector3 m_lowerLimit;
+  [Value] attribute btVector3 m_upperLimit;
+  [Value] attribute btVector3 m_bounce;
+  [Value] attribute btVector3 m_stopERP;
+  [Value] attribute btVector3 m_stopCFM;
+  [Value] attribute btVector3 m_motorERP;
+  [Value] attribute btVector3 m_motorCFM;
+  attribute boolean[] m_enableMotor;
+  attribute boolean[] m_servoMotor;
+  attribute boolean[] m_enableSpring;
+  [Value] attribute btVector3 m_servoTarget;
+  [Value] attribute btVector3 m_springStiffness;
+  attribute boolean[] m_springStiffnessLimited;
+  [Value] attribute btVector3 m_springDamping;
+  attribute boolean[] m_springDampingLimited;
+  [Value] attribute btVector3 m_equilibriumPoint;
+  [Value] attribute btVector3 m_targetVelocity;
+  [Value] attribute btVector3 m_maxMotorForce;
+  [Value] attribute btVector3 m_currentLimitError;
+  [Value] attribute btVector3 m_currentLimitErrorHi;
+  [Value] attribute btVector3 m_currentLinearDiff;
+  attribute long[] m_currentLimit;
+  boolean isLimited(long limitIndex);
+  void testLimitValue(long limitIndex, float test_value);
+};
+
+enum bt6DofFlags2 {
+  "BT_6DOF_FLAGS_CFM_STOP2",
+  "BT_6DOF_FLAGS_ERP_STOP2",
+  "BT_6DOF_FLAGS_CFM_MOTO2",
+  "BT_6DOF_FLAGS_ERP_MOTO2",
+  "BT_6DOF_FLAGS_USE_INFINITE_ERROR"
+};
+
+interface btGeneric6DofSpring2Constraint {
+  void btGeneric6DofSpring2Constraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btTransform frameInA, [Const, Ref] btTransform frameInB, optional RotateOrder rotOrder);
+  void btGeneric6DofSpring2Constraint([Ref] btRigidBody rbB, [Const, Ref] btTransform frameInB, optional RotateOrder rotOrder);
+  void buildJacobian();
+  btRotationalLimitMotor2 getRotationalLimitMotor(long index);
+  btTranslationalLimitMotor2 getTranslationalLimitMotor();
+  void calculateTransforms([Const, Ref] btTransform transA, [Const, Ref] btTransform transB);
+  void calculateTransforms();
+  [Const, Ref] btTransform getCalculatedTransformA();
+  [Const, Ref] btTransform getCalculatedTransformB();
+  [Ref] btTransform getFrameOffsetA();
+  [Ref] btTransform getFrameOffsetB();
+  [Value] btVector3 getAxis(long axis_index);
+  float getAngle(long axis_index);
+  float getRelativePivotPosition(long axis_index);
+  void setFrames([Const, Ref] btTransform frameA, [Const, Ref] btTransform frameB);
+  void setLinearLowerLimit([Const, Ref] btVector3 linearLower);
+  void getLinearLowerLimit([Ref] btVector3 linearLower);
+  void setLinearUpperLimit([Const, Ref] btVector3 linearUpper);
+  void getLinearUpperLimit([Ref] btVector3 linearUpper);
+  void setAngularLowerLimit([Const, Ref] btVector3 angularLower);
+  void setAngularLowerLimitReversed([Const, Ref] btVector3 angularLower);
+  void getAngularLowerLimit([Ref] btVector3 angularLower);
+  void getAngularLowerLimitReversed([Ref] btVector3 angularLower);
+  void setAngularUpperLimit([Const, Ref] btVector3 angularUpper);
+  void setAngularUpperLimitReversed([Const, Ref] btVector3 angularUpper);
+  void getAngularUpperLimit([Ref] btVector3 angularUpper);
+  void getAngularUpperLimitReversed([Ref] btVector3 angularUpper);
+  void setLimit(long axis, float lo, float hi);
+  void setLimitReversed(long axis, float lo, float hi);
+  boolean isLimited(long limitIndex);
+  void setRotationOrder(RotateOrder order);
+  RotateOrder getRotationOrder();
+  void setAxis([Const, Ref] btVector3 axis1, [Const, Ref] btVector3 axis2);
+  void setBounce(long index, float bounce);
+  void enableMotor(long index, boolean onOff);
+  void setServo(long index, boolean onOff);
+  void setTargetVelocity(long index, float velocity);
+  void setServoTarget(long index, float target);
+  void setMaxMotorForce(long index, float force);
+  void enableSpring(long index, boolean onOff);
+  void setStiffness(long index, float stiffness);
+  void setDamping(long index, float damping);
+  void setEquilibriumPoint();
+  void setEquilibriumPoint(long index);
+  void setEquilibriumPoint(long index, float val);
+  void setParam(long num, float value, optional long axis);
+  float getParam(long num, optional long axis);
+  float btGetMatrixElem([Const, Ref] btMatrix3x3 mat, long index);
+  boolean matrixToEulerXYZ([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+  boolean matrixToEulerXZY([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+  boolean matrixToEulerYXZ([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+  boolean matrixToEulerYZX([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+  boolean matrixToEulerZXY([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+  boolean matrixToEulerZYX([Const, Ref] btMatrix3x3 mat, [Ref] btVector3 xyz);
+};
+btGeneric6DofSpring2Constraint implements btTypedConstraint;
+
+interface btHinge2Constraint {
+  void btHinge2Constraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btVector3 anchor, [Ref] btVector3 axis1, [Ref] btVector3 axis2);
+  [Const, Ref] btVector3 getAnchor();
+  [Const, Ref] btVector3 getAnchor2();
+  [Const, Ref] btVector3 getAxis1();
+  [Const, Ref] btVector3 getAxis2();
+  float getAngle1();
+  float getAngle2();
+  void setUpperLimit(float ang1max);
+  void setLowerLimit(float ang1min);
+};
+btHinge2Constraint implements btGeneric6DofSpring2Constraint;
+
+interface btConstraintSolver {};
 
 interface btDispatcherInfo {
   attribute float m_timeStep;
@@ -1263,13 +1728,11 @@ interface btCollisionWorld {
   [Ref] btDispatcherInfo getDispatchInfo();
   void addCollisionObject(btCollisionObject collisionObject, optional short collisionFilterGroup, optional short collisionFilterMask);
   void removeCollisionObject(btCollisionObject collisionObject);
-  [Const] btBroadphaseInterface getBroadphase ();
+  [Const] btBroadphaseInterface getBroadphase();
   void convexSweepTest([Const] btConvexShape castShape, [Const, Ref] btTransform from, [Const, Ref] btTransform to, [Ref] ConvexResultCallback resultCallback, float allowedCcdPenetration);
   void contactPairTest(btCollisionObject colObjA, btCollisionObject colObjB, [Ref] ContactResultCallback resultCallback);
   void contactTest(btCollisionObject colObj, [Ref] ContactResultCallback resultCallback);
   void updateSingleAabb(btCollisionObject colObj);
-  void debugDrawWorld();
-  void debugDrawObject([Const, Ref] btTransform worldTransform, [Const] btCollisionShape shape, [Const, Ref] btVector3 color);
 };
 
 interface btContactSolverInfo {
@@ -1282,7 +1745,6 @@ interface btDynamicsWorld {
   void addAction(btActionInterface action);
   void removeAction(btActionInterface action);
   [Ref] btContactSolverInfo getSolverInfo();
-  // void setInternalTickCallback(VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 btDynamicsWorld implements btCollisionWorld;
 
@@ -1395,48 +1857,6 @@ interface btWheelInfo {
 interface btActionInterface {
     void updateAction (btCollisionWorld collisionWorld, float deltaTimeStep);
 };
-
-interface btKinematicCharacterController {
-  void btKinematicCharacterController(btPairCachingGhostObject ghostObject, btConvexShape convexShape, float stepHeight, [Const, Ref] optional btVector3 up);
-  void updateAction(btCollisionWorld collisionWorld, float deltaTime);
-  // void debugDraw(btIDebugDraw debugDrawer);
-  void setUp ([Const, Ref] btVector3 up);
-  [Const, Ref] btVector3 getUp ();
-  void setWalkDirection ([Const,Ref] btVector3 walkDirection);
-  void setVelocityForTimeInterval ([Const,Ref] btVector3 velocity, float timeInterval);
-  void setAngularVelocity([Const, Ref] btVector3 velocity);
-  void setLinearVelocity([Const, Ref] btVector3 velocity);
-  [Value] btVector3 getLinearVelocity();
-  void setLinearDamping(float d);
-  float getLinearDamping();
-  void setAngularDamping(float d);
-  float getAngularDamping();
-  void reset (btCollisionWorld collisionWorld);
-  void warp ([Const, Ref]btVector3 origin);
-  void preStep (btCollisionWorld collisionWorld);
-  void playerStep (btCollisionWorld collisionWorld, float dt);
-  void setStepHeight(float h);
-  float getStepHeight();
-  void setFallSpeed(float fallSpeed);
-  float getFallSpeed();
-  void setJumpSpeed(float jumpSpeed);
-  float getJumpSpeed();
-  void setMaxJumpHeight (float maxJumpHeight);
-  boolean canJump();
-  void jump([Const, Ref] optional btVector3 v);
-  void applyImpulse([Const, Ref] btVector3 v);
-  void setGravity([Const, Ref] btVector3 gravity);
-  [Value] btVector3 getGravity();
-  void setMaxSlope(float slopeRadians);
-  float getMaxSlope();
-  void setMaxPenetrationDepth(float d);
-  float getMaxPenetrationDepth();
-  btPairCachingGhostObject getGhostObject();
-  void setUseGhostSweepTest(boolean useGhostObjectSweepTest);
-  boolean onGround();
-  void setUpInterpolate(boolean value);
-};
-btKinematicCharacterController implements btActionInterface;
 
 interface btRaycastVehicle {
   void btRaycastVehicle([Const, Ref] btVehicleTuning tuning, btRigidBody chassis, btVehicleRaycaster raycaster);
