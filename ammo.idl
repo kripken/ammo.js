@@ -163,6 +163,7 @@ interface RayResultCallback {
   attribute short m_collisionFilterMask;
   attribute float m_closestHitFraction;
   [Const] attribute btCollisionObject m_collisionObject;
+  attribute unsigned long m_flags;
 };
 
 [Prefix="btCollisionWorld::"]
