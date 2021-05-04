@@ -252,38 +252,6 @@ interface btFaceArray {
 
 // Collision
 
-// enum CollisionFlags
-// {
-//   "btCollisionObject::CF_DYNAMIC_OBJECT",
-//   "btCollisionObject::CF_STATIC_OBJECT",
-//   "btCollisionObject::CF_KINEMATIC_OBJECT",
-//   "btCollisionObject::CF_NO_CONTACT_RESPONSE",
-//   "btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK",
-//   "btCollisionObject::CF_CHARACTER_OBJECT",
-//   "btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT",
-//   "btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING",
-//   "btCollisionObject::CF_HAS_CONTACT_STIFFNESS_DAMPING",
-//   "btCollisionObject::CF_HAS_CUSTOM_DEBUG_RENDERING_COLOR",
-//   "btCollisionObject::CF_HAS_FRICTION_ANCHOR",
-//   "btCollisionObject::CF_HAS_COLLISION_SOUND_TRIGGER"
-// };
-// enum btCollisionObject_CollisionObjectTypes
-// {
-//   "btCollisionObject::CO_COLLISION_OBJECT",
-//   "btCollisionObject::CO_RIGID_BODY",
-//   "btCollisionObject::CO_GHOST_OBJECT",
-//   "btCollisionObject::CO_SOFT_BODY",
-//   "btCollisionObject::CO_HF_FLUID",
-//   "btCollisionObject::CO_USER_TYPE",
-//   "btCollisionObject::CO_FEATHERSTONE_LINK"
-// };
-// enum btCollisionObject_AnisotropicFrictionFlags
-// {
-//   "btCollisionObject::CF_ANISOTROPIC_FRICTION_DISABLED",
-//   "btCollisionObject::CF_ANISOTROPIC_FRICTION",
-//   "btCollisionObject::CF_ANISOTROPIC_ROLLING_FRICTION"
-// };
-
 interface btCollisionObject {
   void btCollisionObject();
   boolean mergesSimulationIslands();
