@@ -359,6 +359,7 @@ interface LocalRayResult {
   attribute LocalShapeInfo m_localShapeInfo;
   [Value] attribute btVector3 m_hitNormalLocal;
   attribute float m_hitFraction;
+  attribute unsigned long m_flags;
 };
 
 [Prefix="btCollisionWorld::"]
