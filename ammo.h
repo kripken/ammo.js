@@ -4,6 +4,7 @@
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
 #include "BulletDynamics/Character/btKinematicCharacterController.h"
+#include "BulletDynamics/Dynamics/btDynamicsWorld.h"
 #include "BulletSoftBody/btDefaultSoftBodySolver.h"
 #include "BulletSoftBody/btSoftBody.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
@@ -18,3 +19,12 @@ typedef btAlignedObjectArray<int> btIntArray;
 typedef btAlignedObjectArray<btIndexedMesh> btIndexedMeshArray;
 typedef btAlignedObjectArray<const btCollisionObject*> btConstCollisionObjectArray;
 typedef btAlignedObjectArray<btScalar> btScalarArray;
+
+// Compatibility functions
+struct btCompat
+{
+    // Web IDL does not support special function pointers, only void*
+    static void setInternalTickCallback(btDynamicsWorld *world, void *cb, void *worldUserInfo = 0, bool isPreTick = false) {
+        world->setInternalTickCallback((btInternalTickCallback)cb, worldUserInfo, isPreTick);
+    }
+};
