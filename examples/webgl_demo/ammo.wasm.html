@@ -30,7 +30,6 @@
         var FLOOR_HEIGHT = -56
 
         var physicsWorker = null;
-        var nextPhysicsWorker = new Worker('worker.wasm.js');
 
         // CubicVR code
 
@@ -116,12 +115,14 @@
           // Worker
 
           if (physicsWorker) physicsWorker.terminate();
-          physicsWorker = nextPhysicsWorker;
-          nextPhysicsWorker = null;
-          if (!physicsWorker) physicsWorker = new Worker('worker.wasm.js');
+          physicsWorker = new Worker('worker.wasm.js');
 
           physicsWorker.onmessage = function(event) {
             var data = event.data;
+            if (data.isReady){
+              physicsWorker.postMessage(NUM);
+              return  
+            }
             if (data.objects.length != NUM) return;
             for (var i = 0; i < NUM; i++) {
               var physicsObject = data.objects[i];
@@ -138,7 +139,6 @@
             currFPS = data.currFPS;
             allFPS = data.allFPS;
           };
-          physicsWorker.postMessage(NUM);
 
           // Main loop
 

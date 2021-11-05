@@ -1,5 +1,5 @@
 
-var Module = { TOTAL_MEMORY: 256*1024*1024 };
+var Module = { TOTAL_MEMORY: 512*1024*1024 };
 
 importScripts('../../builds/ammo.js');
 
@@ -163,8 +163,8 @@ Ammo().then(function(Ammo) {
       simulate(now - last);
       last = now;
     }
-
     if (interval) clearInterval(interval);
     interval = setInterval(mainLoop, 1000/60);
   }
+  postMessage({isReady: true});
 });

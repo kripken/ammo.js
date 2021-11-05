@@ -171,5 +171,6 @@ Ammo(config).then(function(Ammo) {
     if (interval) clearInterval(interval);
     interval = setInterval(mainLoop, 1000/60);
   }
+  postMessage({isReady: true});
 });
 
