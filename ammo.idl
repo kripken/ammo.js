@@ -476,6 +476,152 @@ interface btHeightfieldTerrainShape {
 };
 btHeightfieldTerrainShape implements btConcaveShape;
 
+// GImpact
+
+interface btAABB {
+  void btAABB([ Const, Ref ] btVector3 V1, [ Const, Ref ] btVector3 V2, [ Const, Ref ] btVector3 V3, float margin);
+  void invalidate();
+  void increment_margin(float margin);
+  void copy_with_margin([ Const, Ref ] btAABB other, float margin);
+};
+
+interface btPrimitiveTriangle {
+  void btPrimitiveTriangle();
+};
+
+interface btTriangleShapeEx {
+  void btTriangleShapeEx([ Const, Ref ] btVector3 p1, [ Const, Ref ] btVector3 p2, [ Const, Ref ] btVector3 p3);
+  void getAabb([ Const, Ref ] btTransform t, [ Ref ] btVector3 aabbMin, [ Ref ] btVector3 aabbMax);
+  void applyTransform([ Const, Ref ] btTransform t);
+  void buildTriPlane([ Ref ] btVector4 plane);
+};
+
+interface btPrimitiveManagerBase {
+  boolean is_trimesh();
+  long get_primitive_count();
+  void get_primitive_box(long prim_index , [Ref] btAABB primbox);
+  void get_primitive_triangle(long prim_index, [Ref] btPrimitiveTriangle triangle);
+};
+
+enum eGIMPACT_SHAPE_TYPE {
+	"CONST_GIMPACT_COMPOUND_SHAPE",
+	"CONST_GIMPACT_TRIMESH_SHAPE_PART",
+	"CONST_GIMPACT_TRIMESH_SHAPE"
+};
+
+interface btTetrahedronShapeEx {
+    void btTetrahedronShapeEx();
+    void setVertices([ Const, Ref ] btVector3 v0, [ Const, Ref ] btVector3 v1, [ Const, Ref ] btVector3 v2, [ Const, Ref ] btVector3 v3);
+};
+
+interface btGImpactShapeInterface {
+  void updateBound();
+  void postUpdate();
+  long getShapeType();
+  [Const] DOMString getName();
+  eGIMPACT_SHAPE_TYPE getGImpactShapeType();
+  [Const] btPrimitiveManagerBase getPrimitiveManager();
+  long getNumChildShapes();
+  boolean childrenHasTransform();
+  boolean needsRetrieveTriangles();
+  boolean needsRetrieveTetrahedrons();
+  void getBulletTriangle(long prim_index, [Ref] btTriangleShapeEx triangle);
+  void getBulletTetrahedron(long prim_index, [Ref] btTetrahedronShapeEx tetrahedron);
+  [Const] btCollisionShape getChildShape(long index);
+  [Value] btTransform getChildTransform(long index);
+  void setChildTransform(long index, [Const, Ref] btTransform transform);
+};
+btGImpactShapeInterface implements btConcaveShape;
+
+[Prefix="btGImpactCompoundShape::"]
+interface CompoundPrimitiveManager {
+  attribute btGImpactCompoundShape m_compoundShape;
+  long get_primitive_count();
+  void get_primitive_box(long prim_index, [Ref] btAABB primbox);
+  void get_primitive_triangle(long prim_index, [Ref] btPrimitiveTriangle triangle);
+};
+CompoundPrimitiveManager implements btPrimitiveManagerBase;
+
+interface btGImpactCompoundShape {
+  void btGImpactCompoundShape(optional boolean children_has_transform = true);
+  boolean childrenHasTransform();
+  [Const] btPrimitiveManagerBase getPrimitiveManager();
+  CompoundPrimitiveManager getCompoundPrimitiveManager();
+  long getNumChildShapes();
+  void addChildShape([ Const, Ref ] btTransform localTransform, btCollisionShape shape);
+  btCollisionShape getChildShape(long index);
+  void getChildAabb(long child_index, [ Const, Ref ] btTransform t, [Ref] btVector3 aabbMin, [Ref] btVector3 aabbMax);
+  [Value] btTransform	getChildTransform(long index);
+  void setChildTransform(long index, [ Const, Ref ] btTransform transform);
+  void calculateLocalInertia(float mass, [Ref] btVector3 inertia);
+  [Const] DOMString getName();
+  eGIMPACT_SHAPE_TYPE getGImpactShapeType();
+};
+btGImpactCompoundShape implements btGImpactShapeInterface;
+
+[Prefix = "btGImpactMeshShapePart::"]
+interface TrimeshPrimitiveManager {
+  attribute float m_margin;
+  attribute btStridingMeshInterface m_meshInterface;
+  attribute long m_part;
+  attribute long m_lock_count;
+  attribute long numverts;
+  attribute PHY_ScalarType type;
+  attribute long stride;
+  attribute long indexstride;
+  attribute long numfaces;
+  attribute PHY_ScalarType indicestype;
+  void TrimeshPrimitiveManager([Const, Ref] optional TrimeshPrimitiveManager manager);
+  void lock();
+  void unlock();
+  boolean is_trimesh();
+  long get_vertex_count();
+  void get_indices(long face_index, unsigned long i0, unsigned long i1, unsigned long i2);
+  void get_vertex(unsigned long vertex_index, [Ref] btVector3 vertex);
+  void get_bullet_triangle(long prim_index, [Ref] btTriangleShapeEx triangle);
+};
+TrimeshPrimitiveManager implements btPrimitiveManagerBase;
+
+interface btGImpactMeshShapePart {
+  void btGImpactMeshShapePart(btStridingMeshInterface meshInterface, long part);
+  TrimeshPrimitiveManager getTrimeshPrimitiveManager();
+  long getVertexCount();
+  void getVertex(long vertex_index, [Ref] btVector3 vertex);
+  long getPart();
+};
+btGImpactMeshShapePart implements btGImpactShapeInterface;
+
+interface btGImpactMeshShape {
+  void btGImpactMeshShape(btStridingMeshInterface meshInterface);
+  [Const] btStridingMeshInterface getMeshInterface();
+  long getMeshPartCount();
+  [Const] btGImpactMeshShapePart getMeshPart(long index);
+  long calculateSerializeBufferSize();
+};
+btGImpactMeshShape implements btGImpactShapeInterface;
+
+interface btCollisionAlgorithmConstructionInfo {
+	void btCollisionAlgorithmConstructionInfo();
+	void btCollisionAlgorithmConstructionInfo(btDispatcher dispatcher, long temp);
+	attribute btDispatcher m_dispatcher1;
+	attribute btPersistentManifold m_manifold;
+};
+
+interface btCollisionAlgorithm {
+};
+
+interface btActivatingCollisionAlgorithm {
+};
+btActivatingCollisionAlgorithm implements btCollisionAlgorithm;
+
+interface btGImpactCollisionAlgorithm {
+  void btGImpactCollisionAlgorithm([Const, Ref] btCollisionAlgorithmConstructionInfo ci, [Const] btCollisionObjectWrapper body0Wrap, [Const] btCollisionObjectWrapper body1Wrap);
+  static void registerAlgorithm(btCollisionDispatcher dispatcher);
+};
+btGImpactCollisionAlgorithm implements btActivatingCollisionAlgorithm;
+
+//
+
 interface btDefaultCollisionConstructionInfo {
   void btDefaultCollisionConstructionInfo();
 };
