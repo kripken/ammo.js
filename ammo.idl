@@ -505,7 +505,6 @@ btCollisionDispatcher implements btDispatcher;
 interface btOverlappingPairCallback {
 };
 
-
 interface btOverlapFilterCallback {
 };
 
@@ -513,9 +512,6 @@ interface btBroadphaseProxy {
   attribute long m_collisionFilterGroup;
   attribute long m_collisionFilterMask;
 };
-
-
-
 
 interface btOverlappingPairCache {
   void setInternalGhostPairCallback(btOverlappingPairCallback ghostPairCallback);
@@ -740,7 +736,7 @@ interface btCollisionWorld {
   void debugDrawWorld();
   void debugDrawObject([Const, Ref] btTransform worldTransform, [Const] btCollisionShape shape, [Const, Ref] btVector3 color);
   long getNumCollisionObjects();
-  void	performDiscreteCollisionDetection();
+  void performDiscreteCollisionDetection();
 };
 
 interface btContactSolverInfo {
