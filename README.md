@@ -163,8 +163,9 @@ This offers many advantages (keeping its native environment clean, portability, 
 To do this, you just have to install Docker and run:
 
   ```bash
-  $ docker-compose build  # to create the Docker image
-  $ docker-compose up     # to create the Docker container and build ammo.js
+  $ docker-compose build        # to create the Docker image
+  $ docker-compose up           # to create the Docker container and build ammo.js
+  $ docker-compose run builder  # to build again the ammojs targets after any modification
   ```
 
 If you want to add arguments to cmake, you have to edit the `docker-compose.yml` file. 
