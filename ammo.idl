@@ -817,6 +817,8 @@ interface btHingeConstraint {
   void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame, optional boolean useReferenceFrameA);
   void btHingeConstraint ([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame, optional boolean useReferenceFrameA);
 
+  float getHingeAngle();
+
   void setLimit(float low, float high, float softness, float biasFactor, optional float relaxationFactor);
   void enableAngularMotor(boolean enableMotor, float targetVelocity, float maxMotorImpulse);
   void setAngularOnly(boolean angularOnly);
@@ -831,6 +833,10 @@ btHingeConstraint implements btTypedConstraint;
 interface btSliderConstraint {
   void btSliderConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btTransform frameInA, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
   void btSliderConstraint([Ref] btRigidBody rbB, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
+
+  [Const] float getLinearPos();
+	[Const] float getAngularPos();
+
   void setLowerLinLimit(float lowerLimit);
   void setUpperLinLimit(float upperLimit);
   void setLowerAngLimit(float lowerAngLimit);
