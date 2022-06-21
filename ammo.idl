@@ -835,7 +835,7 @@ interface btSliderConstraint {
   void btSliderConstraint([Ref] btRigidBody rbB, [Const,Ref] btTransform frameInB, boolean useLinearReferenceFrameA);
 
   [Const] float getLinearPos();
-	[Const] float getAngularPos();
+  [Const] float getAngularPos();
 
   void setLowerLinLimit(float lowerLimit);
   void setUpperLinLimit(float upperLimit);
