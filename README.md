@@ -26,10 +26,6 @@ engine](http://bulletphysics.org/) to JavaScript, using Emscripten. The source
 code is translated directly to JavaScript, without human rewriting, so
 functionality should be identical to the original Bullet.
 
-**Note: ammo.js has just been updated to a new porting approach. If you find
-some part of the Bullet API that is not supported that you need, please see
-https://github.com/kripken/ammo.js/issues/60**
-
 'ammo' stands for "Avoided Making My Own js physics engine by compiling bullet
 from C++" ;)
 
