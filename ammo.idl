@@ -109,6 +109,13 @@ interface btMotionState {
   void setWorldTransform([Ref] btTransform worldTrans);
 };
 
+[JSImplementation="btMotionState"]
+interface MotionState {
+  void MotionState();
+  [Const] void getWorldTransform([Ref] btTransform worldTrans);
+  void setWorldTransform([Const, Ref] btTransform worldTrans);
+};
+
 interface btDefaultMotionState {
   void btDefaultMotionState([Ref] optional btTransform startTrans, [Ref] optional btTransform centerOfMassOffset);
   [Value] attribute btTransform m_graphicsWorldTrans;
