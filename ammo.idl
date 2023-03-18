@@ -146,7 +146,9 @@ interface btCollisionObject {
   void setCollisionFlags(long flags);
   void setWorldTransform([Const,Ref] btTransform worldTrans);
   void setCollisionShape(btCollisionShape collisionShape);
+  [Const] float getCcdMotionThreshold();
   void setCcdMotionThreshold (float ccdMotionThreshold);
+  [Const] float getCcdSweptSphereRadius();
   void setCcdSweptSphereRadius (float radius);
   long getUserIndex();
   void setUserIndex(long index);
@@ -739,6 +741,9 @@ interface btRigidBody {
   void setGravity([Const, Ref] btVector3 acceleration);
   [Const] btBroadphaseProxy getBroadphaseProxy();
   void clearForces();
+  [Const, Ref] btVector3 getTotalForce();
+  [Const, Ref] btVector3 getTotalTorque();
+  [Const] float getInvMass();
 };
 btRigidBody implements btCollisionObject;
 
@@ -1231,6 +1236,8 @@ interface btSoftBody {
   void scale(  [Const, Ref] btVector3 scl);
   long generateClusters(long k, optional long maxiterations);
   long generateBendingConstraints(long distance, Material mat);
+  void setWindVelocity([Const, Ref] btVector3 velocity);
+  [Const, Ref] btVector3 getWindVelocity();
   btSoftBody upcast(btCollisionObject colObj);
   float getRestLengthScale();
   void setRestLengthScale(float restLength);
