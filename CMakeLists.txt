@@ -28,7 +28,8 @@ set(USE_GLUT OFF)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
 
 # Default is 64*1024*1024 = 64MB
-set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
+#set(TOTAL_MEMORY 67108864 CACHE STRING "Total Memory")
+set(TOTAL_MEMORY 134217728 CACHE STRING "Total Memory")
 
 # Enable for resizable heap, with some amount of slowness
 set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth")
@@ -45,6 +46,7 @@ set(EMCC_ARGS
   -s EXPORTED_RUNTIME_METHODS=["UTF8ToString"]
   -s EXTRA_EXPORTED_RUNTIME_METHODS=["addFunction"]
   -s EXPORT_NAME="Ammo"
+  -s EXPORT_ES6=1
   -s MODULARIZE=1
   -s NO_EXIT_RUNTIME=1
   -s NO_FILESYSTEM=1
