@@ -65,7 +65,6 @@
 			// Graphics variables
 			var container, stats, speedometer;
 			var camera, controls, scene, renderer;
-			var terrainMesh, texture;
 			var clock = new THREE.Clock();
 			var materialDynamic, materialStatic, materialInteractive;
 
@@ -78,9 +77,6 @@
 
 			var syncList = [];
 			var time = 0;
-			var objectTimePeriod = 3;
-			var timeNextSpawn = time + objectTimePeriod;
-			var maxNumObjects = 30;
 
 			// Keybord actions
 			var actions = {};
