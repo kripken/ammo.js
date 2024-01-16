@@ -18,6 +18,11 @@ jobs:
       - run: cmake -B builds -DCLOSURE=1 ${{ matrix.cmake-args }}
       - run: cmake --build builds -- VERBOSE=1
       - run: npm ci
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-without-markdown
+          path:  builds/**/ammo*
       - name: Test Ammo Javascript
         run: npx ava
         env:
