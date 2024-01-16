@@ -125,6 +125,7 @@ btDefaultMotionState implements btMotionState;
 // Collision
 
 interface btCollisionObject {
+  void btCollisionObject();
   void setAnisotropicFriction([Const, Ref] btVector3 anisotropicFriction, long frictionMode);
   btCollisionShape getCollisionShape();
   void setContactProcessingThreshold(float contactProcessingThreshold);
@@ -658,8 +659,17 @@ btCollisionDispatcher implements btDispatcher;
 interface btOverlappingPairCallback {
 };
 
+interface btOverlapFilterCallback {
+};
+
+interface btBroadphaseProxy {
+  attribute long m_collisionFilterGroup;
+  attribute long m_collisionFilterMask;
+};
+
 interface btOverlappingPairCache {
   void setInternalGhostPairCallback(btOverlappingPairCallback ghostPairCallback);
+ void setOverlapFilterCallback(btOverlapFilterCallback filterCallback);
   [Const] float getNumOverlappingPairs();
 };
 
@@ -676,11 +686,6 @@ interface btCollisionConfiguration {
 
 interface btDbvtBroadphase {
   void btDbvtBroadphase();
-};
-
-interface btBroadphaseProxy {
-  attribute long m_collisionFilterGroup;
-  attribute long m_collisionFilterMask;
 };
 
 
@@ -880,6 +885,7 @@ interface btDispatcherInfo {
 };
 
 interface btCollisionWorld {
+  void btCollisionWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btCollisionConfiguration collisionConfiguration);
   btDispatcher getDispatcher();
   void rayTest([Const, Ref] btVector3 rayFromWorld, [Const, Ref] btVector3 rayToWorld, [Ref] RayResultCallback resultCallback);
   btOverlappingPairCache getPairCache();
@@ -895,6 +901,8 @@ interface btCollisionWorld {
   btIDebugDraw getDebugDrawer();
   void debugDrawWorld();
   void debugDrawObject([Const, Ref] btTransform worldTransform, [Const] btCollisionShape shape, [Const, Ref] btVector3 color);
+  long getNumCollisionObjects();
+  void performDiscreteCollisionDetection();
 };
 
 interface btContactSolverInfo {

@@ -1,0 +1,43 @@
+name: tst
+on:  workflow_dispatch
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '^3.5'
+      - uses: mymindstorm/setup-emsdk@v8
+        with:
+          version: 'latest'
+      - run: emcc -v
+      - run: python -V
+      - run: cmake --version
+      - run: ${{ matrix.make || 'make' }} --version
+      - run: cmake -B builds -DCLOSURE=1 ${{ matrix.cmake-args }}
+      - run: cmake --build builds -- VERBOSE=1
+      - run: npm ci
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-without-markdown
+          path:  builds/**/ammo*
+      - name: Test Ammo Javascript
+        run: npx ava
+        env:
+          AMMO_BUILD: builds/ammo.js
+      - name: Test Ammo WebAssembly
+        run: npx ava
+        env:
+          AMMO_BUILD: builds/ammo.wasm.js
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        include:
+          - os: windows-latest
+            cmake-args: -G 'MinGW Makefiles'
+            make: mingw32-make
