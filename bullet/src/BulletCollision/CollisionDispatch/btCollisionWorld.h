@@ -354,7 +354,7 @@ public:
 		{
 		}
 		
-		bool	hasHit() const
+		virtual bool	hasHit() const
 		{
 			return (m_closestHitFraction < btScalar(1.));
 		}
@@ -404,6 +404,49 @@ public:
 			}
 			m_hitPointWorld = convexResult.m_hitPointLocal;
 			return convexResult.m_hitFraction;
+		}
+	};
+
+	struct	AllHitsConvexResultCallback : public ConvexResultCallback
+	{
+		AllHitsConvexResultCallback(const btVector3&	convexFromWorld,const btVector3&	convexToWorld)
+		:m_convexFromWorld(convexFromWorld),
+		m_convexToWorld(convexToWorld)
+		{
+		}
+
+		btAlignedObjectArray<const btCollisionObject*>		m_collisionObjects;
+
+		btVector3	m_convexFromWorld;//used to calculate hitPointWorld from hitFraction
+		btVector3	m_convexToWorld;
+
+		btAlignedObjectArray<btVector3>	m_hitNormalWorld;
+		btAlignedObjectArray<btVector3>	m_hitPointWorld;
+		btAlignedObjectArray<btScalar> m_hitFractions;
+
+		virtual bool	hasHit() const
+		{
+			// m_closestHitFraction stays at 1 so the sweep is not narrowed to the closest hit.
+			return m_collisionObjects.size() > 0;
+		}
+
+		virtual	btScalar	addSingleResult(LocalConvexResult& convexResult,bool normalInWorldSpace)
+		{
+			m_collisionObjects.push_back(convexResult.m_hitCollisionObject);
+			btVector3 hitNormalWorld;
+			if (normalInWorldSpace)
+			{
+				hitNormalWorld = convexResult.m_hitNormalLocal;
+			} else
+			{
+				///need to transform normal into worldspace
+				hitNormalWorld = convexResult.m_hitCollisionObject->getWorldTransform().getBasis()*convexResult.m_hitNormalLocal;
+			}
+			m_hitNormalWorld.push_back(hitNormalWorld);
+			m_hitPointWorld.push_back(convexResult.m_hitPointLocal);
+			m_hitFractions.push_back(convexResult.m_hitFraction);
+			// Leave m_closestHitFraction unchanged so later, farther hits are still reported.
+			return m_closestHitFraction;
 		}
 	};
 

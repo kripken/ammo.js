@@ -275,6 +275,19 @@ interface ClosestConvexResultCallback {
 };
 ClosestConvexResultCallback implements ConvexResultCallback;
 
+[Prefix="btCollisionWorld::"]
+interface AllHitsConvexResultCallback {
+  void AllHitsConvexResultCallback([Const, Ref] btVector3 convexFromWorld, [Const, Ref] btVector3 convexToWorld);
+
+  [Value] attribute btConstCollisionObjectArray m_collisionObjects;
+  [Value] attribute btVector3 m_convexFromWorld;
+  [Value] attribute btVector3 m_convexToWorld;
+  [Value] attribute btVector3Array m_hitNormalWorld;
+  [Value] attribute btVector3Array m_hitPointWorld;
+  [Value] attribute btScalarArray m_hitFractions;
+};
+AllHitsConvexResultCallback implements ConvexResultCallback;
+
 interface btCollisionShape {
   void setLocalScaling([Const, Ref] btVector3 scaling);
   [Const, Ref] btVector3 getLocalScaling();
